@@ -1,10 +1,7 @@
-version: '3.8'
-
+version: "3.8"
 services:
-  # ──── MySQL Database ────
   db:
     image: mysql:8
-    container_name: wellfitness-db
     environment:
       MYSQL_ROOT_PASSWORD: 159Atg45@
       MYSQL_DATABASE: wellfitness_db
@@ -18,21 +15,28 @@ services:
       timeout: 5s
       retries: 5
 
-  # ──── Spring Boot Backend ────
   backend:
     build: ./backend
-    container_name: wellfitness-api
     ports:
       - "8080:8080"
     environment:
       DB_URL: jdbc:mysql://db:3306/wellfitness_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       DB_USER: root
       DB_PASS: 159Atg45@
-      JWT_SECRET: docker_dev_secret_change_in_production_min64chars_long_enough!!
+      JWT_SECRET: Wellfitness_Super_Secret_Key_2025_Change_In_Production_MinLength64Chars!!
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8080/api
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
 
 volumes:
   mysql_data:
