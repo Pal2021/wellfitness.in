@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Phase 6 — Smart Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#111;--bg2:#181818;--bg3:#1f1f1f;--card:#1c1c1c;--card2:#242424;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,0.13);--amber-bd:rgba(245,166,35,0.3);
+  --green:#4cd964;--green-dim:rgba(76,217,100,0.12);--green-bd:rgba(76,217,100,0.3);
+  --blue:#4da6ff;--blue-dim:rgba(77,166,255,0.12);--blue-bd:rgba(77,166,255,0.3);
+  --red:#ff5c3a;--red-dim:rgba(255,92,58,0.12);--red-bd:rgba(255,92,58,0.3);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.12);--purple-bd:rgba(167,139,250,0.3);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.12);--pink-bd:rgba(244,114,182,0.3);
+  --elite:#f5a623;
+  --text:#fff;--text2:#888;--text3:#444;
+  --r:14px;--r-sm:10px;--r-xs:7px;
+}
+html,body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.shell{max-width:390px;margin:0 auto;min-height:100vh;position:relative;overflow:hidden;}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);transition:transform .32s cubic-bezier(.4,0,.2,1),opacity .32s ease;will-change:transform;}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
+.screen.back-hidden{transform:translateX(-28%);opacity:0;pointer-events:none;}
+::-webkit-scrollbar{display:none;}
+
+/* STATUS */
+.status{display:flex;justify-content:space-between;padding:14px 20px 4px;font-size:12px;font-weight:600;color:var(--text3);}
+
+/* HEADER */
+.pg-header{padding:4px 18px 14px;}
+.back-btn{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--amber);font-weight:600;cursor:pointer;margin-bottom:10px;}
+.pg-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.pg-title{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.2;}
+.elite-badge{background:var(--amber-dim);border:1px solid var(--amber-bd);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--amber);white-space:nowrap;flex-shrink:0;margin-top:3px;}
+
+/* HERO */
+.hero-card{margin:0 16px 20px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:30px 20px 24px;text-align:center;position:relative;overflow:hidden;}
+.hero-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -10%,rgba(244,114,182,0.07) 0%,transparent 65%);pointer-events:none;}
+.hero-emoji{font-size:52px;margin-bottom:14px;line-height:1;display:block;}
+.hero-desc{font-size:13.5px;color:var(--text2);line-height:1.7;max-width:270px;margin:0 auto 20px;}
+.hero-desc strong{color:var(--text);}
+.hero-lock{display:inline-flex;align-items:center;gap:7px;background:var(--amber-dim);border:1px solid var(--amber-bd);border-radius:20px;padding:9px 22px;font-size:13px;font-weight:700;color:var(--amber);cursor:pointer;}
+
+/* SECTION LABEL */
+.sec-label{padding:0 18px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);}
+
+/* FEATURE LIST — exact match to screenshot */
+.feat-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.feat-row{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:15px 14px;cursor:pointer;transition:background .15s,transform .1s;}
+.feat-row:active{background:var(--card2);transform:scale(.99);}
+.feat-icon-wrap{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.feat-info{flex:1;min-width:0;}
+.feat-name{font-size:14.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.feat-sub{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.4;}
+.badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.07);color:var(--text3);border:1px solid var(--border2);flex-shrink:0;}
+.feat-arrow{font-size:14px;color:var(--text3);flex-shrink:0;}
+
+/* NOTIFY */
+.notify-card{margin:20px 16px 8px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:18px;}
+.notify-head{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+.notify-icon{font-size:24px;}
+.notify-title{font-size:16px;font-weight:700;}
+.notify-sub{font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.5;}
+.input-row{display:flex;gap:8px;}
+.email-in{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px 14px;font-size:13px;color:var(--text);outline:none;font-family:inherit;}
+.email-in::placeholder{color:var(--text3);}
+.email-in:focus{border-color:var(--amber-bd);}
+.notify-btn{background:var(--amber);border:none;border-radius:var(--r-sm);padding:12px 18px;font-size:14px;font-weight:700;color:#111;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.notify-btn:active{opacity:.85;}
+.back-bottom{display:block;width:calc(100% - 32px);margin:14px 16px 40px;background:none;border:1px solid var(--border2);border-radius:50px;padding:14px;font-size:14px;font-weight:600;color:var(--amber);cursor:pointer;font-family:inherit;text-align:center;}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.a0{animation:fadeUp .28s ease both;}
+.a1{animation:fadeUp .28s .07s ease both;}
+.a2{animation:fadeUp .28s .14s ease both;}
+.a3{animation:fadeUp .28s .21s ease both;}
+.a4{animation:fadeUp .28s .28s ease both;}
+.a5{animation:fadeUp .28s .35s ease both;}
+
+/* SUB-SCREEN BASE */
+.sub-scroll{padding-bottom:44px;}
+.sdiv{padding:14px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);}
+
+/* SHARED */
+.info-card{margin:0 16px 10px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.stat-row{display:flex;gap:8px;}
+.stat-box{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;text-align:center;}
+.stat-val{font-size:21px;font-weight:800;letter-spacing:-.5px;line-height:1;}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;}
+.action-btn{width:100%;border:none;border-radius:var(--r-sm);padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
+
+/* ====== MUSCLE RECOVERY TRACKER ====== */
+.muscle-map{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.mm-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.mm-legend{display:flex;gap:10px;}
+.mm-leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.mm-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+.muscle-list{padding:0 16px;display:flex;flex-direction:column;gap:7px;}
+.muscle-item{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 14px;gap:13px;}
+.muscle-icon{font-size:22px;flex-shrink:0;}
+.muscle-info{flex:1;}
+.muscle-name{font-size:14px;font-weight:600;color:var(--text);}
+.muscle-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.muscle-status{display:flex;align-items:center;gap:6px;}
+.status-pill{font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;}
+.status-ready{background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);}
+.status-recovering{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);}
+.status-rest{background:var(--red-dim);color:var(--red);border:1px solid var(--red-bd);}
+.muscle-hrs{font-size:11px;color:var(--text3);}
+.rec-bar-wrap{height:4px;background:var(--bg3);border-radius:2px;margin-top:5px;overflow:hidden;}
+.rec-bar{height:100%;border-radius:2px;}
+
+/* ====== FATIGUE DETECTION ====== */
+.fatigue-score-card{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:20px;text-align:center;position:relative;overflow:hidden;}
+.fatigue-score-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,92,58,0.06) 0%,transparent 65%);pointer-events:none;}
+.fatigue-num{font-size:72px;font-weight:800;letter-spacing:-3px;line-height:1;color:var(--amber);}
+.fatigue-lbl{font-size:14px;color:var(--text2);margin-top:4px;}
+.fatigue-verdict{display:inline-block;margin-top:12px;border-radius:20px;padding:7px 20px;font-size:13px;font-weight:700;}
+
+.fatigue-factors{padding:0 16px;display:flex;flex-direction:column;gap:7px;margin-bottom:4px;}
+.ff-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 13px;gap:12px;}
+.ff-icon{font-size:20px;flex-shrink:0;}
+.ff-info{flex:1;}
+.ff-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.ff-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.ff-right{text-align:right;}
+.ff-val{font-size:16px;font-weight:800;line-height:1;}
+.ff-bar{width:54px;height:3px;background:var(--bg3);border-radius:2px;margin-top:4px;overflow:hidden;}
+.ff-fill{height:100%;border-radius:2px;}
+
+.fatigue-alert{margin:10px 16px 0;background:var(--red-dim);border:1px solid var(--red-bd);border-radius:var(--r-sm);padding:12px 14px;display:flex;gap:10px;align-items:flex-start;}
+.fa-icon{font-size:18px;flex-shrink:0;}
+.fa-text{font-size:13px;color:var(--text);line-height:1.5;}
+.fa-text strong{color:var(--red);}
+
+/* ====== ADAPTIVE PLANS ====== */
+.adapt-today{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.at-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.at-icon{font-size:28px;}
+.at-info{flex:1;}
+.at-title{font-size:15px;font-weight:700;}
+.at-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.at-change{background:var(--blue-dim);border:1px solid var(--blue-bd);border-radius:var(--r-sm);padding:11px 13px;display:flex;gap:10px;align-items:flex-start;}
+.atc-icon{font-size:18px;flex-shrink:0;}
+.atc-text{font-size:13px;color:var(--text);line-height:1.55;}
+.atc-text strong{color:var(--blue);}
+
+.week-plan{padding:0 16px;display:flex;flex-direction:column;gap:7px;}
+.wp-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 13px;gap:12px;}
+.wp-day{font-size:12px;font-weight:700;color:var(--text2);width:36px;flex-shrink:0;}
+.wp-day.today{color:var(--amber);}
+.wp-info{flex:1;}
+.wp-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.wp-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.wp-vol{text-align:right;}
+.wp-pct{font-size:14px;font-weight:800;line-height:1;}
+.wp-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
+.wp-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.wp-today-row{border-color:var(--amber-bd);background:var(--amber-dim);}
+
+/* ====== DELOAD PLANNER ====== */
+.deload-hero{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:18px;}
+.dh-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.dh-title{font-size:16px;font-weight:800;}
+.dh-countdown{background:var(--red-dim);border:1px solid var(--red-bd);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:700;color:var(--red);}
+.deload-progress{margin-bottom:14px;}
+.dp-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px;}
+.dp-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;}
+.dp-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));}
+.dp-weeks{display:flex;justify-content:space-between;margin-top:4px;}
+.dp-week{font-size:10px;color:var(--text3);}
+.dp-week.current{color:var(--amber);font-weight:700;}
+.deload-info{background:var(--bg3);border-radius:var(--r-sm);padding:12px 13px;}
+.di-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:7px;}
+.di-text{font-size:13px;color:var(--text2);line-height:1.55;}
+.di-text strong{color:var(--text);}
+
+.deload-schedule{padding:0 16px;display:flex;flex-direction:column;gap:7px;}
+.ds-row{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 14px;display:flex;align-items:center;gap:12px;}
+.ds-exercise{flex:1;}
+.ds-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.ds-orig{font-size:11px;color:var(--text2);margin-top:2px;}
+.ds-arrow{font-size:16px;color:var(--text3);}
+.ds-new{text-align:right;}
+.ds-new-val{font-size:15px;font-weight:800;color:var(--amber);line-height:1;}
+.ds-new-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* ====== EXERCISE SUBSTITUTION ====== */
+.sub-filter{display:flex;gap:6px;padding:0 16px 14px;overflow-x:auto;}
+.sub-filter::-webkit-scrollbar{display:none;}
+.sf-chip{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border2);background:var(--card);color:var(--text2);cursor:pointer;white-space:nowrap;}
+.sf-chip.active{background:var(--purple-dim);border-color:var(--purple-bd);color:var(--purple);}
+
+.sub-card{margin:0 16px 10px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;}
+.sc-head{padding:13px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sc-exercise{flex:1;}
+.sc-name{font-size:15px;font-weight:700;color:var(--text);}
+.sc-reason{font-size:11px;color:var(--text2);margin-top:2px;}
+.sc-muscle-tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple-bd);}
+.sc-alts{padding:8px 0;}
+.sc-alt{display:flex;align-items:center;padding:10px 14px;gap:12px;cursor:pointer;border-bottom:1px solid var(--border);}
+.sc-alt:last-child{border-bottom:none;}
+.sc-alt:active{background:rgba(255,255,255,0.02);}
+.sc-alt-icon{font-size:20px;flex-shrink:0;}
+.sc-alt-info{flex:1;}
+.sc-alt-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.sc-alt-meta{font-size:11px;color:var(--text2);margin-top:2px;}
+.sc-alt-match{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.sc-alt-match.high{background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);}
+.sc-alt-match.mid{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);}
+.sc-select{font-size:12px;color:var(--purple);font-weight:600;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ======== HOME ======== -->
+<div class="screen" id="s-home">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Phase 6 —<br>Smart Training</div>
+      <div class="elite-badge">ELITE · ₹699/mo</div>
+    </div>
+  </div>
+
+  <div class="hero-card a0">
+    <span class="hero-emoji">🧠</span>
+    <div class="hero-desc">AI-powered training adjustments based on <strong>recovery, fatigue,</strong> and life events.</div>
+    <div class="hero-lock">🔒 &nbsp;ELITE · ₹699/mo</div>
+  </div>
+
+  <div class="sec-label a1">UPCOMING FEATURES (5)</div>
+  <div class="feat-list a2">
+    <div class="feat-row" onclick="go('s-muscle')">
+      <div class="feat-icon-wrap" style="background:rgba(76,217,100,0.12);">💚</div>
+      <div class="feat-info">
+        <div class="feat-name">Muscle Recovery Tracker <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Per-muscle recovery: Ready / Recovering / Rest</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-fatigue')">
+      <div class="feat-icon-wrap" style="background:rgba(255,92,58,0.1);">😓</div>
+      <div class="feat-info">
+        <div class="feat-name">Fatigue Detection <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">2-week rolling analysis, flags performance drops &gt;20%</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-adaptive')">
+      <div class="feat-icon-wrap" style="background:rgba(77,166,255,0.12);">🔄</div>
+      <div class="feat-info">
+        <div class="feat-name">Adaptive Plans <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Auto-adjusts volume based on recovery and sleep</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-deload')">
+      <div class="feat-icon-wrap" style="background:rgba(244,114,182,0.12);">📉</div>
+      <div class="feat-info">
+        <div class="feat-name">Deload Planner <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Auto-schedules 40% volume reduction after 8 weeks</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-substitution')">
+      <div class="feat-icon-wrap" style="background:rgba(167,139,250,0.12);">🔀</div>
+      <div class="feat-info">
+        <div class="feat-name">Exercise Substitution <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Smart alternatives based on equipment and muscle group</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+  </div>
+
+  <div class="notify-card a3">
+    <div class="notify-head">
+      <div class="notify-icon">🔔</div>
+      <div class="notify-title">Get Notified</div>
+    </div>
+    <div class="notify-sub">We'll email you when Phase 6 launches.</div>
+    <div class="input-row">
+      <input class="email-in" type="email" placeholder="Enter your email…" id="em1"/>
+      <button class="notify-btn" onclick="notifyMe('em1',this)">Notify Me</button>
+    </div>
+  </div>
+  <button class="back-bottom">← Back</button>
+</div>
+
+<!-- ======== MUSCLE RECOVERY TRACKER ======== -->
+<div class="screen hidden" id="s-muscle">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Muscle Recovery</div>
+      <div class="elite-badge">ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div style="padding:0 16px;margin-bottom:12px;" class="a0">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" style="color:var(--green)">5</div><div class="stat-lbl">Ready</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--amber)">3</div><div class="stat-lbl">Recovering</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--red)">2</div><div class="stat-lbl">Rest</div></div>
+      </div>
+    </div>
+
+    <div class="muscle-map a1">
+      <div class="mm-title">
+        <span>Today's status</span>
+        <div class="mm-legend">
+          <div class="mm-leg"><div class="mm-dot" style="background:var(--green)"></div>Ready</div>
+          <div class="mm-leg"><div class="mm-dot" style="background:var(--amber)"></div>Recovering</div>
+          <div class="mm-leg"><div class="mm-dot" style="background:var(--red)"></div>Rest</div>
+        </div>
+      </div>
+      <!-- Simple body silhouette with colored zones -->
+      <svg viewBox="0 0 320 180" width="100%" style="margin-bottom:4px;">
+        <!-- body outline -->
+        <ellipse cx="160" cy="32" rx="22" ry="26" fill="rgba(76,217,100,0.15)" stroke="var(--green)" stroke-width="1.5"/>
+        <!-- shoulders -->
+        <ellipse cx="120" cy="65" rx="24" ry="14" fill="rgba(76,217,100,0.12)" stroke="var(--green)" stroke-width="1.2"/>
+        <ellipse cx="200" cy="65" rx="24" ry="14" fill="rgba(76,217,100,0.12)" stroke="var(--green)" stroke-width="1.2"/>
+        <!-- chest -->
+        <rect x="130" y="70" width="60" height="32" rx="8" fill="rgba(245,166,35,0.15)" stroke="var(--amber)" stroke-width="1.5"/>
+        <!-- back (shown as lighter) -->
+        <rect x="133" y="104" width="54" height="28" rx="7" fill="rgba(255,92,58,0.12)" stroke="var(--red)" stroke-width="1.5"/>
+        <!-- arms -->
+        <rect x="88" y="72" width="18" height="50" rx="9" fill="rgba(76,217,100,0.12)" stroke="var(--green)" stroke-width="1.2"/>
+        <rect x="214" y="72" width="18" height="50" rx="9" fill="rgba(76,217,100,0.12)" stroke="var(--green)" stroke-width="1.2"/>
+        <!-- legs -->
+        <rect x="136" y="134" width="22" height="44" rx="11" fill="rgba(245,166,35,0.15)" stroke="var(--amber)" stroke-width="1.5"/>
+        <rect x="162" y="134" width="22" height="44" rx="11" fill="rgba(76,217,100,0.12)" stroke="var(--green)" stroke-width="1.2"/>
+        <!-- labels -->
+        <text x="160" y="36" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9" font-family="Inter">Head</text>
+        <text x="160" y="90" text-anchor="middle" fill="rgba(245,166,35,0.9)" font-size="9" font-family="Inter" font-weight="700">Chest</text>
+        <text x="160" y="122" text-anchor="middle" fill="rgba(255,92,58,0.9)" font-size="9" font-family="Inter" font-weight="700">Back</text>
+        <text x="97" y="102" text-anchor="middle" fill="rgba(76,217,100,0.9)" font-size="8" font-family="Inter">Arms</text>
+        <text x="223" y="102" text-anchor="middle" fill="rgba(76,217,100,0.9)" font-size="8" font-family="Inter">Arms</text>
+        <text x="147" y="162" text-anchor="middle" fill="rgba(245,166,35,0.9)" font-size="8" font-family="Inter">L Quad</text>
+        <text x="173" y="162" text-anchor="middle" fill="rgba(76,217,100,0.9)" font-size="8" font-family="Inter">R Quad</text>
+      </svg>
+    </div>
+
+    <div class="sdiv a2">ALL MUSCLE GROUPS</div>
+    <div class="muscle-list a3">
+      <div class="muscle-item">
+        <div class="muscle-icon">💪</div>
+        <div class="muscle-info">
+          <div class="muscle-name">Chest</div>
+          <div class="muscle-sub">Last trained: Yesterday · Bench Press</div>
+          <div class="rec-bar-wrap"><div class="rec-bar" style="width:65%;background:var(--amber)"></div></div>
+        </div>
+        <div><div class="status-pill status-recovering">Recovering</div><div class="muscle-hrs" style="margin-top:4px;text-align:right">~18h left</div></div>
+      </div>
+      <div class="muscle-item">
+        <div class="muscle-icon">🦵</div>
+        <div class="muscle-info">
+          <div class="muscle-name">Quads</div>
+          <div class="muscle-sub">Last trained: 2 days ago · Squat</div>
+          <div class="rec-bar-wrap"><div class="rec-bar" style="width:90%;background:var(--green)"></div></div>
+        </div>
+        <div><div class="status-pill status-ready">Ready</div><div class="muscle-hrs" style="margin-top:4px;text-align:right">✓ Go</div></div>
+      </div>
+      <div class="muscle-item">
+        <div class="muscle-icon">🔗</div>
+        <div class="muscle-info">
+          <div class="muscle-name">Back</div>
+          <div class="muscle-sub">Last trained: Today · Deadlift</div>
+          <div class="rec-bar-wrap"><div class="rec-bar" style="width:20%;background:var(--red)"></div></div>
+        </div>
+        <div><div class="status-pill status-rest">Rest</div><div class="muscle-hrs" style="margin-top:4px;text-align:right">~36h left</div></div>
+      </div>
+      <div class="muscle-item">
+        <div class="muscle-icon">🙌</div>
+        <div class="muscle-info">
+          <div class="muscle-name">Shoulders</div>
+          <div class="muscle-sub">Last trained: 3 days ago · OHP</div>
+          <div class="rec-bar-wrap"><div class="rec-bar" style="width:100%;background:var(--green)"></div></div>
+        </div>
+        <div><div class="status-pill status-ready">Ready</div><div class="muscle-hrs" style="margin-top:4px;text-align:right">✓ Go</div></div>
+      </div>
+      <div class="muscle-item">
+        <div class="muscle-icon">🦾</div>
+        <div class="muscle-info">
+          <div class="muscle-name">Triceps</div>
+          <div class="muscle-sub">Last trained: Yesterday · Pushdowns</div>
+          <div class="rec-bar-wrap"><div class="rec-bar" style="width:55%;background:var(--amber)"></div></div>
+        </div>
+        <div><div class="status-pill status-recovering">Recovering</div><div class="muscle-hrs" style="margin-top:4px;text-align:right">~22h left</div></div>
+      </div>
+      <div class="muscle-item">
+        <div class="muscle-icon">🦮</div>
+        <div class="muscle-info">
+          <div class="muscle-name">Hamstrings</div>
+          <div class="muscle-sub">Last trained: 4 days ago</div>
+          <div class="rec-bar-wrap"><div class="rec-bar" style="width:100%;background:var(--green)"></div></div>
+        </div>
+        <div><div class="status-pill status-ready">Ready</div><div class="muscle-hrs" style="margin-top:4px;text-align:right">✓ Go</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== FATIGUE DETECTION ======== -->
+<div class="screen hidden" id="s-fatigue">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Fatigue Detection</div>
+      <div class="elite-badge">ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="fatigue-score-card a0">
+      <div class="fatigue-num">62</div>
+      <div class="fatigue-lbl">Fatigue score · 2-week rolling average</div>
+      <div class="fatigue-verdict" style="background:var(--amber-dim);border:1px solid var(--amber-bd);color:var(--amber);">⚠️ Moderate fatigue — train carefully</div>
+    </div>
+
+    <div class="sdiv a1">PERFORMANCE SIGNALS</div>
+    <div class="fatigue-factors a2">
+      <div class="ff-row">
+        <div class="ff-icon">🏋️</div>
+        <div class="ff-info"><div class="ff-name">Strength output</div><div class="ff-sub">Bench dropped 8% vs 2-week avg</div></div>
+        <div class="ff-right"><div class="ff-val" style="color:var(--amber)">−8%</div><div class="ff-bar"><div class="ff-fill" style="width:45%;background:var(--amber)"></div></div></div>
+      </div>
+      <div class="ff-row">
+        <div class="ff-icon">❤️</div>
+        <div class="ff-info"><div class="ff-name">Resting heart rate</div><div class="ff-sub">+6 bpm above baseline · elevated</div></div>
+        <div class="ff-right"><div class="ff-val" style="color:var(--red)">78</div><div class="ff-bar"><div class="ff-fill" style="width:72%;background:var(--red)"></div></div></div>
+      </div>
+      <div class="ff-row">
+        <div class="ff-icon">😴</div>
+        <div class="ff-info"><div class="ff-name">Sleep quality</div><div class="ff-sub">Avg 6.4h last 7 days · below target</div></div>
+        <div class="ff-right"><div class="ff-val" style="color:var(--amber)">6.4h</div><div class="ff-bar"><div class="ff-fill" style="width:55%;background:var(--amber)"></div></div></div>
+      </div>
+      <div class="ff-row">
+        <div class="ff-icon">🧠</div>
+        <div class="ff-info"><div class="ff-name">Motivation score</div><div class="ff-sub">Self-reported · avg 2.8/5 this week</div></div>
+        <div class="ff-right"><div class="ff-val" style="color:var(--red)">2.8</div><div class="ff-bar"><div class="ff-fill" style="width:35%;background:var(--red)"></div></div></div>
+      </div>
+      <div class="ff-row">
+        <div class="ff-icon">📅</div>
+        <div class="ff-info"><div class="ff-name">Training frequency</div><div class="ff-sub">6 sessions last week · high</div></div>
+        <div class="ff-right"><div class="ff-val" style="color:var(--green)">6/wk</div><div class="ff-bar"><div class="ff-fill" style="width:85%;background:var(--red)"></div></div></div>
+      </div>
+    </div>
+
+    <div class="fatigue-alert a3">
+      <div class="fa-icon">🚨</div>
+      <div class="fa-text"><strong>Performance drop detected</strong> — your bench press is down &gt;20% vs 2-week rolling average. Consider a deload week or reduce today's volume by 30%.</div>
+    </div>
+
+    <div style="padding:14px 16px 0;" class="a4">
+      <button class="action-btn" style="background:var(--amber);color:#111;">📉 &nbsp;Start Deload Week</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== ADAPTIVE PLANS ======== -->
+<div class="screen hidden" id="s-adaptive">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Adaptive Plans</div>
+      <div class="elite-badge">ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="adapt-today a0">
+      <div class="at-top">
+        <div class="at-icon">🤖</div>
+        <div class="at-info">
+          <div class="at-title">AI adjusted today's plan</div>
+          <div class="at-sub">Based on recovery score 62 + 6.4h sleep</div>
+        </div>
+      </div>
+      <div class="at-change">
+        <div class="atc-icon">ℹ️</div>
+        <div class="atc-text">Volume reduced by <strong>−25%</strong> today. You slept 6.4h and your recovery is moderate. Push Day adjusted: 3 sets instead of 4, same weights.</div>
+      </div>
+    </div>
+
+    <div style="padding:0 16px;margin-bottom:12px;" class="a1">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" style="color:var(--red)">−25%</div><div class="stat-lbl">Volume today</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--green)">100%</div><div class="stat-lbl">Weight kept</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--blue)">3×</div><div class="stat-lbl">Sets (was 4×)</div></div>
+      </div>
+    </div>
+
+    <div class="sdiv a2">THIS WEEK'S PLAN</div>
+    <div class="week-plan a3">
+      <div class="wp-row"><div class="wp-day">Mon</div><div class="wp-info"><div class="wp-name">Push Day</div><div class="wp-sub">Bench, OHP, Triceps</div></div><div class="wp-vol"><div class="wp-pct" style="color:var(--green)">100%</div><div class="wp-lbl">volume</div></div></div>
+      <div class="wp-row"><div class="wp-day">Tue</div><div class="wp-info"><div class="wp-name">Pull Day</div><div class="wp-sub">Rows, Pullups, Curls</div></div><div class="wp-vol"><div class="wp-pct" style="color:var(--green)">100%</div><div class="wp-lbl">volume</div></div></div>
+      <div class="wp-row"><div class="wp-day">Wed</div><div class="wp-info"><div class="wp-name">Rest Day</div><div class="wp-sub">Recovery walk only</div></div><div class="wp-vol"><div class="wp-pct" style="color:var(--text3)">—</div><div class="wp-lbl">rest</div></div></div>
+      <div class="wp-row wp-today-row"><div class="wp-day today">Thu</div><div class="wp-info"><div class="wp-name">Push Day <span style="font-size:10px;color:var(--amber)">· ADJUSTED</span></div><div class="wp-sub">3 sets · 25% less volume today</div></div><div class="wp-vol"><div class="wp-pct" style="color:var(--amber)">75%</div><div class="wp-lbl">volume</div></div></div>
+      <div class="wp-row"><div class="wp-day">Fri</div><div class="wp-info"><div class="wp-name">Legs Day</div><div class="wp-sub">Squat, RDL, Leg press</div></div><div class="wp-vol"><div class="wp-pct" style="color:var(--blue)">80%</div><div class="wp-lbl">planned</div></div></div>
+      <div class="wp-row"><div class="wp-day">Sat</div><div class="wp-info"><div class="wp-name">Pull Day</div><div class="wp-sub">Back & Biceps</div></div><div class="wp-vol"><div class="wp-pct" style="color:var(--blue)">100%</div><div class="wp-lbl">planned</div></div></div>
+      <div class="wp-row"><div class="wp-day">Sun</div><div class="wp-info"><div class="wp-name">Rest Day</div><div class="wp-sub">Full recovery</div></div><div class="wp-vol"><div class="wp-pct" style="color:var(--text3)">—</div><div class="wp-lbl">rest</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== DELOAD PLANNER ======== -->
+<div class="screen hidden" id="s-deload">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Deload Planner</div>
+      <div class="elite-badge">ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="deload-hero a0">
+      <div class="dh-row">
+        <div class="dh-title">Training cycle</div>
+        <div class="dh-countdown">Deload in 2 weeks</div>
+      </div>
+      <div class="deload-progress">
+        <div class="dp-label"><span>Week 1</span><span>Week 6 (now)</span><span>Week 8 → Deload</span></div>
+        <div class="dp-bar"><div class="dp-fill" style="width:75%"></div></div>
+        <div class="dp-weeks">
+          <div class="dp-week">W1</div>
+          <div class="dp-week">W2</div>
+          <div class="dp-week">W3</div>
+          <div class="dp-week">W4</div>
+          <div class="dp-week">W5</div>
+          <div class="dp-week current">W6 ◀</div>
+          <div class="dp-week">W7</div>
+          <div class="dp-week" style="color:var(--red)">W8🔻</div>
+        </div>
+      </div>
+      <div class="deload-info">
+        <div class="di-title">WHAT HAPPENS AT DELOAD</div>
+        <div class="di-text">Week 8 triggers an automatic deload — all exercises drop to <strong>40% of normal volume</strong>. Same weights, fewer sets. Your body supercompensates and you come back stronger.</div>
+      </div>
+    </div>
+
+    <div style="padding:0 16px;margin-bottom:4px;" class="a1">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" style="color:var(--red)">40%</div><div class="stat-lbl">Volume drop</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--green)">100%</div><div class="stat-lbl">Weights kept</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--amber)">7 days</div><div class="stat-lbl">Duration</div></div>
+      </div>
+    </div>
+
+    <div class="sdiv a2">WEEK 8 DELOAD SCHEDULE</div>
+    <div class="deload-schedule a3">
+      <div class="ds-row">
+        <div class="ds-exercise"><div class="ds-name">Bench Press</div><div class="ds-orig">Normal: 4×8 @ 80kg</div></div>
+        <div class="ds-arrow">→</div>
+        <div class="ds-new"><div class="ds-new-val">2×5</div><div class="ds-new-lbl">@ 80kg</div></div>
+      </div>
+      <div class="ds-row">
+        <div class="ds-exercise"><div class="ds-name">Squat</div><div class="ds-orig">Normal: 4×5 @ 100kg</div></div>
+        <div class="ds-arrow">→</div>
+        <div class="ds-new"><div class="ds-new-val">2×3</div><div class="ds-new-lbl">@ 100kg</div></div>
+      </div>
+      <div class="ds-row">
+        <div class="ds-exercise"><div class="ds-name">Deadlift</div><div class="ds-orig">Normal: 3×5 @ 120kg</div></div>
+        <div class="ds-arrow">→</div>
+        <div class="ds-new"><div class="ds-new-val">1×3</div><div class="ds-new-lbl">@ 120kg</div></div>
+      </div>
+      <div class="ds-row">
+        <div class="ds-exercise"><div class="ds-name">OHP</div><div class="ds-orig">Normal: 4×6 @ 60kg</div></div>
+        <div class="ds-arrow">→</div>
+        <div class="ds-new"><div class="ds-new-val">2×4</div><div class="ds-new-lbl">@ 60kg</div></div>
+      </div>
+    </div>
+    <div style="padding:14px 16px 0;" class="a4">
+      <button class="action-btn" style="background:var(--pink-dim);border:1px solid var(--pink-bd);color:var(--pink);">🔻 &nbsp;Start Deload Early</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== EXERCISE SUBSTITUTION ======== -->
+<div class="screen hidden" id="s-substitution">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Exercise Substitution</div>
+      <div class="elite-badge">ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div style="padding:0 16px 4px;" class="a0">
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:var(--r-sm);padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:2px;">
+        <span style="font-size:16px;color:var(--text3);">🔍</span>
+        <input style="background:none;border:none;outline:none;flex:1;font-size:14px;color:var(--text);font-family:inherit;" placeholder="Search exercise to substitute…"/>
+      </div>
+    </div>
+
+    <div class="sub-filter a1">
+      <div class="sf-chip active">All</div>
+      <div class="sf-chip">No Equipment</div>
+      <div class="sf-chip">Dumbbells Only</div>
+      <div class="sf-chip">Chest</div>
+      <div class="sf-chip">Back</div>
+      <div class="sf-chip">Legs</div>
+    </div>
+
+    <div class="sub-card a2">
+      <div class="sc-head">
+        <div class="sc-exercise">
+          <div class="sc-name">Bench Press</div>
+          <div class="sc-reason">No barbell available · chest target</div>
+        </div>
+        <div class="sc-muscle-tag">Chest</div>
+      </div>
+      <div class="sc-alts">
+        <div class="sc-alt">
+          <div class="sc-alt-icon">🏋️</div>
+          <div class="sc-alt-info"><div class="sc-alt-name">Dumbbell Chest Press</div><div class="sc-alt-meta">Dumbbells · same muscle, similar load</div></div>
+          <div class="sc-alt-match high">95% match</div>
+          <div class="sc-select">Use ›</div>
+        </div>
+        <div class="sc-alt">
+          <div class="sc-alt-icon">💪</div>
+          <div class="sc-alt-info"><div class="sc-alt-name">Push-up (weighted)</div><div class="sc-alt-meta">No equipment · bodyweight</div></div>
+          <div class="sc-alt-match mid">78% match</div>
+          <div class="sc-select">Use ›</div>
+        </div>
+        <div class="sc-alt">
+          <div class="sc-alt-icon">🔗</div>
+          <div class="sc-alt-info"><div class="sc-alt-name">Cable Chest Fly</div><div class="sc-alt-meta">Cable machine · isolation focus</div></div>
+          <div class="sc-alt-match mid">72% match</div>
+          <div class="sc-select">Use ›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-card a3">
+      <div class="sc-head">
+        <div class="sc-exercise">
+          <div class="sc-name">Barbell Squat</div>
+          <div class="sc-reason">Knee pain flag · quad alternative</div>
+        </div>
+        <div class="sc-muscle-tag">Legs</div>
+      </div>
+      <div class="sc-alts">
+        <div class="sc-alt">
+          <div class="sc-alt-icon">🦵</div>
+          <div class="sc-alt-info"><div class="sc-alt-name">Leg Press</div><div class="sc-alt-meta">Machine · knee-friendly alternative</div></div>
+          <div class="sc-alt-match high">90% match</div>
+          <div class="sc-select">Use ›</div>
+        </div>
+        <div class="sc-alt">
+          <div class="sc-alt-icon">🏃</div>
+          <div class="sc-alt-info"><div class="sc-alt-name">Bulgarian Split Squat</div><div class="sc-alt-meta">Dumbbell · unilateral, less knee load</div></div>
+          <div class="sc-alt-match mid">82% match</div>
+          <div class="sc-select">Use ›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-card a4">
+      <div class="sc-head">
+        <div class="sc-exercise">
+          <div class="sc-name">Pull-up</div>
+          <div class="sc-reason">No pull-up bar · lat target</div>
+        </div>
+        <div class="sc-muscle-tag">Back</div>
+      </div>
+      <div class="sc-alts">
+        <div class="sc-alt">
+          <div class="sc-alt-icon">🔗</div>
+          <div class="sc-alt-info"><div class="sc-alt-name">Lat Pulldown</div><div class="sc-alt-meta">Cable machine · closest alternative</div></div>
+          <div class="sc-alt-match high">93% match</div>
+          <div class="sc-select">Use ›</div>
+        </div>
+        <div class="sc-alt">
+          <div class="sc-alt-icon">💪</div>
+          <div class="sc-alt-info"><div class="sc-alt-name">Dumbbell Row</div><div class="sc-alt-meta">Dumbbell · back width + thickness</div></div>
+          <div class="sc-alt-match mid">76% match</div>
+          <div class="sc-select">Use ›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const hist=[];
+function go(id){
+  const cur=document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if(cur){cur.classList.add('back-hidden');hist.push(cur.id);}
+  const next=document.getElementById(id);
+  next.classList.remove('hidden','back-hidden');
+  next.scrollTop=0;
+  next.querySelectorAll('.a0,.a1,.a2,.a3,.a4,.a5').forEach(el=>{el.style.animation='none';void el.offsetHeight;el.style.animation='';});
+}
+function back(){
+  if(!hist.length)return;
+  const cur=document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if(cur)cur.classList.add('hidden');
+  const prev=document.getElementById(hist.pop());
+  prev.classList.remove('back-hidden','hidden');
+}
+function notifyMe(inputId,btn){
+  const val=document.getElementById(inputId).value.trim();
+  if(!val||!val.includes('@')){document.getElementById(inputId).style.borderColor='var(--red)';return;}
+  btn.textContent='✓ Done!';btn.style.background='var(--green)';btn.style.color='#111';
+  document.getElementById(inputId).value='';
+}
+</script>
+</body>
+</html>

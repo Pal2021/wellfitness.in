@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Phase 8 — Community & Social</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#111;--bg2:#181818;--bg3:#1f1f1f;--card:#1c1c1c;--card2:#242424;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,0.13);--amber-bd:rgba(245,166,35,0.3);
+  --green:#4cd964;--green-dim:rgba(76,217,100,0.12);--green-bd:rgba(76,217,100,0.3);
+  --blue:#4da6ff;--blue-dim:rgba(77,166,255,0.12);--blue-bd:rgba(77,166,255,0.3);
+  --red:#ff5c3a;--red-dim:rgba(255,92,58,0.12);--red-bd:rgba(255,92,58,0.3);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.13);--purple-bd:rgba(167,139,250,0.3);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.13);--pink-bd:rgba(244,114,182,0.3);
+  --text:#fff;--text2:#888;--text3:#444;
+  --r:14px;--r-sm:10px;--r-xs:7px;
+}
+html,body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.shell{max-width:390px;margin:0 auto;min-height:100vh;position:relative;overflow:hidden;}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);transition:transform .32s cubic-bezier(.4,0,.2,1),opacity .32s ease;will-change:transform;}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
+.screen.back-hidden{transform:translateX(-28%);opacity:0;pointer-events:none;}
+::-webkit-scrollbar{display:none;}
+
+.status{display:flex;justify-content:space-between;padding:14px 20px 4px;font-size:12px;font-weight:600;color:var(--text3);}
+.pg-header{padding:4px 18px 14px;}
+.back-btn{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--amber);font-weight:600;cursor:pointer;margin-bottom:10px;}
+.pg-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.pg-title{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.2;}
+.elite-badge{background:var(--purple-dim);border:1px solid var(--purple-bd);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--purple);white-space:nowrap;flex-shrink:0;margin-top:3px;}
+
+.hero-card{margin:0 16px 20px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:30px 20px 24px;text-align:center;position:relative;overflow:hidden;}
+.hero-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -10%,rgba(167,139,250,0.08) 0%,transparent 65%);pointer-events:none;}
+.hero-emoji{font-size:52px;margin-bottom:14px;line-height:1;display:block;}
+.hero-desc{font-size:13.5px;color:var(--text2);line-height:1.7;max-width:270px;margin:0 auto 20px;}
+.hero-desc strong{color:var(--text);}
+.hero-lock{display:inline-flex;align-items:center;gap:7px;background:var(--purple-dim);border:1px solid var(--purple-bd);border-radius:20px;padding:9px 22px;font-size:13px;font-weight:700;color:var(--purple);cursor:pointer;}
+
+.sec-label{padding:0 18px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);}
+.feat-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.feat-row{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:15px 14px;cursor:pointer;transition:background .15s,transform .1s;}
+.feat-row:active{background:var(--card2);transform:scale(.99);}
+.feat-icon-wrap{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.feat-info{flex:1;min-width:0;}
+.feat-name{font-size:14.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.feat-sub{font-size:12px;color:var(--text2);margin-top:3px;}
+.badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.07);color:var(--text3);border:1px solid var(--border2);}
+.feat-arrow{font-size:14px;color:var(--text3);flex-shrink:0;}
+
+.notify-card{margin:20px 16px 8px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:18px;}
+.notify-head{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+.notify-title{font-size:16px;font-weight:700;}
+.notify-sub{font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.5;}
+.input-row{display:flex;gap:8px;}
+.email-in{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px 14px;font-size:13px;color:var(--text);outline:none;font-family:inherit;}
+.email-in::placeholder{color:var(--text3);}
+.email-in:focus{border-color:var(--amber-bd);}
+.notify-btn{background:var(--amber);border:none;border-radius:var(--r-sm);padding:12px 18px;font-size:14px;font-weight:700;color:#111;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.back-bottom{display:block;width:calc(100% - 32px);margin:14px 16px 40px;background:none;border:1px solid var(--border2);border-radius:50px;padding:14px;font-size:14px;font-weight:600;color:var(--amber);cursor:pointer;font-family:inherit;text-align:center;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.a0{animation:fadeUp .28s ease both;}
+.a1{animation:fadeUp .28s .07s ease both;}
+.a2{animation:fadeUp .28s .14s ease both;}
+.a3{animation:fadeUp .28s .21s ease both;}
+.a4{animation:fadeUp .28s .28s ease both;}
+.a5{animation:fadeUp .28s .35s ease both;}
+
+.sub-scroll{padding-bottom:44px;}
+.sdiv{padding:14px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);}
+
+/* ── FEED BOTTOM NAV ── */
+.feed-nav{position:sticky;bottom:0;background:rgba(17,17,17,.97);backdrop-filter:blur(14px);border-top:1px solid var(--border2);display:flex;z-index:50;}
+.fnav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 0 14px;cursor:pointer;}
+.fnav-tab svg{opacity:.3;}
+.fnav-tab.active svg{opacity:1;}
+.fnav-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
+.fnav-tab.active .fnav-lbl{color:var(--purple);}
+.fnav-ctr{flex:1;display:flex;justify-content:center;align-items:center;padding-bottom:4px;}
+.fnav-fab{width:44px;height:44px;border-radius:50%;background:var(--purple);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;box-shadow:0 0 18px rgba(167,139,250,0.35);}
+
+/* ── FEED TABS ── */
+.feed-tabs{display:flex;gap:6px;padding:0 16px 12px;overflow-x:auto;}
+.feed-tabs::-webkit-scrollbar{display:none;}
+.feed-tab{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border2);background:var(--card);color:var(--text2);cursor:pointer;white-space:nowrap;}
+.feed-tab.active{background:var(--purple-dim);border-color:var(--purple-bd);color:var(--purple);}
+
+/* ── POSTS ── */
+.post-card{margin:0 16px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.post-header{display:flex;align-items:center;gap:10px;padding:13px 14px 10px;}
+.post-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;}
+.post-meta{flex:1;}
+.post-name{font-size:13.5px;font-weight:700;color:var(--text);}
+.post-time{font-size:11px;color:var(--text3);margin-top:1px;}
+.post-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.post-body{padding:0 14px 12px;}
+.post-text{font-size:13.5px;color:var(--text);line-height:1.55;margin-bottom:10px;}
+.post-text .highlight{color:var(--amber);font-weight:700;}
+.pr-card{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:13px;display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.pr-icon{font-size:28px;}
+.pr-info{flex:1;}
+.pr-exercise{font-size:15px;font-weight:800;letter-spacing:-.3px;}
+.pr-weight{font-size:13px;color:var(--text2);margin-top:2px;}
+.pr-new{font-size:11px;font-weight:700;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);border-radius:20px;padding:3px 10px;white-space:nowrap;}
+.post-photo{width:100%;aspect-ratio:1.6;background:linear-gradient(135deg,#1a1a2e,#2a1a2e);display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:10px;}
+.post-actions{display:flex;align-items:center;gap:4px;padding:10px 14px 13px;border-top:1px solid var(--border);}
+.react-btn{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);transition:all .15s;}
+.react-btn:active{transform:scale(.95);}
+.react-btn.liked{background:var(--red-dim);border-color:var(--red-bd);color:var(--red);}
+.react-btn.fired{background:var(--amber-dim);border-color:var(--amber-bd);color:var(--amber);}
+.react-btn.strong{background:var(--purple-dim);border-color:var(--purple-bd);color:var(--purple);}
+.comment-btn{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:20px;background:none;border:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--text2);}
+.share-btn{margin-left:auto;font-size:13px;color:var(--text3);cursor:pointer;padding:6px;}
+
+/* ── COMMENTS ── */
+.comments-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;}
+.comment-item{display:flex;gap:10px;}
+.ca{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.comment-bubble{flex:1;background:var(--card);border:1px solid var(--border);border-radius:0 var(--r) var(--r) var(--r);padding:10px 12px;}
+.cb-name{font-size:12px;font-weight:700;color:var(--text);}
+.cb-text{font-size:13px;color:var(--text);line-height:1.5;margin-top:3px;}
+.cb-text .mention{color:var(--purple);font-weight:600;}
+.cb-meta{display:flex;align-items:center;gap:10px;margin-top:6px;}
+.cb-time{font-size:10px;color:var(--text3);}
+.cb-like{font-size:10px;font-weight:600;color:var(--text2);cursor:pointer;}
+.cb-reply{font-size:10px;font-weight:600;color:var(--purple);cursor:pointer;}
+.comment-input-bar{position:sticky;bottom:0;background:rgba(17,17,17,.97);backdrop-filter:blur(14px);border-top:1px solid var(--border2);padding:10px 16px 20px;display:flex;gap:8px;align-items:center;}
+.comment-in{flex:1;background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:10px 16px;font-size:14px;color:var(--text);outline:none;font-family:inherit;}
+.comment-in::placeholder{color:var(--text3);}
+.comment-in:focus{border-color:var(--purple-bd);}
+.send-btn{width:38px;height:38px;border-radius:50%;background:var(--purple);border:none;cursor:pointer;color:#fff;font-size:16px;flex-shrink:0;}
+
+/* ── FOLLOW SYSTEM ── */
+.follow-search{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-sm);padding:11px 14px;display:flex;align-items:center;gap:10px;}
+.follow-in{background:none;border:none;outline:none;flex:1;font-size:14px;color:var(--text);font-family:inherit;}
+.follow-in::placeholder{color:var(--text3);}
+.user-card{margin:0 16px 8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:12px;}
+.user-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;}
+.user-info{flex:1;}
+.user-name{font-size:14px;font-weight:700;color:var(--text);}
+.user-meta{font-size:12px;color:var(--text2);margin-top:2px;}
+.user-tags{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;}
+.user-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--bg3);color:var(--text3);border:1px solid var(--border);}
+.follow-btn{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;}
+.follow-btn.follow{background:var(--purple);color:#fff;}
+.follow-btn.following{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
+.follow-btn:active{opacity:.8;}
+
+/* ── CHALLENGES ── */
+.challenge-hero{margin:0 16px 12px;background:linear-gradient(135deg,rgba(167,139,250,0.12),rgba(245,166,35,0.08));border:1px solid var(--purple-bd);border-radius:var(--r);padding:18px;position:relative;overflow:hidden;}
+.ch-week{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:6px;}
+.ch-title{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:6px;}
+.ch-sub{font-size:12px;color:var(--text2);margin-bottom:14px;}
+.ch-progress{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-bottom:6px;}
+.ch-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--purple),var(--amber));}
+.ch-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);}
+.ch-join{margin-top:14px;background:var(--purple);border:none;border-radius:var(--r-sm);padding:11px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;width:100%;}
+
+.leaderboard{padding:0 16px;display:flex;flex-direction:column;gap:6px;}
+.lb-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:12px;}
+.lb-row.me{border-color:var(--amber-bd);background:var(--amber-dim);}
+.lb-rank{font-size:16px;font-weight:800;width:28px;text-align:center;flex-shrink:0;}
+.lb-rank.gold{color:#ffd700;}
+.lb-rank.silver{color:#c0c0c0;}
+.lb-rank.bronze{color:#cd7f32;}
+.lb-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.lb-info{flex:1;}
+.lb-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.lb-city{font-size:11px;color:var(--text3);margin-top:1px;}
+.lb-score{font-size:18px;font-weight:800;color:var(--text);}
+.lb-unit{font-size:10px;color:var(--text3);}
+
+/* ── FRIEND BATTLES ── */
+.battle-card{margin:0 16px 10px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.battle-vs{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.battle-player{flex:1;text-align:center;}
+.bp-av{width:52px;height:52px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}
+.bp-name{font-size:13px;font-weight:700;}
+.bp-score{font-size:24px;font-weight:800;letter-spacing:-1px;margin-top:4px;}
+.battle-divider{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
+.vs-label{font-size:14px;font-weight:800;color:var(--text3);}
+.battle-type-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);}
+.battle-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-bottom:8px;display:flex;}
+.bb-left{height:100%;border-radius:4px 0 0 4px;transition:width .6s ease;}
+.bb-right{height:100%;border-radius:0 4px 4px 0;}
+.battle-meta{font-size:12px;color:var(--text2);text-align:center;margin-bottom:12px;}
+.battle-meta strong{color:var(--text);}
+.battle-actions{display:flex;gap:8px;}
+.ba-btn{flex:1;padding:10px;border-radius:var(--r-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center;border:none;}
+
+.active-battles{padding:0 16px;display:flex;flex-direction:column;gap:7px;}
+.ab-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 13px;gap:12px;cursor:pointer;}
+.ab-row:active{background:var(--card2);}
+.ab-icon{font-size:20px;}
+.ab-info{flex:1;}
+.ab-title{font-size:13.5px;font-weight:600;color:var(--text);}
+.ab-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.ab-status{font-size:12px;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ======== HOME ======== -->
+<div class="screen" id="s-home">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Phase 8 —<br>Community</div>
+      <div class="elite-badge">ELITE · ₹699/mo</div>
+    </div>
+  </div>
+
+  <div class="hero-card a0">
+    <span class="hero-emoji">👥</span>
+    <div class="hero-desc">Share PRs, follow friends, compete in challenges, and <strong>celebrate transformations</strong>.</div>
+    <div class="hero-lock">🔒 &nbsp;ELITE · ₹699/mo</div>
+  </div>
+
+  <div class="sec-label a1">UPCOMING FEATURES (6)</div>
+  <div class="feat-list a2">
+    <div class="feat-row" onclick="go('s-feed')">
+      <div class="feat-icon-wrap" style="background:rgba(167,139,250,0.12);">📰</div>
+      <div class="feat-info">
+        <div class="feat-name">Community Feed <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Share workouts, PRs, and transformations</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-posttypes')">
+      <div class="feat-icon-wrap" style="background:rgba(77,166,255,0.12);">📸</div>
+      <div class="feat-info">
+        <div class="feat-name">Post Types <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Workout posts, PR cards, before/after photos</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-reactions')">
+      <div class="feat-icon-wrap" style="background:rgba(255,92,58,0.12);">❤️</div>
+      <div class="feat-info">
+        <div class="feat-name">Reactions <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">❤️ Like, 🔥 Fire, 💪 Strong reactions</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-comments')">
+      <div class="feat-icon-wrap" style="background:rgba(167,139,250,0.12);">💬</div>
+      <div class="feat-info">
+        <div class="feat-name">Comments <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Threaded comments with @mentions</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-follow')">
+      <div class="feat-icon-wrap" style="background:rgba(76,217,100,0.12);">👥</div>
+      <div class="feat-info">
+        <div class="feat-name">Follow System <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Follow friends, city-based suggestions</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-battles')">
+      <div class="feat-icon-wrap" style="background:rgba(255,92,58,0.12);">⚔️</div>
+      <div class="feat-info">
+        <div class="feat-name">Friend Battles <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Head-to-head challenges with friends</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+  </div>
+
+  <div class="notify-card a3">
+    <div class="notify-head"><span style="font-size:24px">🔔</span><div class="notify-title">Get Notified</div></div>
+    <div class="notify-sub">We'll email you when Phase 8 launches.</div>
+    <div class="input-row">
+      <input class="email-in" type="email" placeholder="Enter your email…" id="em1"/>
+      <button class="notify-btn" onclick="notifyMe('em1',this)">Notify Me</button>
+    </div>
+  </div>
+  <button class="back-bottom">← Back</button>
+</div>
+
+<!-- ======== COMMUNITY FEED ======== -->
+<div class="screen hidden" id="s-feed">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Community Feed</div>
+      <div class="elite-badge">ELITE</div>
+    </div>
+  </div>
+  <div style="padding-bottom:72px;">
+    <div class="feed-tabs a0">
+      <div class="feed-tab active">Following</div>
+      <div class="feed-tab">Explore</div>
+      <div class="feed-tab">PRs Only</div>
+      <div class="feed-tab">Challenges</div>
+      <div class="feed-tab">Near Me</div>
+    </div>
+
+    <!-- PR POST -->
+    <div class="post-card a1">
+      <div class="post-header">
+        <div class="post-avatar" style="background:var(--amber-dim);color:var(--amber);">RK</div>
+        <div class="post-meta">
+          <div class="post-name">Rahul Kumar</div>
+          <div class="post-time">2 min ago · Bengaluru</div>
+        </div>
+        <div class="post-badge" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);">🏆 New PR</div>
+      </div>
+      <div class="post-body">
+        <div class="post-text">Just hit a <span class="highlight">new bench PR — 100kg × 3!</span> 6 months of grinding finally paid off. Feeling unstoppable 💪</div>
+        <div class="pr-card">
+          <div class="pr-icon">🏋️</div>
+          <div class="pr-info">
+            <div class="pr-exercise">Bench Press</div>
+            <div class="pr-weight">100 kg × 3 reps · estimated 1RM: 111kg</div>
+          </div>
+          <div class="pr-new">🆕 PR</div>
+        </div>
+      </div>
+      <div class="post-actions">
+        <div class="react-btn liked" onclick="this.classList.toggle('liked')">❤️ 24</div>
+        <div class="react-btn fired" onclick="this.classList.toggle('fired')">🔥 12</div>
+        <div class="react-btn strong" onclick="this.classList.toggle('strong')">💪 8</div>
+        <div class="comment-btn" onclick="go('s-comments')">💬 6</div>
+        <div class="share-btn">↗</div>
+      </div>
+    </div>
+
+    <!-- WORKOUT POST -->
+    <div class="post-card a2">
+      <div class="post-header">
+        <div class="post-avatar" style="background:var(--green-dim);color:var(--green);">PV</div>
+        <div class="post-meta">
+          <div class="post-name">Priya Verma</div>
+          <div class="post-time">18 min ago · Mumbai</div>
+        </div>
+        <div class="post-badge" style="background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-bd);">💪 Workout</div>
+      </div>
+      <div class="post-body">
+        <div class="post-text">Push day done! <span class="highlight">42 sets total, 3,240 kg volume</span>. Consistency is everything 🔥</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:10px;">
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;text-align:center;"><div style="font-size:18px;font-weight:800;color:var(--green)">42</div><div style="font-size:10px;color:var(--text3)">sets</div></div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;text-align:center;"><div style="font-size:18px;font-weight:800;color:var(--amber)">3,240</div><div style="font-size:10px;color:var(--text3)">kg vol</div></div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;text-align:center;"><div style="font-size:18px;font-weight:800;color:var(--blue)">62</div><div style="font-size:10px;color:var(--text3)">min</div></div>
+        </div>
+      </div>
+      <div class="post-actions">
+        <div class="react-btn" onclick="this.classList.toggle('liked')">❤️ 31</div>
+        <div class="react-btn" onclick="this.classList.toggle('fired')">🔥 19</div>
+        <div class="react-btn" onclick="this.classList.toggle('strong')">💪 14</div>
+        <div class="comment-btn" onclick="go('s-comments')">💬 3</div>
+        <div class="share-btn">↗</div>
+      </div>
+    </div>
+
+    <!-- TRANSFORMATION POST -->
+    <div class="post-card a3">
+      <div class="post-header">
+        <div class="post-avatar" style="background:var(--purple-dim);color:var(--purple);">AS</div>
+        <div class="post-meta">
+          <div class="post-name">Arjun Singh</div>
+          <div class="post-time">1 hr ago · Delhi</div>
+        </div>
+        <div class="post-badge" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple-bd);">✨ Transform</div>
+      </div>
+      <div class="post-body">
+        <div class="post-text">3 months transformation — <span class="highlight">−8kg, gained visible muscle</span>. Wellfitness + consistency = results 💯</div>
+        <div class="post-photo">📸</div>
+        <div style="display:flex;gap:7px;">
+          <div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px;text-align:center;"><div style="font-size:16px;font-weight:800;color:var(--green)">−8kg</div><div style="font-size:10px;color:var(--text3)">lost</div></div>
+          <div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px;text-align:center;"><div style="font-size:16px;font-weight:800;color:var(--blue)">+4kg</div><div style="font-size:10px;color:var(--text3)">muscle</div></div>
+          <div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px;text-align:center;"><div style="font-size:16px;font-weight:800;color:var(--amber)">90</div><div style="font-size:10px;color:var(--text3)">days</div></div>
+        </div>
+      </div>
+      <div class="post-actions">
+        <div class="react-btn" onclick="this.classList.toggle('liked')">❤️ 87</div>
+        <div class="react-btn" onclick="this.classList.toggle('fired')">🔥 54</div>
+        <div class="react-btn" onclick="this.classList.toggle('strong')">💪 42</div>
+        <div class="comment-btn" onclick="go('s-comments')">💬 18</div>
+        <div class="share-btn">↗</div>
+      </div>
+    </div>
+  </div>
+  <div class="feed-nav">
+    <div class="fnav-tab active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h8" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round"/></svg><span class="fnav-lbl">Feed</span></div>
+    <div class="fnav-tab"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="#444" stroke-width="1.5"/><path d="M13 10a3 3 0 11-6 0 3 3 0 016 0z" stroke="#444" stroke-width="1.5"/></svg><span class="fnav-lbl">Explore</span></div>
+    <div class="fnav-ctr"><button class="fnav-fab">+</button></div>
+    <div class="fnav-tab" onclick="go('s-battles')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4l12 12M16 4L4 16" stroke="#444" stroke-width="1.5" stroke-linecap="round"/></svg><span class="fnav-lbl">Battles</span></div>
+    <div class="fnav-tab" onclick="go('s-follow')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="8" cy="7" r="3" stroke="#444" stroke-width="1.5"/><path d="M3 16c0-2.76 2.24-5 5-5h1M14 11v6M11 14h6" stroke="#444" stroke-width="1.5" stroke-linecap="round"/></svg><span class="fnav-lbl">Follow</span></div>
+  </div>
+</div>
+
+<!-- ======== POST TYPES ======== -->
+<div class="screen hidden" id="s-posttypes">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row"><div class="pg-title">Post Types</div><div class="elite-badge">ELITE</div></div>
+  </div>
+  <div class="sub-scroll">
+    <!-- PR Card preview -->
+    <div class="sdiv a0">PR CARD POST</div>
+    <div class="post-card a1" style="margin-bottom:14px;">
+      <div class="post-header">
+        <div class="post-avatar" style="background:var(--amber-dim);color:var(--amber);">YOU</div>
+        <div class="post-meta"><div class="post-name">You</div><div class="post-time">Just now</div></div>
+        <div class="post-badge" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);">🏆 New PR</div>
+      </div>
+      <div class="post-body">
+        <div class="post-text">New <span class="highlight">Squat PR — 120kg!</span> 🎉</div>
+        <div class="pr-card">
+          <div class="pr-icon">🦵</div>
+          <div class="pr-info"><div class="pr-exercise">Squat</div><div class="pr-weight">120 kg × 5 reps · est. 1RM: 140kg</div></div>
+          <div class="pr-new">🆕 PR</div>
+        </div>
+      </div>
+      <div class="post-actions">
+        <div class="react-btn">❤️ 0</div><div class="react-btn">🔥 0</div><div class="react-btn">💪 0</div>
+      </div>
+    </div>
+
+    <!-- Workout Summary -->
+    <div class="sdiv a2">WORKOUT SUMMARY POST</div>
+    <div class="post-card a3" style="margin-bottom:14px;">
+      <div class="post-header">
+        <div class="post-avatar" style="background:var(--green-dim);color:var(--green);">YOU</div>
+        <div class="post-meta"><div class="post-name">You</div><div class="post-time">Just now</div></div>
+        <div class="post-badge" style="background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-bd);">💪 Workout</div>
+      </div>
+      <div class="post-body">
+        <div class="post-text">Push day complete — <span class="highlight">personal best volume this week!</span></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px;margin-bottom:10px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Auto-generated summary</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text2)">Bench Press</span><span style="font-weight:700">80kg × 4×8</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text2)">OHP</span><span style="font-weight:700">60kg × 4×6</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text2)">Tricep Pushdown</span><span style="font-weight:700">40kg × 3×12</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="post-actions">
+        <div class="react-btn">❤️ 0</div><div class="react-btn">🔥 0</div><div class="react-btn">💪 0</div>
+      </div>
+    </div>
+
+    <!-- Before/After -->
+    <div class="sdiv a4">TRANSFORMATION POST</div>
+    <div class="post-card a5">
+      <div class="post-header">
+        <div class="post-avatar" style="background:var(--purple-dim);color:var(--purple);">YOU</div>
+        <div class="post-meta"><div class="post-name">You</div><div class="post-time">Just now</div></div>
+        <div class="post-badge" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple-bd);">✨ Transform</div>
+      </div>
+      <div class="post-body">
+        <div class="post-text">90-day transformation 🔥</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+          <div style="background:linear-gradient(135deg,#1a1a2e,#222);border:1px solid var(--border);border-radius:var(--r-sm);aspect-ratio:.9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:28px;"><span>🧍</span><span style="font-size:10px;font-weight:700;color:var(--text3)">JAN 1 · BEFORE</span></div>
+          <div style="background:linear-gradient(135deg,#1a2e1a,#222);border:1px solid var(--green-bd);border-radius:var(--r-sm);aspect-ratio:.9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:28px;"><span>🧍</span><span style="font-size:10px;font-weight:700;color:var(--green)">MAR 19 · AFTER</span></div>
+        </div>
+        <div style="display:flex;align-items:center;background:var(--bg3);border-radius:var(--r-sm);padding:10px 13px;gap:8px;font-size:12px;color:var(--text2);">🔒 <span>Visible to <strong style="color:var(--text)">Friends only</strong> · change privacy</span></div>
+      </div>
+      <div class="post-actions">
+        <div class="react-btn">❤️ 0</div><div class="react-btn">🔥 0</div><div class="react-btn">💪 0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== REACTIONS ======== -->
+<div class="screen hidden" id="s-reactions">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row"><div class="pg-title">Reactions</div><div class="elite-badge">ELITE</div></div>
+  </div>
+  <div class="sub-scroll">
+    <div class="sdiv a0">TAP TO REACT</div>
+    <div class="post-card a1">
+      <div class="post-header">
+        <div class="post-avatar" style="background:var(--amber-dim);color:var(--amber);">RK</div>
+        <div class="post-meta"><div class="post-name">Rahul Kumar</div><div class="post-time">Just now</div></div>
+      </div>
+      <div class="post-body">
+        <div class="post-text">Hit <span class="highlight">100kg bench</span> today! 6 months of work 💪</div>
+        <div class="pr-card"><div class="pr-icon">🏋️</div><div class="pr-info"><div class="pr-exercise">Bench Press</div><div class="pr-weight">100kg × 3 reps</div></div><div class="pr-new">🆕 PR</div></div>
+      </div>
+      <div class="post-actions" id="react-demo">
+        <div class="react-btn" id="r-like" onclick="toggleReact('r-like','liked')">❤️ <span id="lc">24</span></div>
+        <div class="react-btn" id="r-fire" onclick="toggleReact('r-fire','fired')">🔥 <span id="fc">12</span></div>
+        <div class="react-btn" id="r-str" onclick="toggleReact('r-str','strong')">💪 <span id="sc">8</span></div>
+        <div class="comment-btn">💬 6</div>
+      </div>
+    </div>
+
+    <div class="sdiv a2">REACTION TYPES</div>
+    <div style="padding:0 16px;display:flex;flex-direction:column;gap:8px;" class="a3">
+      <div style="display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;gap:14px;">
+        <div style="font-size:32px;width:48px;text-align:center;">❤️</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:700;">Like</div><div style="font-size:12px;color:var(--text2);margin-top:3px;">General appreciation — great post, love this</div></div>
+        <div style="font-size:18px;font-weight:800;color:var(--red)">24</div>
+      </div>
+      <div style="display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;gap:14px;">
+        <div style="font-size:32px;width:48px;text-align:center;">🔥</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:700;">Fire</div><div style="font-size:12px;color:var(--text2);margin-top:3px;">That's intense! Massive effort, crushing it</div></div>
+        <div style="font-size:18px;font-weight:800;color:var(--amber)">12</div>
+      </div>
+      <div style="display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;gap:14px;">
+        <div style="font-size:32px;width:48px;text-align:center;">💪</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:700;">Strong</div><div style="font-size:12px;color:var(--text2);margin-top:3px;">Impressive strength — respect for that lift</div></div>
+        <div style="font-size:18px;font-weight:800;color:var(--purple)">8</div>
+      </div>
+    </div>
+
+    <div class="sdiv a4">RECENT REACTIONS ON YOUR POSTS</div>
+    <div style="padding:0 16px;display:flex;flex-direction:column;gap:6px;" class="a5">
+      <div style="display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:10px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--green-dim);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">PV</div>
+        <div style="flex:1;font-size:13px;color:var(--text);">Priya reacted 🔥 to your bench PR</div>
+        <div style="font-size:11px;color:var(--text3);">2m ago</div>
+      </div>
+      <div style="display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:10px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--blue-dim);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">AS</div>
+        <div style="flex:1;font-size:13px;color:var(--text);">Arjun reacted 💪 to your workout</div>
+        <div style="font-size:11px;color:var(--text3);">14m ago</div>
+      </div>
+      <div style="display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:10px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--amber-dim);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">MK</div>
+        <div style="flex:1;font-size:13px;color:var(--text);">Mohit reacted ❤️ to your transformation</div>
+        <div style="font-size:11px;color:var(--text3);">1h ago</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== COMMENTS ======== -->
+<div class="screen hidden" id="s-comments">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row"><div class="pg-title">Comments</div><div class="elite-badge">ELITE</div></div>
+  </div>
+  <div style="padding-bottom:72px;">
+    <!-- original post mini -->
+    <div style="margin:0 16px 14px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:13px;" class="a0">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--amber-dim);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">RK</div>
+        <div style="font-size:13px;font-weight:700;">Rahul Kumar</div>
+        <div style="font-size:11px;color:var(--text3);margin-left:auto;">2 min ago</div>
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.5;">Just hit a <strong style="color:var(--amber)">new bench PR — 100kg × 3!</strong> 6 months of grinding 💪</div>
+      <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+        <div class="react-btn liked">❤️ 24</div>
+        <div class="react-btn fired">🔥 12</div>
+        <div class="react-btn strong">💪 8</div>
+      </div>
+    </div>
+
+    <div class="sdiv a1">6 COMMENTS</div>
+    <div class="comments-list a2">
+      <div class="comment-item">
+        <div class="ca" style="background:var(--green-dim);color:var(--green);">PV</div>
+        <div class="comment-bubble">
+          <div class="cb-name">Priya Verma</div>
+          <div class="cb-text">BEAST MODE! <span class="mention">@Rahul</span> you've been crushing it lately 🔥 what's your program?</div>
+          <div class="cb-meta"><span class="cb-time">5 min ago</span><span class="cb-like">❤️ 3</span><span class="cb-reply">Reply</span></div>
+        </div>
+      </div>
+      <!-- threaded reply -->
+      <div class="comment-item" style="margin-left:42px;">
+        <div class="ca" style="background:var(--amber-dim);color:var(--amber);font-size:11px;">RK</div>
+        <div class="comment-bubble">
+          <div class="cb-name">Rahul Kumar <span style="font-size:10px;color:var(--text3)">· OP</span></div>
+          <div class="cb-text"><span class="mention">@Priya</span> Thanks! Running GZCLP — 3 days/week. Wellfitness tracking helped a lot 💯</div>
+          <div class="cb-meta"><span class="cb-time">3 min ago</span><span class="cb-like">❤️ 1</span><span class="cb-reply">Reply</span></div>
+        </div>
+      </div>
+      <div class="comment-item">
+        <div class="ca" style="background:var(--purple-dim);color:var(--purple);">AS</div>
+        <div class="comment-bubble">
+          <div class="cb-name">Arjun Singh</div>
+          <div class="cb-text">100kg!! That's a massive milestone bro. Next stop 120? 💪</div>
+          <div class="cb-meta"><span class="cb-time">8 min ago</span><span class="cb-like">❤️ 2</span><span class="cb-reply">Reply</span></div>
+        </div>
+      </div>
+      <div class="comment-item">
+        <div class="ca" style="background:var(--blue-dim);color:var(--blue);">MK</div>
+        <div class="comment-bubble">
+          <div class="cb-name">Mohit Kapoor</div>
+          <div class="cb-text">Insane progress! <span class="mention">@Rahul</span> were you following progressive overload the whole time?</div>
+          <div class="cb-meta"><span class="cb-time">12 min ago</span><span class="cb-like">❤️ 0</span><span class="cb-reply">Reply</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="comment-input-bar">
+    <div style="width:32px;height:32px;border-radius:50%;background:var(--amber-dim);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">YOU</div>
+    <input class="comment-in" placeholder="Add a comment… @mention someone"/>
+    <button class="send-btn">↑</button>
+  </div>
+</div>
+
+<!-- ======== FOLLOW SYSTEM ======== -->
+<div class="screen hidden" id="s-follow">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row"><div class="pg-title">Follow System</div><div class="elite-badge">ELITE</div></div>
+  </div>
+  <div class="sub-scroll">
+    <div class="follow-search a0">
+      <span style="font-size:16px;color:var(--text3);">🔍</span>
+      <input class="follow-in" placeholder="Search users by name or city…"/>
+    </div>
+
+    <div style="padding:0 16px;margin-bottom:4px;" class="a1">
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px;text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--purple)">24</div><div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;">Following</div></div>
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px;text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--green)">38</div><div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;">Followers</div></div>
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px;text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--amber)">12</div><div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;">Mutual</div></div>
+      </div>
+    </div>
+
+    <div class="sdiv a2">SUGGESTED — BENGALURU</div>
+    <div class="a3">
+      <div class="user-card">
+        <div class="user-av" style="background:var(--amber-dim);color:var(--amber);">RK</div>
+        <div class="user-info">
+          <div class="user-name">Rahul Kumar</div>
+          <div class="user-meta">Bengaluru · 142 workouts</div>
+          <div class="user-tags"><div class="user-tag">Same city</div><div class="user-tag">Push/Pull</div><div class="user-tag">Goal: bulk</div></div>
+        </div>
+        <button class="follow-btn follow" onclick="toggleFollow(this)">Follow</button>
+      </div>
+      <div class="user-card">
+        <div class="user-av" style="background:var(--green-dim);color:var(--green);">PV</div>
+        <div class="user-info">
+          <div class="user-name">Priya Verma</div>
+          <div class="user-meta">Bengaluru · 98 workouts</div>
+          <div class="user-tags"><div class="user-tag">Same city</div><div class="user-tag">Same goal</div></div>
+        </div>
+        <button class="follow-btn following" onclick="toggleFollow(this)">Following</button>
+      </div>
+      <div class="user-card">
+        <div class="user-av" style="background:var(--blue-dim);color:var(--blue);">VN</div>
+        <div class="user-info">
+          <div class="user-name">Vikram Nair</div>
+          <div class="user-meta">Bengaluru · 210 workouts</div>
+          <div class="user-tags"><div class="user-tag">Same city</div><div class="user-tag">Powerlifting</div></div>
+        </div>
+        <button class="follow-btn follow" onclick="toggleFollow(this)">Follow</button>
+      </div>
+    </div>
+
+    <div class="sdiv a4">SIMILAR GOALS — INDIA</div>
+    <div class="a5">
+      <div class="user-card">
+        <div class="user-av" style="background:var(--purple-dim);color:var(--purple);">AS</div>
+        <div class="user-info">
+          <div class="user-name">Arjun Singh</div>
+          <div class="user-meta">Delhi · 187 workouts</div>
+          <div class="user-tags"><div class="user-tag">Goal: cut</div><div class="user-tag">PPL split</div></div>
+        </div>
+        <button class="follow-btn follow" onclick="toggleFollow(this)">Follow</button>
+      </div>
+      <div class="user-card">
+        <div class="user-av" style="background:var(--red-dim);color:var(--red);">SM</div>
+        <div class="user-info">
+          <div class="user-name">Suresh Mehta</div>
+          <div class="user-meta">Mumbai · 324 workouts</div>
+          <div class="user-tags"><div class="user-tag">Goal: bulk</div><div class="user-tag">Top 10% Wellfitness</div></div>
+        </div>
+        <button class="follow-btn follow" onclick="toggleFollow(this)">Follow</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== FRIEND BATTLES ======== -->
+<div class="screen hidden" id="s-battles">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row"><div class="pg-title">Friend Battles</div><div class="elite-badge">ELITE</div></div>
+  </div>
+  <div class="sub-scroll">
+    <!-- ACTIVE BATTLE -->
+    <div class="sdiv a0">ACTIVE BATTLE</div>
+    <div class="battle-card a1">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--red);margin-bottom:10px;">🔴 LIVE · Ends in 3 days</div>
+      <div class="battle-vs">
+        <div class="battle-player">
+          <div class="bp-av" style="background:var(--amber-dim);color:var(--amber);">YOU</div>
+          <div class="bp-name">You</div>
+          <div class="bp-score" style="color:var(--amber)">3,240<span style="font-size:13px;color:var(--text3)"> kg</span></div>
+        </div>
+        <div class="battle-divider">
+          <div class="vs-label">VS</div>
+          <div class="battle-type-label">Weekly<br>Volume</div>
+        </div>
+        <div class="battle-player">
+          <div class="bp-av" style="background:var(--green-dim);color:var(--green);">RK</div>
+          <div class="bp-name">Rahul</div>
+          <div class="bp-score" style="color:var(--green)">2,980<span style="font-size:13px;color:var(--text3)"> kg</span></div>
+        </div>
+      </div>
+      <div class="battle-bar">
+        <div class="bb-left" style="width:52%;background:var(--amber);"></div>
+        <div class="bb-right" style="flex:1;background:var(--green);"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:10px;"><span>You · 52%</span><span>Rahul · 48%</span></div>
+      <div class="battle-meta">You're leading by <strong>260 kg</strong> — keep going! 🔥</div>
+      <div class="battle-actions">
+        <div class="ba-btn" style="background:var(--amber);color:#111;">💪 Log Workout</div>
+        <div class="ba-btn" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);">📊 View Details</div>
+      </div>
+    </div>
+
+    <!-- CHALLENGES -->
+    <div class="sdiv a2">WEEKLY COMMUNITY CHALLENGE</div>
+    <div class="challenge-hero a3">
+      <div class="ch-week">THIS WEEK · BENGALURU</div>
+      <div class="ch-title">Most Bench Volume 🏋️</div>
+      <div class="ch-sub">Highest total bench press volume this week wins a winner badge + city leaderboard spot</div>
+      <div class="ch-progress"><div class="ch-fill" style="width:68%"></div></div>
+      <div class="ch-meta"><span>Your volume: 4,800 kg</span><span>3 days left</span></div>
+      <button class="ch-join">Join Challenge</button>
+    </div>
+
+    <div class="sdiv a4">LEADERBOARD</div>
+    <div class="leaderboard a5">
+      <div class="lb-row">
+        <div class="lb-rank gold">🥇</div>
+        <div class="lb-av" style="background:var(--amber-dim);color:var(--amber);">SM</div>
+        <div class="lb-info"><div class="lb-name">Suresh Mehta</div><div class="lb-city">Mumbai</div></div>
+        <div><div class="lb-score">6,120</div><div class="lb-unit">kg vol</div></div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank silver">🥈</div>
+        <div class="lb-av" style="background:var(--blue-dim);color:var(--blue);">VN</div>
+        <div class="lb-info"><div class="lb-name">Vikram Nair</div><div class="lb-city">Bengaluru</div></div>
+        <div><div class="lb-score">5,840</div><div class="lb-unit">kg vol</div></div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank bronze">🥉</div>
+        <div class="lb-av" style="background:var(--purple-dim);color:var(--purple);">AS</div>
+        <div class="lb-info"><div class="lb-name">Arjun Singh</div><div class="lb-city">Delhi</div></div>
+        <div><div class="lb-score">5,210</div><div class="lb-unit">kg vol</div></div>
+      </div>
+      <div class="lb-row me">
+        <div class="lb-rank" style="color:var(--amber)">4</div>
+        <div class="lb-av" style="background:var(--amber-dim);color:var(--amber);">YOU</div>
+        <div class="lb-info"><div class="lb-name">You</div><div class="lb-city">Bengaluru · me</div></div>
+        <div><div class="lb-score" style="color:var(--amber)">4,800</div><div class="lb-unit">kg vol</div></div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank" style="color:var(--text3)">5</div>
+        <div class="lb-av" style="background:var(--green-dim);color:var(--green);">PV</div>
+        <div class="lb-info"><div class="lb-name">Priya Verma</div><div class="lb-city">Bengaluru</div></div>
+        <div><div class="lb-score">4,320</div><div class="lb-unit">kg vol</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const hist=[];
+function go(id){
+  const cur=document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if(cur){cur.classList.add('back-hidden');hist.push(cur.id);}
+  const next=document.getElementById(id);
+  next.classList.remove('hidden','back-hidden');
+  next.scrollTop=0;
+  next.querySelectorAll('.a0,.a1,.a2,.a3,.a4,.a5').forEach(el=>{el.style.animation='none';void el.offsetHeight;el.style.animation='';});
+}
+function back(){
+  if(!hist.length)return;
+  const cur=document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if(cur)cur.classList.add('hidden');
+  const prev=document.getElementById(hist.pop());
+  prev.classList.remove('back-hidden','hidden');
+}
+function notifyMe(inputId,btn){
+  const val=document.getElementById(inputId).value.trim();
+  if(!val||!val.includes('@')){document.getElementById(inputId).style.borderColor='var(--red)';return;}
+  btn.textContent='✓ Done!';btn.style.background='var(--green)';btn.style.color='#111';
+  document.getElementById(inputId).value='';
+}
+
+// reaction counts toggle
+const counts={like:24,fire:12,strong:8};
+function toggleReact(id,cls){
+  const btn=document.getElementById(id);
+  const isOn=btn.classList.contains(cls);
+  btn.classList.toggle(cls);
+  const map={like:'lc',fire:'fc',strong:'sc'};
+  const key=cls==='liked'?'like':cls==='fired'?'fire':'strong';
+  const el=document.getElementById(map[key]);
+  if(el) el.textContent=isOn?counts[key]:counts[key]+1;
+}
+function toggleFollow(btn){
+  if(btn.classList.contains('follow')){btn.classList.replace('follow','following');btn.textContent='Following';}
+  else{btn.classList.replace('following','follow');btn.textContent='Follow';}
+}
+</script>
+</body>
+</html>

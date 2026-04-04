@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>NutriDesi — Food Diary</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#141414;--bg2:#1c1c1c;--bg3:#222;--card:#1e1e1e;--card2:#272727;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,0.13);--amber-bd:rgba(245,166,35,0.3);
+  --green:#4cd964;--green-dim:rgba(76,217,100,0.12);
+  --blue:#4da6ff;--red:#ff5c3a;--purple:#a78bfa;
+  --text:#fff;--text2:#888;--text3:#444;
+  --r:16px;--r-sm:10px;--r-xs:7px;
+}
+html,body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* SHELL */
+.shell{max-width:390px;margin:0 auto;min-height:100vh;position:relative;overflow:hidden;}
+
+/* SCREENS */
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);transition:transform 0.32s cubic-bezier(.4,0,.2,1),opacity 0.32s ease;will-change:transform;}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
+.screen.back-hidden{transform:translateX(-30%);opacity:0;pointer-events:none;}
+::-webkit-scrollbar{display:none;}
+
+/* STATUS BAR */
+.status{display:flex;justify-content:space-between;padding:14px 20px 4px;font-size:12px;font-weight:600;color:var(--text3);}
+
+/* COMMON HEADER */
+.pg-header{padding:6px 18px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.back-btn{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--amber);font-weight:600;cursor:pointer;padding:2px 0;margin-bottom:8px;width:fit-content;}
+.pg-title{font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1.2;color:var(--text);}
+.pro-badge{background:var(--amber-dim);border:1px solid var(--amber-bd);border-radius:20px;padding:5px 11px;font-size:11px;font-weight:700;color:var(--amber);white-space:nowrap;margin-top:3px;flex-shrink:0;}
+
+/* ========== SCREEN 1: FEATURE LIST ========== */
+.hero-card{margin:0 16px 18px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:26px 20px 22px;text-align:center;position:relative;overflow:hidden;}
+.hero-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -10%,rgba(245,166,35,0.07) 0%,transparent 65%);pointer-events:none;}
+.hero-emoji{font-size:48px;margin-bottom:12px;line-height:1;}
+.hero-desc{font-size:13.5px;color:var(--text2);line-height:1.65;max-width:260px;margin:0 auto 18px;}
+.hero-desc strong{color:var(--text);}
+.hero-lock{display:inline-flex;align-items:center;gap:7px;background:var(--amber-dim);border:1px solid var(--amber-bd);border-radius:20px;padding:8px 18px;font-size:13px;font-weight:700;color:var(--amber);cursor:pointer;}
+
+.sec-label{padding:0 18px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:var(--text3);}
+
+.feat-list{padding:0 16px;display:flex;flex-direction:column;gap:2px;}
+.feat-row{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--border);padding:13px 13px;cursor:pointer;transition:background .15s,transform .1s;}
+.feat-row:first-child{border-radius:var(--r) var(--r) var(--r-xs) var(--r-xs);}
+.feat-row:last-child{border-radius:var(--r-xs) var(--r-xs) var(--r) var(--r);}
+.feat-row:active{background:var(--card2);transform:scale(0.99);}
+.feat-icon-wrap{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;}
+.feat-info{flex:1;min-width:0;}
+.feat-name{font-size:14.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px;}
+.feat-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.07);color:var(--text3);border:1px solid var(--border2);flex-shrink:0;}
+.badge.live{background:rgba(76,217,100,0.13);color:var(--green);border-color:rgba(76,217,100,0.3);}
+.feat-arrow{font-size:12px;color:var(--text3);}
+
+/* NOTIFY */
+.notify-card{margin:18px 16px 8px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.notify-head{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+.notify-title{font-size:15px;font-weight:700;}
+.notify-sub{font-size:12.5px;color:var(--text2);margin-bottom:12px;line-height:1.5;}
+.input-row{display:flex;gap:8px;}
+.email-in{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px 12px;font-size:13px;color:var(--text);outline:none;font-family:inherit;}
+.email-in::placeholder{color:var(--text3);}
+.email-in:focus{border-color:var(--amber-bd);}
+.notify-btn{background:var(--amber);border:none;border-radius:var(--r-sm);padding:10px 16px;font-size:13px;font-weight:700;color:#111;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.notify-btn:active{opacity:.85;}
+.back-bottom{display:block;width:calc(100% - 32px);margin:14px 16px 36px;background:none;border:1px solid var(--border2);border-radius:50px;padding:14px;font-size:14px;font-weight:600;color:var(--amber);cursor:pointer;font-family:inherit;text-align:center;}
+.back-bottom:active{background:var(--card);}
+
+/* ========== COMMON SUB-SCREEN ========== */
+.sub-content{padding:0 0 40px;}
+
+/* ========== SCREEN: FOOD DIARY ========== */
+.day-bar{display:flex;align-items:center;justify-content:space-between;padding:0 16px 14px;}
+.day-btn{width:34px;height:34px;border-radius:var(--r-sm);background:var(--card);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:18px;}
+.day-btn:active{background:var(--card2);}
+.day-lbl{font-size:14px;font-weight:600;color:var(--text);}
+
+/* CALORIE HERO */
+.cal-card{margin:0 16px 14px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:18px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
+.cal-card::before{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:radial-gradient(circle,rgba(76,217,100,0.06) 0%,transparent 70%);pointer-events:none;}
+.ring-wrap{position:relative;width:88px;height:88px;flex-shrink:0;}
+.ring-wrap svg{width:88px;height:88px;transform:rotate(-90deg);}
+.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-num{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-1px;line-height:1;}
+.ring-sub{font-size:9px;color:var(--text2);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+.cal-rows{flex:1;}
+.cal-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;}
+.cal-row+.cal-row{border-top:1px solid var(--border);}
+.cr-k{font-size:12px;color:var(--text2);}
+.cr-v{font-size:12px;font-weight:700;color:var(--text);}
+.cr-v.g{color:var(--green);}
+.cr-v.a{color:var(--amber);}
+.cr-v.b{color:var(--blue);}
+
+/* MACROS */
+.macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 16px 14px;}
+.mpill{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 10px 9px;}
+.mp-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:3px;}
+.mp-val{font-size:20px;font-weight:800;line-height:1;letter-spacing:-0.5px;}
+.mp-unit{font-size:10px;font-weight:400;color:var(--text2);}
+.mp-bar{height:3px;background:var(--bg3);border-radius:2px;margin-top:7px;overflow:hidden;}
+.mp-fill{height:100%;border-radius:2px;}
+.mp-pct{font-size:10px;color:var(--text3);margin-top:3px;}
+
+/* MEAL CARDS */
+.meals-wrap{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.meal-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.meal-card.open{border-color:var(--border2);}
+.meal-hd{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;}
+.meal-hd:active{background:var(--card2);}
+.meal-accent{width:3px;height:34px;border-radius:2px;flex-shrink:0;}
+.meal-info{flex:1;}
+.meal-nm{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text);}
+.meal-ct{font-size:11px;color:var(--text3);margin-top:1px;}
+.meal-kcal-wrap{text-align:right;}
+.meal-kcal{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.5px;line-height:1;}
+.meal-ku{font-size:10px;color:var(--text3);}
+.meal-chev{font-size:10px;color:var(--text3);transition:transform .2s;margin-left:4px;}
+.meal-chev.o{transform:rotate(180deg);}
+.meal-body{border-top:1px solid var(--border);}
+.food-row{display:flex;align-items:center;padding:10px 14px;gap:10px;border-bottom:1px solid var(--border);}
+.food-row:last-of-type{border-bottom:none;}
+.food-row:active{background:rgba(255,255,255,0.02);}
+.food-left{flex:1;min-width:0;}
+.food-nm{font-size:13.5px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.food-meta{font-size:11px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:5px;}
+.in-tag{font-size:9px;font-weight:700;background:rgba(245,166,35,0.13);color:var(--amber);border:1px solid rgba(245,166,35,0.25);border-radius:4px;padding:1px 5px;text-transform:uppercase;letter-spacing:.3px;}
+.food-cal-wrap{text-align:right;}
+.food-cal{font-size:15px;font-weight:700;color:var(--text);line-height:1;}
+.food-cpf{font-size:10px;color:var(--text3);margin-top:2px;}
+.meal-add{display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;background:rgba(245,166,35,0.05);border-top:1px solid var(--border);font-size:13px;font-weight:600;color:var(--amber);cursor:pointer;}
+.meal-add:active{background:rgba(245,166,35,0.1);}
+
+/* ========== CALORIE RING SCREEN ========== */
+.big-ring-wrap{display:flex;justify-content:center;padding:20px 0 8px;}
+.big-ring{position:relative;width:200px;height:200px;}
+.big-ring svg{width:200px;height:200px;transform:rotate(-90deg);}
+.big-ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.big-ring-num{font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1;}
+.big-ring-lbl{font-size:13px;color:var(--text2);margin-top:4px;font-weight:500;}
+.cal-breakdown{margin:16px 16px 0;display:flex;flex-direction:column;gap:8px;}
+.cb-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 15px;gap:12px;}
+.cb-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.cb-label{flex:1;font-size:14px;font-weight:500;color:var(--text2);}
+.cb-val{font-size:18px;font-weight:800;letter-spacing:-0.5px;}
+.cb-unit{font-size:12px;color:var(--text3);}
+.formula-card{margin:14px 16px 0;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.formula-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;}
+.formula{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
+.formula-part{background:var(--bg3);border-radius:var(--r-sm);padding:8px 12px;text-align:center;}
+.fp-val{font-size:16px;font-weight:800;line-height:1;}
+.fp-lbl{font-size:10px;color:var(--text2);margin-top:2px;}
+.formula-op{font-size:18px;color:var(--text3);font-weight:700;}
+
+/* ========== MACRO BARS SCREEN ========== */
+.macro-full{padding:0 16px;display:flex;flex-direction:column;gap:10px;}
+.macro-big-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.mbig-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.mbig-name{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;}
+.mbig-val{font-size:28px;font-weight:800;letter-spacing:-1px;}
+.mbig-unit{font-size:13px;color:var(--text2);}
+.mbig-goal{font-size:12px;color:var(--text3);}
+.mbig-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-bottom:6px;}
+.mbig-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+.mbig-pct{font-size:12px;color:var(--text2);}
+.mbig-meta{display:flex;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.mbig-meta-item{flex:1;text-align:center;}
+.mmi-val{font-size:14px;font-weight:700;}
+.mmi-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* ========== INDIAN FOOD DB ========== */
+.search-bar{margin:0 16px 14px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-sm);padding:11px 14px;display:flex;align-items:center;gap:10px;}
+.search-icon{font-size:16px;color:var(--text3);}
+.search-input{background:none;border:none;outline:none;flex:1;font-size:14px;color:var(--text);font-family:inherit;}
+.search-input::placeholder{color:var(--text3);}
+.filter-row{display:flex;gap:7px;padding:0 16px 14px;overflow-x:auto;}
+.filter-row::-webkit-scrollbar{display:none;}
+.filter-chip{flex-shrink:0;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border2);background:var(--card);color:var(--text2);cursor:pointer;white-space:nowrap;}
+.filter-chip.active{background:var(--amber-dim);border-color:var(--amber-bd);color:var(--amber);}
+.food-db-list{padding:0 16px;display:flex;flex-direction:column;gap:6px;}
+.db-item{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 13px;gap:12px;cursor:pointer;}
+.db-item:active{background:var(--card2);}
+.db-emoji{font-size:26px;width:40px;text-align:center;flex-shrink:0;}
+.db-info{flex:1;}
+.db-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.db-meta{font-size:11px;color:var(--text2);margin-top:2px;}
+.db-unit{font-size:10px;color:var(--text3);}
+.db-cal{text-align:right;}
+.db-num{font-size:16px;font-weight:800;color:var(--text);}
+.db-kcal{font-size:10px;color:var(--text3);}
+.db-add{width:28px;height:28px;border-radius:50%;background:var(--amber-dim);border:1px solid var(--amber-bd);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--amber);flex-shrink:0;cursor:pointer;}
+
+/* ========== WATER TRACKER ========== */
+.water-hero{margin:0 16px 16px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:20px;text-align:center;}
+.water-big{font-size:56px;font-weight:800;letter-spacing:-2px;color:var(--blue);line-height:1;}
+.water-ml{font-size:14px;color:var(--text2);margin-top:4px;}
+.water-progress{height:6px;background:var(--bg3);border-radius:3px;margin:16px 0 0;overflow:hidden;}
+.water-prog-fill{height:100%;border-radius:3px;background:var(--blue);transition:width .4s ease;}
+.cups-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px;margin-bottom:16px;}
+.cup-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:all .15s;font-size:24px;}
+.cup-btn.filled{background:rgba(77,166,255,0.15);border-color:rgba(77,166,255,0.4);}
+.cup-btn:active{transform:scale(0.9);}
+.cup-label{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
+.cup-label.filled{color:var(--blue);}
+.water-quick{display:flex;gap:8px;padding:0 16px;}
+.wq-btn{flex:1;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:var(--blue);}
+.wq-btn:active{background:var(--card2);}
+
+/* ========== BARCODE SCANNER SCREEN ========== */
+.scanner-frame{margin:0 16px 16px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;aspect-ratio:1;position:relative;display:flex;align-items:center;justify-content:center;}
+.scanner-bg{position:absolute;inset:0;background:linear-gradient(135deg,#0d1117 0%,#1a1a2e 100%);}
+.scanner-lines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(77,166,255,0.03) 3px,rgba(77,166,255,0.03) 4px);}
+.scanner-corners{position:absolute;inset:30px;}
+.sc{position:absolute;width:28px;height:28px;border-color:var(--blue);border-style:solid;}
+.sc.tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
+.sc.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
+.sc.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
+.sc.br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
+.scanner-beam{position:absolute;left:30px;right:30px;height:2px;background:linear-gradient(90deg,transparent,var(--blue),transparent);animation:beam 2s ease-in-out infinite;box-shadow:0 0 10px var(--blue);}
+@keyframes beam{0%{top:30px;}50%{top:calc(100% - 30px);}100%{top:30px;}}
+.scanner-label{position:relative;font-size:13px;color:rgba(77,166,255,0.8);font-weight:600;margin-top:120px;}
+.recent-scans{padding:0 16px;}
+.rs-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;}
+.rs-item{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:12px;margin-bottom:7px;cursor:pointer;}
+.rs-item:active{background:var(--card2);}
+.rs-bar{font-size:11px;color:var(--text3);font-family:monospace;letter-spacing:1px;}
+.rs-info{flex:1;}
+.rs-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.rs-brand{font-size:11px;color:var(--text2);}
+.rs-cal{font-size:15px;font-weight:700;color:var(--text);}
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.anim{animation:fadeUp .3s ease both;}
+.anim-d1{animation-delay:.05s;}
+.anim-d2{animation-delay:.1s;}
+.anim-d3{animation-delay:.15s;}
+.anim-d4{animation-delay:.2s;}
+.anim-d5{animation-delay:.25s;}
+
+/* BOTTOM NAV */
+.bottom-nav{position:sticky;bottom:0;background:rgba(20,20,20,0.97);backdrop-filter:blur(16px);border-top:1px solid var(--border2);display:flex;z-index:100;}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 0 14px;cursor:pointer;}
+.nav-tab svg{opacity:.35;transition:opacity .15s;}
+.nav-tab.active svg{opacity:1;}
+.nav-tab-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;transition:color .15s;}
+.nav-tab.active .nav-tab-lbl{color:var(--amber);}
+.nav-ctr{flex:1;display:flex;justify-content:center;align-items:center;padding-bottom:6px;}
+.fab{width:46px;height:46px;border-radius:50%;background:var(--amber);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;color:#111;font-weight:800;box-shadow:0 0 20px rgba(245,166,35,0.35);transition:transform .15s;}
+.fab:active{transform:scale(.9);}
+
+/* SECTION DIVIDER */
+.sdiv{padding:16px 18px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ============ SCREEN: FEATURE LIST ============ -->
+<div class="screen" id="s-home">
+  <div class="status"><span>9:41</span><span style="color:#555;">84% ▲</span></div>
+  <div class="pg-header">
+    <div>
+      <div class="back-btn">← Back</div>
+      <div class="pg-title">Food Diary<br>— MFP Style</div>
+    </div>
+    <div class="pro-badge">PRO · ₹299/mo</div>
+  </div>
+
+  <div class="hero-card anim">
+    <div class="hero-emoji">📔</div>
+    <div class="hero-desc">India's first gym app with a <strong>verified Indian food database</strong> — dal, roti, paneer measured in katori.</div>
+    <div class="hero-lock">🔒 &nbsp;PRO · ₹299/mo</div>
+  </div>
+
+  <div class="sec-label anim anim-d1">SUB-FEATURES (6)</div>
+  <div class="feat-list anim anim-d2">
+    <div class="feat-row" onclick="go('s-diary')">
+      <div class="feat-icon-wrap" style="background:rgba(245,166,35,0.12);">📖</div>
+      <div class="feat-info">
+        <div class="feat-name">Food Diary <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">MFP-style breakfast, lunch, dinner, snacks</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-ring')">
+      <div class="feat-icon-wrap" style="background:rgba(76,217,100,0.1);">🔥</div>
+      <div class="feat-info">
+        <div class="feat-name">Calorie Ring <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Goal − Food + Exercise = Remaining</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-macro')">
+      <div class="feat-icon-wrap" style="background:rgba(77,166,255,0.1);">📊</div>
+      <div class="feat-info">
+        <div class="feat-name">Macro Bars <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Carbs, Fat, Protein tracking with daily goals</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-db')">
+      <div class="feat-icon-wrap" style="background:rgba(245,166,35,0.1);font-size:13px;font-weight:800;color:var(--amber);">🇮🇳</div>
+      <div class="feat-info">
+        <div class="feat-name">Indian Food DB <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">5000+ verified Indian foods with katori, roti units</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-scanner')">
+      <div class="feat-icon-wrap" style="background:rgba(160,160,255,0.1);">📷</div>
+      <div class="feat-info">
+        <div class="feat-name">Barcode Scanner <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Scan packaged products instantly</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-water')">
+      <div class="feat-icon-wrap" style="background:rgba(77,166,255,0.1);">💧</div>
+      <div class="feat-info">
+        <div class="feat-name">Water Tracker <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">8-cup visual tracker with reminders</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+  </div>
+
+  <div class="notify-card anim anim-d3">
+    <div class="notify-head"><span class="notify-icon" style="font-size:22px;">🔔</span><div class="notify-title">Get Notified</div></div>
+    <div class="notify-sub">We'll email you when Food Diary launches.</div>
+    <div class="input-row">
+      <input class="email-in" type="email" placeholder="Enter your email…" id="em1"/>
+      <button class="notify-btn" onclick="notifyMe('em1',this)">Notify Me</button>
+    </div>
+  </div>
+  <button class="back-bottom">← Back</button>
+</div>
+
+<!-- ============ SCREEN: FOOD DIARY ============ -->
+<div class="screen hidden" id="s-diary">
+  <div class="status"><span>9:41</span><span style="color:#555;">84%</span></div>
+  <div class="pg-header">
+    <div>
+      <div class="back-btn" onclick="back()">← Back</div>
+      <div class="pg-title">Food Diary</div>
+    </div>
+    <div class="pro-badge">PRO</div>
+  </div>
+  <div class="sub-content">
+    <div class="day-bar">
+      <div class="day-btn" onclick="chDay(-1)">‹</div>
+      <div class="day-lbl" id="day-lbl">Today, Mar 19</div>
+      <div class="day-btn" onclick="chDay(1)">›</div>
+    </div>
+    <div class="cal-card anim">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 88 88"><circle cx="44" cy="44" r="36" fill="none" stroke="#222" stroke-width="8"/><circle cx="44" cy="44" r="36" fill="none" stroke="#4cd964" stroke-width="8" stroke-dasharray="226.2" stroke-dashoffset="74" stroke-linecap="round" id="diary-arc"/></svg>
+        <div class="ring-inner"><div class="ring-num" id="diary-rem">682</div><div class="ring-sub">remaining</div></div>
+      </div>
+      <div class="cal-rows">
+        <div class="cal-row"><span class="cr-k">Goal</span><span class="cr-v">2100 kcal</span></div>
+        <div class="cal-row"><span class="cr-k">Food</span><span class="cr-v a" id="diary-food">1418 kcal</span></div>
+        <div class="cal-row"><span class="cr-k">Exercise</span><span class="cr-v b">+180 kcal</span></div>
+        <div class="cal-row"><span class="cr-k">Net</span><span class="cr-v g" id="diary-net">682 kcal</span></div>
+      </div>
+    </div>
+    <div class="macro-grid anim anim-d1">
+      <div class="mpill"><div class="mp-lbl">Carbs</div><div class="mp-val" style="color:var(--amber)">142<span class="mp-unit">g</span></div><div class="mp-bar"><div class="mp-fill" style="width:71%;background:var(--amber)"></div></div><div class="mp-pct">71% of goal</div></div>
+      <div class="mpill"><div class="mp-lbl">Protein</div><div class="mp-val" style="color:var(--blue)">58<span class="mp-unit">g</span></div><div class="mp-bar"><div class="mp-fill" style="width:48%;background:var(--blue)"></div></div><div class="mp-pct">48% of goal</div></div>
+      <div class="mpill"><div class="mp-lbl">Fat</div><div class="mp-val" style="color:var(--red)">31<span class="mp-unit">g</span></div><div class="mp-bar"><div class="mp-fill" style="width:39%;background:var(--red)"></div></div><div class="mp-pct">39% of goal</div></div>
+    </div>
+    <div class="meals-wrap" id="meals-wrap"></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-tab active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="2" stroke="var(--amber)" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="2" stroke="var(--amber)" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="2" stroke="var(--amber)" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="2" stroke="var(--amber)" stroke-width="1.5"/></svg><span class="nav-tab-lbl">Diary</span></div>
+    <div class="nav-tab"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 14L7 8l3.5 4L14 6l3 8" stroke="#555" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="nav-tab-lbl">Progress</span></div>
+    <div class="nav-ctr"><button class="fab">+</button></div>
+    <div class="nav-tab"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="#555" stroke-width="1.5"/><path d="M4 17c0-3.31 2.69-6 6-6s6 2.69 6 6" stroke="#555" stroke-width="1.5" stroke-linecap="round"/></svg><span class="nav-tab-lbl">Profile</span></div>
+    <div class="nav-tab"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="#555" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="#555" stroke-width="1.5" stroke-linecap="round"/></svg><span class="nav-tab-lbl">Exercise</span></div>
+  </div>
+</div>
+
+<!-- ============ SCREEN: CALORIE RING ============ -->
+<div class="screen hidden" id="s-ring">
+  <div class="status"><span>9:41</span><span style="color:#555;">84%</span></div>
+  <div class="pg-header">
+    <div>
+      <div class="back-btn" onclick="back()">← Back</div>
+      <div class="pg-title">Calorie Ring</div>
+    </div>
+    <div class="pro-badge">PRO</div>
+  </div>
+  <div class="sub-content">
+    <div class="big-ring-wrap anim">
+      <div class="big-ring">
+        <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="82" fill="none" stroke="#1e1e1e" stroke-width="16"/><circle cx="100" cy="100" r="82" fill="none" stroke="#4cd964" stroke-width="16" stroke-dasharray="515.2" stroke-dashoffset="169" stroke-linecap="round"/><circle cx="100" cy="100" r="82" fill="none" stroke="var(--amber)" stroke-width="16" stroke-dasharray="515.2" stroke-dashoffset="346" stroke-linecap="round" opacity=".5"/></svg>
+        <div class="big-ring-inner">
+          <div class="big-ring-num" style="color:var(--green)">682</div>
+          <div class="big-ring-lbl">kcal remaining</div>
+        </div>
+      </div>
+    </div>
+    <div class="formula-card anim anim-d1">
+      <div class="formula-title">How it's calculated</div>
+      <div class="formula">
+        <div class="formula-part"><div class="fp-val" style="color:var(--text)">2100</div><div class="fp-lbl">Goal</div></div>
+        <div class="formula-op">−</div>
+        <div class="formula-part"><div class="fp-val" style="color:var(--amber)">1418</div><div class="fp-lbl">Food</div></div>
+        <div class="formula-op">+</div>
+        <div class="formula-part"><div class="fp-val" style="color:var(--blue)">180</div><div class="fp-lbl">Exercise</div></div>
+        <div class="formula-op">=</div>
+        <div class="formula-part" style="background:rgba(76,217,100,0.1);border:1px solid rgba(76,217,100,0.2)"><div class="fp-val" style="color:var(--green)">862</div><div class="fp-lbl">Remaining</div></div>
+      </div>
+    </div>
+    <div class="cal-breakdown anim anim-d2">
+      <div class="cb-row"><div class="cb-dot" style="background:var(--amber)"></div><div class="cb-label">Food eaten today</div><div class="cb-val" style="color:var(--amber)">1418<span class="cb-unit"> kcal</span></div></div>
+      <div class="cb-row"><div class="cb-dot" style="background:var(--blue)"></div><div class="cb-label">Exercise burned</div><div class="cb-val" style="color:var(--blue)">+180<span class="cb-unit"> kcal</span></div></div>
+      <div class="cb-row"><div class="cb-dot" style="background:var(--green)"></div><div class="cb-label">Remaining</div><div class="cb-val" style="color:var(--green)">862<span class="cb-unit"> kcal</span></div></div>
+      <div class="cb-row"><div class="cb-dot" style="background:var(--text3)"></div><div class="cb-label">Daily goal</div><div class="cb-val">2100<span class="cb-unit"> kcal</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN: MACRO BARS ============ -->
+<div class="screen hidden" id="s-macro">
+  <div class="status"><span>9:41</span><span style="color:#555;">84%</span></div>
+  <div class="pg-header">
+    <div>
+      <div class="back-btn" onclick="back()">← Back</div>
+      <div class="pg-title">Macro Breakdown</div>
+    </div>
+    <div class="pro-badge">PRO</div>
+  </div>
+  <div class="sub-content">
+    <div class="macro-full">
+      <div class="macro-big-card anim">
+        <div class="mbig-top"><div class="mbig-name" style="color:var(--amber)">Carbs</div><div style="text-align:right"><div class="mbig-val" style="color:var(--amber)">142<span class="mbig-unit">g</span></div><div class="mbig-goal">Goal: 200g</div></div></div>
+        <div class="mbig-bar"><div class="mbig-fill" style="width:71%;background:var(--amber)"></div></div>
+        <div class="mbig-pct">71% of daily goal</div>
+        <div class="mbig-meta">
+          <div class="mbig-meta-item"><div class="mmi-val" style="color:var(--amber)">568</div><div class="mmi-lbl">kcal from carbs</div></div>
+          <div class="mbig-meta-item"><div class="mmi-val">4g</div><div class="mmi-lbl">per gram</div></div>
+          <div class="mbig-meta-item"><div class="mmi-val">27%</div><div class="mmi-lbl">of total intake</div></div>
+        </div>
+      </div>
+      <div class="macro-big-card anim anim-d1">
+        <div class="mbig-top"><div class="mbig-name" style="color:var(--blue)">Protein</div><div style="text-align:right"><div class="mbig-val" style="color:var(--blue)">58<span class="mbig-unit">g</span></div><div class="mbig-goal">Goal: 120g</div></div></div>
+        <div class="mbig-bar"><div class="mbig-fill" style="width:48%;background:var(--blue)"></div></div>
+        <div class="mbig-pct">48% of daily goal — <span style="color:var(--red)">needs more</span></div>
+        <div class="mbig-meta">
+          <div class="mbig-meta-item"><div class="mmi-val" style="color:var(--blue)">232</div><div class="mmi-lbl">kcal from protein</div></div>
+          <div class="mbig-meta-item"><div class="mmi-val">4g</div><div class="mmi-lbl">per gram</div></div>
+          <div class="mbig-meta-item"><div class="mmi-val">16%</div><div class="mmi-lbl">of total intake</div></div>
+        </div>
+      </div>
+      <div class="macro-big-card anim anim-d2">
+        <div class="mbig-top"><div class="mbig-name" style="color:var(--red)">Fat</div><div style="text-align:right"><div class="mbig-val" style="color:var(--red)">31<span class="mbig-unit">g</span></div><div class="mbig-goal">Goal: 80g</div></div></div>
+        <div class="mbig-bar"><div class="mbig-fill" style="width:39%;background:var(--red)"></div></div>
+        <div class="mbig-pct">39% of daily goal</div>
+        <div class="mbig-meta">
+          <div class="mbig-meta-item"><div class="mmi-val" style="color:var(--red)">279</div><div class="mmi-lbl">kcal from fat</div></div>
+          <div class="mbig-meta-item"><div class="mmi-val">9g</div><div class="mmi-lbl">per gram</div></div>
+          <div class="mbig-meta-item"><div class="mmi-val">20%</div><div class="mmi-lbl">of total intake</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN: INDIAN FOOD DB ============ -->
+<div class="screen hidden" id="s-db">
+  <div class="status"><span>9:41</span><span style="color:#555;">84%</span></div>
+  <div class="pg-header">
+    <div>
+      <div class="back-btn" onclick="back()">← Back</div>
+      <div class="pg-title">Indian Food DB</div>
+    </div>
+    <div class="pro-badge">5000+ foods</div>
+  </div>
+  <div class="sub-content">
+    <div class="search-bar anim">
+      <div class="search-icon">🔍</div>
+      <input class="search-input" placeholder="Search dal, roti, paneer…"/>
+    </div>
+    <div class="filter-row anim anim-d1">
+      <div class="filter-chip active">All</div>
+      <div class="filter-chip">Dal & Sabzi</div>
+      <div class="filter-chip">Roti & Rice</div>
+      <div class="filter-chip">Dairy</div>
+      <div class="filter-chip">Snacks</div>
+      <div class="filter-chip">Beverages</div>
+    </div>
+    <div class="food-db-list anim anim-d2">
+      <div class="db-item"><div class="db-emoji">🥣</div><div class="db-info"><div class="db-name">Dal Tadka</div><div class="db-meta">1 katori (150g) · homestyle</div><div class="db-unit">per katori</div></div><div class="db-cal"><div class="db-num">180</div><div class="db-kcal">kcal</div></div><div class="db-add">+</div></div>
+      <div class="db-item"><div class="db-emoji">🫓</div><div class="db-info"><div class="db-name">Phulka Roti</div><div class="db-meta">1 roti (30g) · whole wheat</div><div class="db-unit">per roti</div></div><div class="db-cal"><div class="db-num">80</div><div class="db-kcal">kcal</div></div><div class="db-add">+</div></div>
+      <div class="db-item"><div class="db-emoji">🍚</div><div class="db-info"><div class="db-name">Steamed Rice</div><div class="db-meta">1 katori (150g) · cooked</div><div class="db-unit">per katori</div></div><div class="db-cal"><div class="db-num">206</div><div class="db-kcal">kcal</div></div><div class="db-add">+</div></div>
+      <div class="db-item"><div class="db-emoji">🧀</div><div class="db-info"><div class="db-name">Paneer</div><div class="db-meta">100g · full fat</div><div class="db-unit">per 100g</div></div><div class="db-cal"><div class="db-num">265</div><div class="db-kcal">kcal</div></div><div class="db-add">+</div></div>
+      <div class="db-item"><div class="db-emoji">🥛</div><div class="db-info"><div class="db-name">Curd (Dahi)</div><div class="db-meta">1 katori (100g) · low fat</div><div class="db-unit">per katori</div></div><div class="db-cal"><div class="db-num">60</div><div class="db-kcal">kcal</div></div><div class="db-add">+</div></div>
+      <div class="db-item"><div class="db-emoji">🍳</div><div class="db-info"><div class="db-name">Masala Omelette</div><div class="db-meta">2 eggs with veggies</div><div class="db-unit">per serving</div></div><div class="db-cal"><div class="db-num">220</div><div class="db-kcal">kcal</div></div><div class="db-add">+</div></div>
+      <div class="db-item"><div class="db-emoji">🫙</div><div class="db-info"><div class="db-name">Idli</div><div class="db-meta">1 piece (40g) · steamed</div><div class="db-unit">per piece</div></div><div class="db-cal"><div class="db-num">39</div><div class="db-kcal">kcal</div></div><div class="db-add">+</div></div>
+      <div class="db-item"><div class="db-emoji">🥞</div><div class="db-info"><div class="db-name">Dosa (plain)</div><div class="db-meta">1 dosa (80g)</div><div class="db-unit">per dosa</div></div><div class="db-cal"><div class="db-num">133</div><div class="db-kcal">kcal</div></div><div class="db-add">+</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN: BARCODE SCANNER ============ -->
+<div class="screen hidden" id="s-scanner">
+  <div class="status"><span>9:41</span><span style="color:#555;">84%</span></div>
+  <div class="pg-header">
+    <div>
+      <div class="back-btn" onclick="back()">← Back</div>
+      <div class="pg-title">Barcode Scanner</div>
+    </div>
+    <div class="pro-badge">PRO</div>
+  </div>
+  <div class="sub-content">
+    <div class="scanner-frame anim">
+      <div class="scanner-bg"></div>
+      <div class="scanner-lines"></div>
+      <div class="scanner-corners">
+        <div class="sc tl"></div><div class="sc tr"></div>
+        <div class="sc bl"></div><div class="sc br"></div>
+      </div>
+      <div class="scanner-beam"></div>
+      <div class="scanner-label">Point camera at barcode</div>
+    </div>
+    <div class="recent-scans anim anim-d1">
+      <div class="rs-title">Recently scanned</div>
+      <div class="rs-item">
+        <div class="db-emoji">🍪</div>
+        <div class="rs-info"><div class="rs-name">Britannia Marie Gold</div><div class="rs-brand">Britannia · per 100g</div></div>
+        <div class="rs-cal"><div class="db-num">462</div><div class="db-kcal">kcal</div></div>
+        <div class="db-add">+</div>
+      </div>
+      <div class="rs-item">
+        <div class="db-emoji">🥛</div>
+        <div class="rs-info"><div class="rs-name">Amul Dahi</div><div class="rs-brand">Amul · 400g pack</div></div>
+        <div class="rs-cal"><div class="db-num">240</div><div class="db-kcal">kcal</div></div>
+        <div class="db-add">+</div>
+      </div>
+      <div class="rs-item">
+        <div class="db-emoji">🧃</div>
+        <div class="rs-info"><div class="rs-name">Real Fruit Juice</div><div class="rs-brand">Dabur · 200ml</div></div>
+        <div class="rs-cal"><div class="db-num">100</div><div class="db-kcal">kcal</div></div>
+        <div class="db-add">+</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN: WATER TRACKER ============ -->
+<div class="screen hidden" id="s-water">
+  <div class="status"><span>9:41</span><span style="color:#555;">84%</span></div>
+  <div class="pg-header">
+    <div>
+      <div class="back-btn" onclick="back()">← Back</div>
+      <div class="pg-title">Water Tracker</div>
+    </div>
+  </div>
+  <div class="sub-content">
+    <div class="water-hero anim">
+      <div class="water-big" id="w-num">5</div>
+      <div class="water-ml" id="w-ml">1250 ml of 2000 ml goal</div>
+      <div class="water-progress"><div class="water-prog-fill" id="w-prog" style="width:62.5%"></div></div>
+    </div>
+    <div class="sdiv anim anim-d1">TAP TO FILL YOUR CUPS</div>
+    <div class="cups-grid anim anim-d2" id="cups-grid"></div>
+    <div class="water-quick anim anim-d3">
+      <div class="wq-btn" onclick="addWater(1)">+ 1 cup (250ml)</div>
+      <div class="wq-btn" onclick="addWater(2)">+ 2 cups (500ml)</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- NAVIGATION ----
+const history = [];
+function go(id) {
+  const cur = document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if (cur) { cur.classList.add('back-hidden'); history.push(cur.id); }
+  const next = document.getElementById(id);
+  next.classList.remove('hidden','back-hidden');
+  next.scrollTop = 0;
+  // trigger animations
+  next.querySelectorAll('.anim').forEach(el => { el.style.animation='none'; el.offsetHeight; el.style.animation=''; });
+}
+function back() {
+  if (!history.length) return;
+  const cur = document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if (cur) cur.classList.add('hidden');
+  const prev = document.getElementById(history.pop());
+  prev.classList.remove('back-hidden','hidden');
+}
+
+// ---- NOTIFY ----
+function notifyMe(inputId, btn) {
+  const val = document.getElementById(inputId).value.trim();
+  if (!val || !val.includes('@')) { document.getElementById(inputId).style.borderColor='var(--red)'; return; }
+  btn.textContent = '✓ Done!'; btn.style.background = 'var(--green)'; btn.style.color = '#111';
+  document.getElementById(inputId).value = '';
+}
+
+// ---- FOOD DIARY ----
+const MEALS = [
+  { name:'Breakfast', color:'#ffb830', open:true, foods:[
+    { n:'Oats with banana', m:'1 cup · 280g', cal:310, cpf:'54g C · 9g P · 5g F', indian:false },
+    { n:'Masala chai', m:'1 glass · 200ml', cal:65, cpf:'8g C · 3g P · 2g F', indian:true },
+  ]},
+  { name:'Lunch', color:'#4da6ff', open:false, foods:[
+    { n:'Dal tadka', m:'1 katori · 150g', cal:220, cpf:'32g C · 12g P · 5g F', indian:true },
+    { n:'2 phulka rotis', m:'whole wheat · 60g', cal:160, cpf:'34g C · 5g P · 2g F', indian:true },
+    { n:'Jeera rice', m:'1 katori · 150g', cal:200, cpf:'42g C · 4g P · 2g F', indian:true },
+  ]},
+  { name:'Dinner', color:'#ff5c3a', open:false, foods:[
+    { n:'Paneer bhurji', m:'200g', cal:280, cpf:'8g C · 18g P · 19g F', indian:true },
+    { n:'2 rotis', m:'whole wheat', cal:130, cpf:'26g C · 4g P · 1g F', indian:true },
+  ]},
+  { name:'Snacks', color:'#b5f23d', open:false, foods:[
+    { n:'Mixed nuts', m:'30g', cal:183, cpf:'6g C · 5g P · 16g F', indian:false },
+  ]},
+];
+
+const DAYS = ['Mon, Mar 16','Tue, Mar 17','Wed, Mar 18','Today, Mar 19','Fri, Mar 20'];
+let dayIdx = 3;
+
+function chDay(d) {
+  dayIdx = Math.max(0, Math.min(DAYS.length-1, dayIdx+d));
+  document.getElementById('day-lbl').textContent = DAYS[dayIdx];
+}
+
+function renderMeals() {
+  const w = document.getElementById('meals-wrap');
+  w.innerHTML = '';
+  MEALS.forEach((m, i) => {
+    const cal = m.foods.reduce((s,f)=>s+f.cal,0);
+    const el = document.createElement('div');
+    el.className = 'meal-card' + (m.open ? ' open' : '');
+    let body = '';
+    if (m.open) {
+      body = '<div class="meal-body">';
+      m.foods.forEach(f => {
+        body += `<div class="food-row"><div class="food-left"><div class="food-nm">${f.n}</div><div class="food-meta"><span>${f.m}</span>${f.indian?'<span class="in-tag">Indian</span>':''}</div></div><div class="food-cal-wrap"><div class="food-cal">${f.cal}</div><div class="food-cpf">${f.cpf}</div></div></div>`;
+      });
+      body += `<div class="meal-add">+ Add food to ${m.name}</div></div>`;
+    }
+    el.innerHTML = `
+      <div class="meal-hd" onclick="toggleMeal(${i})">
+        <div class="meal-accent" style="background:${m.color}"></div>
+        <div class="meal-info"><div class="meal-nm">${m.name}</div><div class="meal-ct">${m.foods.length} item${m.foods.length>1?'s':''}</div></div>
+        <div class="meal-kcal-wrap"><div class="meal-kcal">${cal}</div><div class="meal-ku">kcal</div></div>
+        <div class="meal-chev${m.open?' o':''}">▼</div>
+      </div>${body}`;
+    w.appendChild(el);
+  });
+}
+
+function toggleMeal(i) { MEALS[i].open = !MEALS[i].open; renderMeals(); }
+renderMeals();
+
+// ---- WATER ----
+let cups = 5;
+function renderCups() {
+  const g = document.getElementById('cups-grid');
+  g.innerHTML = '';
+  for (let i=0;i<8;i++) {
+    const btn = document.createElement('div');
+    const filled = i < cups;
+    btn.className = 'cup-btn' + (filled?' filled':'');
+    btn.innerHTML = `${filled?'💧':'○'}<span class="cup-label${filled?' filled':''}">${filled?'250ml':'empty'}</span>`;
+    btn.onclick = () => { cups = (i < cups) ? i : i+1; renderCups(); updateWater(); };
+    g.appendChild(btn);
+  }
+  updateWater();
+}
+function updateWater() {
+  document.getElementById('w-num').textContent = cups;
+  document.getElementById('w-ml').textContent = `${cups*250} ml of 2000 ml goal`;
+  document.getElementById('w-prog').style.width = (cups/8*100)+'%';
+}
+function addWater(n) { cups = Math.min(8, cups+n); renderCups(); }
+renderCups();
+</script>
+</body>
+</html>

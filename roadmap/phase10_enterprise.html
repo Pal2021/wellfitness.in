@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Wellfitness Enterprise — B2B Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0e0e0e;--bg2:#141414;--bg3:#1a1a1a;--card:#1c1c1c;--card2:#222;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,0.13);--amber-bd:rgba(245,166,35,0.3);
+  --green:#4cd964;--green-dim:rgba(76,217,100,0.12);--green-bd:rgba(76,217,100,0.3);
+  --blue:#4da6ff;--blue-dim:rgba(77,166,255,0.12);--blue-bd:rgba(77,166,255,0.3);
+  --red:#ff5c3a;--red-dim:rgba(255,92,58,0.12);--red-bd:rgba(255,92,58,0.3);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.12);--purple-bd:rgba(167,139,250,0.3);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.12);--teal-bd:rgba(45,212,191,0.3);
+  --text:#fff;--text2:#888;--text3:#444;
+  --r:14px;--r-sm:10px;--r-xs:7px;
+}
+html,body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.shell{max-width:390px;margin:0 auto;min-height:100vh;position:relative;overflow:hidden;}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);transition:transform .32s cubic-bezier(.4,0,.2,1),opacity .32s ease;will-change:transform;}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
+.screen.back-hidden{transform:translateX(-28%);opacity:0;pointer-events:none;}
+::-webkit-scrollbar{display:none;}
+
+/* STATUS */
+.status{display:flex;justify-content:space-between;padding:12px 20px 4px;font-size:12px;font-weight:600;color:var(--text3);}
+
+/* TOP APP BAR (matches Wellfitness dashboard style) */
+.app-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 10px;}
+.app-logo{display:flex;align-items:center;gap:8px;}
+.app-logo-text{font-size:18px;font-weight:800;letter-spacing:-.3px;color:var(--text);}
+.app-logo-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);border-radius:20px;padding:2px 8px;}
+.app-bar-right{display:flex;align-items:center;gap:8px;}
+.notif-btn{width:34px;height:34px;border-radius:50%;background:var(--card);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;position:relative;}
+.notif-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid var(--bg);}
+.gym-avatar{width:34px;height:34px;border-radius:50%;background:var(--blue-dim);border:1px solid var(--blue-bd);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--blue);cursor:pointer;}
+
+/* GYM HEADER CARD */
+.gym-header{margin:0 16px 14px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;position:relative;overflow:hidden;}
+.gym-header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(77,166,255,0.06) 0%,transparent 65%);pointer-events:none;}
+.gym-name-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.gym-logo{width:42px;height:42px;border-radius:11px;background:var(--blue-dim);border:1px solid var(--blue-bd);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.gym-name{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.3px;}
+.gym-plan{font-size:10px;font-weight:700;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);border-radius:20px;padding:2px 9px;display:inline-block;margin-top:2px;}
+.gym-stats-row{display:flex;gap:8px;}
+.gym-stat{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px;text-align:center;}
+.gym-stat-val{font-size:18px;font-weight:800;letter-spacing:-.5px;line-height:1;}
+.gym-stat-lbl{font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+
+/* SECTION LABEL */
+.sdiv{padding:12px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);}
+
+/* FEATURE CARDS — big tap tiles */
+.feat-grid{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.feat-tile{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:15px 14px;cursor:pointer;transition:background .15s,transform .1s;position:relative;overflow:hidden;}
+.feat-tile:active{background:var(--card2);transform:scale(.99);}
+.feat-tile-accent{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:var(--r) 0 0 var(--r);}
+.feat-icon-wrap{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.feat-tile-info{flex:1;min-width:0;}
+.feat-tile-name{font-size:14.5px;font-weight:700;color:var(--text);}
+.feat-tile-sub{font-size:11.5px;color:var(--text2);margin-top:3px;line-height:1.4;}
+.feat-tile-meta{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.feat-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;}
+.feat-arrow{font-size:15px;color:var(--text3);flex-shrink:0;}
+
+/* QUICK ACTIONS */
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px;margin-bottom:4px;}
+.qa-btn{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:background .15s;}
+.qa-btn:active{background:var(--card2);}
+.qa-icon{font-size:18px;flex-shrink:0;}
+.qa-label{font-size:12.5px;font-weight:600;color:var(--text);}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.a0{animation:fadeUp .28s ease both;}
+.a1{animation:fadeUp .28s .06s ease both;}
+.a2{animation:fadeUp .28s .12s ease both;}
+.a3{animation:fadeUp .28s .18s ease both;}
+.a4{animation:fadeUp .28s .24s ease both;}
+.a5{animation:fadeUp .28s .30s ease both;}
+.a6{animation:fadeUp .28s .36s ease both;}
+
+/* BOTTOM NAV */
+.bottom-nav{position:sticky;bottom:0;background:rgba(14,14,14,.97);backdrop-filter:blur(16px);border-top:1px solid var(--border2);display:flex;z-index:100;}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 0 14px;cursor:pointer;}
+.nav-tab svg{opacity:.3;transition:opacity .15s;}
+.nav-tab.active svg{opacity:1;}
+.nav-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;transition:color .15s;}
+.nav-tab.active .nav-lbl{color:var(--amber);}
+
+/* ── COMMON SUB-SCREEN ── */
+.pg-header{padding:4px 18px 12px;}
+.back-btn{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--amber);font-weight:600;cursor:pointer;margin-bottom:10px;}
+.pg-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.pg-title{font-size:20px;font-weight:800;letter-spacing:-.4px;line-height:1.2;}
+.b2b-badge{border-radius:20px;padding:5px 11px;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0;margin-top:3px;}
+.sub-scroll{padding-bottom:44px;}
+
+/* SHARED COMPONENTS */
+.info-card{margin:0 16px 10px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.stat-row{display:flex;gap:8px;}
+.stat-box{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px;text-align:center;}
+.stat-val{font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1;}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.4px;}
+.action-btn{width:100%;border:none;border-radius:var(--r-sm);padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
+.list-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 13px;gap:12px;cursor:pointer;margin-bottom:6px;}
+.list-row:active{background:var(--card2);}
+
+/* ── GYM ADMIN DASHBOARD ── */
+.chart-bar-row{display:flex;gap:5px;align-items:flex-end;height:70px;}
+.cbar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;}
+.cbar{width:100%;border-radius:3px 3px 0 0;}
+.cbar-lbl{font-size:9px;color:var(--text3);}
+.member-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:11px;margin-bottom:6px;}
+.m-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.m-info{flex:1;}
+.m-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.m-meta{font-size:11px;color:var(--text2);margin-top:2px;}
+.m-stat{text-align:right;}
+.m-val{font-size:14px;font-weight:800;line-height:1;}
+.m-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
+.alert-row{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:var(--r-sm);margin-bottom:7px;}
+.ar-icon{font-size:18px;flex-shrink:0;}
+.ar-text{font-size:13px;line-height:1.5;}
+.ar-text strong{color:var(--text);}
+
+/* ── PERSONAL TRAINER ── */
+.client-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;cursor:pointer;}
+.client-card:active{background:var(--card2);}
+.cc-top{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
+.cc-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;}
+.cc-info{flex:1;}
+.cc-name{font-size:14px;font-weight:700;}
+.cc-goal{font-size:11px;color:var(--text2);margin-top:2px;}
+.cc-status{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.cc-stats{display:flex;gap:6px;}
+.cc-stat{flex:1;background:var(--bg3);border-radius:var(--r-xs);padding:8px;text-align:center;}
+.cc-stat-val{font-size:14px;font-weight:800;line-height:1;}
+.cc-stat-lbl{font-size:9px;color:var(--text3);margin-top:2px;}
+.message-bubble{display:flex;gap:9px;align-items:flex-end;margin-bottom:8px;}
+.msg-in{background:var(--card);border:1px solid var(--border2);border-radius:0 var(--r) var(--r) var(--r);padding:9px 12px;max-width:80%;}
+.msg-out{background:var(--blue-dim);border:1px solid var(--blue-bd);border-radius:var(--r) 0 var(--r) var(--r);padding:9px 12px;max-width:80%;margin-left:auto;}
+.msg-text{font-size:13px;color:var(--text);line-height:1.45;}
+.msg-time{font-size:10px;color:var(--text3);margin-top:4px;}
+
+/* ── WHITE-LABEL ── */
+.wl-preview{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;}
+.wl-phone{background:#0a0f1a;margin:12px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.1);}
+.wl-app-bar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.wl-logo-text{font-size:15px;font-weight:800;letter-spacing:-.3px;}
+.wl-status-chip{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.wl-option-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 13px;gap:12px;margin-bottom:6px;}
+.wl-or-info{flex:1;}
+.wl-or-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.wl-or-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.color-swatch-row{display:flex;gap:8px;margin-top:8px;}
+.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;transition:transform .15s;border:2px solid transparent;}
+.color-swatch.selected{border-color:var(--text);transform:scale(1.15);}
+.revenue-card{background:linear-gradient(135deg,rgba(77,166,255,0.1),rgba(167,139,250,0.08));border:1px solid var(--blue-bd);border-radius:var(--r);padding:16px;margin:0 16px 10px;}
+
+/* ── ANALYTICS API ── */
+.api-endpoint{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:7px;font-family:'SF Mono',monospace;}
+.api-method{font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:8px;}
+.api-method.get{background:rgba(76,217,100,0.15);color:var(--green);}
+.api-method.post{background:rgba(77,166,255,0.15);color:var(--blue);}
+.api-path{font-size:12px;color:var(--text2);}
+.api-desc{font-size:11px;color:var(--text3);margin-top:5px;}
+.webhook-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-sm);padding:13px;margin-bottom:7px;}
+.wh-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.wh-name{font-size:13px;font-weight:700;}
+.wh-status{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.wh-url{font-size:11px;color:var(--text3);font-family:monospace;}
+
+/* ── ENTERPRISE BILLING ── */
+.plan-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;}
+.plan-card.selected{border-color:var(--amber-bd);background:var(--amber-dim);}
+.plan-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.plan-name{font-size:15px;font-weight:800;}
+.plan-price{text-align:right;}
+.plan-amt{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--amber);line-height:1;}
+.plan-per{font-size:11px;color:var(--text3);}
+.plan-features{display:flex;flex-direction:column;gap:5px;}
+.pf-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text2);}
+.pf-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.invoice-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:12px;margin-bottom:6px;}
+.inv-info{flex:1;}
+.inv-name{font-size:13px;font-weight:600;}
+.inv-date{font-size:11px;color:var(--text2);margin-top:2px;}
+.inv-amt{font-size:15px;font-weight:800;color:var(--text);}
+.inv-status{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;margin-top:2px;text-align:right;}
+
+/* ── ADVANCED AI ── */
+.ai-program-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;margin:0 16px 10px;}
+.aip-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.aip-icon{font-size:28px;}
+.aip-info{flex:1;}
+.aip-title{font-size:15px;font-weight:700;}
+.aip-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.aip-weeks{display:flex;gap:5px;overflow-x:auto;margin-bottom:10px;}
+.aip-weeks::-webkit-scrollbar{display:none;}
+.week-chip{flex-shrink:0;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);}
+.week-chip.current{background:var(--purple-dim);border-color:var(--purple-bd);color:var(--purple);}
+.week-chip.done{background:var(--green-dim);border-color:var(--green-bd);color:var(--green);}
+.injury-flag{background:var(--red-dim);border:1px solid var(--red-bd);border-radius:var(--r-sm);padding:11px 13px;display:flex;gap:10px;align-items:flex-start;margin:0 16px 8px;}
+
+/* ── AI FORM VIDEO ── */
+.video-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:0 16px 10px;}
+.video-thumb{aspect-ratio:16/9;background:linear-gradient(135deg,#0d1117,#1a1a2e);display:flex;align-items:center;justify-content:center;position:relative;}
+.video-play{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:22px;backdrop-filter:blur(4px);}
+.video-overlay{position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(0deg,rgba(0,0,0,.8),transparent);}
+.vo-title{font-size:12px;font-weight:700;color:#fff;}
+.vo-meta{font-size:10px;color:rgba(255,255,255,.6);}
+.video-body{padding:12px 14px;}
+.vb-score-row{display:flex;gap:8px;margin-bottom:10px;}
+.vb-score{flex:1;background:var(--bg3);border-radius:var(--r-xs);padding:8px;text-align:center;}
+.vb-score-val{font-size:16px;font-weight:800;line-height:1;}
+.vb-score-lbl{font-size:9px;color:var(--text3);margin-top:2px;}
+.form-feedback{display:flex;flex-direction:column;gap:6px;}
+.ff-item{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--text2);line-height:1.45;}
+.ff-item strong{color:var(--text);}
+.ff-dot-good{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:4px;}
+.ff-dot-warn{width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0;margin-top:4px;}
+.ff-dot-bad{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ======== MAIN ENTERPRISE DASHBOARD ======== -->
+<div class="screen" id="s-home">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+
+  <!-- APP BAR matching Wellfitness style -->
+  <div class="app-bar">
+    <div class="app-logo">
+      <div class="app-logo-text">Wellfitness</div>
+      <div class="app-logo-tag">ENTERPRISE</div>
+    </div>
+    <div class="app-bar-right">
+      <div class="notif-btn">🔔<div class="notif-dot"></div></div>
+      <div class="gym-avatar">GY</div>
+    </div>
+  </div>
+
+  <!-- GYM HEADER -->
+  <div class="gym-header a0">
+    <div class="gym-name-row">
+      <div class="gym-logo">🏋️</div>
+      <div>
+        <div class="gym-name">GoldFit Gym — Bengaluru</div>
+        <div class="gym-plan">Enterprise · ₹5K/mo</div>
+      </div>
+    </div>
+    <div class="gym-stats-row">
+      <div class="gym-stat"><div class="gym-stat-val" style="color:var(--blue)">342</div><div class="gym-stat-lbl">Members</div></div>
+      <div class="gym-stat"><div class="gym-stat-val" style="color:var(--green)">87%</div><div class="gym-stat-lbl">Active</div></div>
+      <div class="gym-stat"><div class="gym-stat-val" style="color:var(--amber)">4.8</div><div class="gym-stat-lbl">Avg sessions</div></div>
+      <div class="gym-stat"><div class="gym-stat-val" style="color:var(--purple)">12</div><div class="gym-stat-lbl">Trainers</div></div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="sdiv a1">QUICK ACTIONS</div>
+  <div class="quick-actions a2">
+    <div class="qa-btn" onclick="go('s-trainer')"><div class="qa-icon">👤</div><div class="qa-label">Add Client</div></div>
+    <div class="qa-btn"><div class="qa-icon">📧</div><div class="qa-label">Bulk Invite</div></div>
+    <div class="qa-btn"><div class="qa-icon">📊</div><div class="qa-label">Export Report</div></div>
+    <div class="qa-btn" onclick="go('s-billing')"><div class="qa-icon">💳</div><div class="qa-label">Billing</div></div>
+  </div>
+
+  <!-- B2B FEATURES -->
+  <div class="sdiv a3">B2B FEATURES (7)</div>
+  <div class="feat-grid a4">
+
+    <div class="feat-tile" onclick="go('s-admin')">
+      <div class="feat-tile-accent" style="background:var(--blue)"></div>
+      <div class="feat-icon-wrap" style="background:var(--blue-dim);">🏢</div>
+      <div class="feat-tile-info">
+        <div class="feat-tile-name">Gym Admin Dashboard</div>
+        <div class="feat-tile-sub">Members, stats, peak times, bulk management</div>
+        <div class="feat-tile-meta"><div class="feat-tag" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);">ACTIVE</div><div style="font-size:10px;color:var(--text3)">342 members</div></div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+
+    <div class="feat-tile" onclick="go('s-trainer')">
+      <div class="feat-tile-accent" style="background:var(--purple)"></div>
+      <div class="feat-icon-wrap" style="background:var(--purple-dim);">👨‍💼</div>
+      <div class="feat-tile-info">
+        <div class="feat-tile-name">Personal Trainer Mode</div>
+        <div class="feat-tile-sub">Manage up to 50 clients · real-time logs · messaging</div>
+        <div class="feat-tile-meta"><div class="feat-tag" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple-bd);">PRO/ELITE</div><div style="font-size:10px;color:var(--text3)">12 trainers</div></div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+
+    <div class="feat-tile" onclick="go('s-whitelabel')">
+      <div class="feat-tile-accent" style="background:var(--amber)"></div>
+      <div class="feat-icon-wrap" style="background:var(--amber-dim);">🎨</div>
+      <div class="feat-tile-info">
+        <div class="feat-tile-name">White-label Option</div>
+        <div class="feat-tile-sub">Custom branding, app name, exercise library</div>
+        <div class="feat-tile-meta"><div class="feat-tag" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);">ENTERPRISE</div><div style="font-size:10px;color:var(--text3)">₹10K–50K/mo</div></div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+
+    <div class="feat-tile" onclick="go('s-ai')">
+      <div class="feat-tile-accent" style="background:var(--teal)"></div>
+      <div class="feat-icon-wrap" style="background:var(--teal-dim);">🧠</div>
+      <div class="feat-tile-info">
+        <div class="feat-tile-name">Advanced AI Features</div>
+        <div class="feat-tile-sub">12-week periodization, injury flags, diet cycles</div>
+        <div class="feat-tile-meta"><div class="feat-tag" style="background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-bd);">ELITE</div></div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+
+    <div class="feat-tile" onclick="go('s-api')">
+      <div class="feat-tile-accent" style="background:var(--green)"></div>
+      <div class="feat-icon-wrap" style="background:var(--green-dim);">🔌</div>
+      <div class="feat-tile-info">
+        <div class="feat-tile-name">Analytics API</div>
+        <div class="feat-tile-sub">B2B API for equipment companies · webhooks</div>
+        <div class="feat-tile-meta"><div class="feat-tag" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);">B2B API</div></div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+
+    <div class="feat-tile" onclick="go('s-billing')">
+      <div class="feat-tile-accent" style="background:var(--amber)"></div>
+      <div class="feat-icon-wrap" style="background:var(--amber-dim);">💳</div>
+      <div class="feat-tile-info">
+        <div class="feat-tile-name">Enterprise Billing</div>
+        <div class="feat-tile-sub">Bulk pricing, GST invoices, annual contracts</div>
+        <div class="feat-tile-meta"><div class="feat-tag" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);">ENTERPRISE</div><div style="font-size:10px;color:var(--text3)">₹5K/100 users</div></div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+
+    <div class="feat-tile" onclick="go('s-formvideo')">
+      <div class="feat-tile-accent" style="background:var(--red)"></div>
+      <div class="feat-icon-wrap" style="background:var(--red-dim);">🎥</div>
+      <div class="feat-tile-info">
+        <div class="feat-tile-name">AI Form Video Library</div>
+        <div class="feat-tile-sub">Form scoring, video feedback, training dataset</div>
+        <div class="feat-tile-meta"><div class="feat-tag" style="background:var(--red-dim);color:var(--red);border:1px solid var(--red-bd);">ELITE</div><div style="font-size:10px;color:var(--text3)">4 major lifts</div></div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+
+  </div>
+  <div style="height:16px;"></div>
+
+  <div class="bottom-nav">
+    <div class="nav-tab active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="var(--amber)" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="var(--amber)" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="var(--amber)" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="var(--amber)" stroke-width="1.5"/></svg><span class="nav-lbl">Dashboard</span></div>
+    <div class="nav-tab" onclick="go('s-admin')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="#555" stroke-width="1.5"/><path d="M3 17c0-3.31 2.69-6 6-6h2c3.31 0 6 2.69 6 6" stroke="#555" stroke-width="1.5" stroke-linecap="round"/></svg><span class="nav-lbl">Members</span></div>
+    <div class="nav-tab" onclick="go('s-trainer')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 14L7 8l3.5 4L14 6l3 8" stroke="#555" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="nav-lbl">Trainers</span></div>
+    <div class="nav-tab" onclick="go('s-billing')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="12" rx="2" stroke="#555" stroke-width="1.5"/><path d="M2 9h16" stroke="#555" stroke-width="1.5"/></svg><span class="nav-lbl">Billing</span></div>
+  </div>
+</div>
+
+<!-- ======== GYM ADMIN DASHBOARD ======== -->
+<div class="screen hidden" id="s-admin">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Gym Admin</div>
+      <div class="b2b-badge" style="background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-bd);">Enterprise</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div style="padding:0 16px;margin-bottom:12px;" class="a0">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" style="color:var(--blue)">342</div><div class="stat-lbl">Total members</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--green)">298</div><div class="stat-lbl">Active (7d)</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--amber)">4.8</div><div class="stat-lbl">Avg sessions</div></div>
+      </div>
+    </div>
+
+    <div class="info-card a1">
+      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;">Sessions / Day — This Week</div>
+      <div class="chart-bar-row">
+        <div class="cbar-wrap"><div class="cbar" style="height:55%;background:var(--blue);opacity:.6"></div><div class="cbar-lbl">M</div></div>
+        <div class="cbar-wrap"><div class="cbar" style="height:70%;background:var(--blue);opacity:.7"></div><div class="cbar-lbl">T</div></div>
+        <div class="cbar-wrap"><div class="cbar" style="height:45%;background:var(--blue);opacity:.55"></div><div class="cbar-lbl">W</div></div>
+        <div class="cbar-wrap"><div class="cbar" style="height:85%;background:var(--blue);opacity:.8"></div><div class="cbar-lbl">T</div></div>
+        <div class="cbar-wrap"><div class="cbar" style="height:90%;background:var(--amber)"></div><div class="cbar-lbl" style="color:var(--amber)">F</div></div>
+        <div class="cbar-wrap"><div class="cbar" style="height:100%;background:var(--amber)"></div><div class="cbar-lbl" style="color:var(--amber)">S</div></div>
+        <div class="cbar-wrap"><div class="cbar" style="height:60%;background:var(--blue);opacity:.6"></div><div class="cbar-lbl">S</div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:8px;"><span>Peak: Friday 6–8 PM</span><span>Avg: 48 sessions/day</span></div>
+    </div>
+
+    <div style="padding:0 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a2">TOP ACTIVE MEMBERS</div>
+    <div style="padding:0 16px;" class="a3">
+      <div class="member-row"><div class="m-av" style="background:var(--amber-dim);color:var(--amber);">RK</div><div class="m-info"><div class="m-name">Rahul Kumar</div><div class="m-meta">Member since Jan 2025 · Push/Pull</div></div><div class="m-stat"><div class="m-val" style="color:var(--green)">24</div><div class="m-lbl">sessions/mo</div></div></div>
+      <div class="member-row"><div class="m-av" style="background:var(--green-dim);color:var(--green);">PV</div><div class="m-info"><div class="m-name">Priya Verma</div><div class="m-meta">Member since Dec 2024 · HIIT</div></div><div class="m-stat"><div class="m-val" style="color:var(--green)">21</div><div class="m-lbl">sessions/mo</div></div></div>
+      <div class="member-row"><div class="m-av" style="background:var(--purple-dim);color:var(--purple);">VN</div><div class="m-info"><div class="m-name">Vikram Nair</div><div class="m-meta">Member since Oct 2024 · Powerlifting</div></div><div class="m-stat"><div class="m-val" style="color:var(--amber)">18</div><div class="m-lbl">sessions/mo</div></div></div>
+      <div class="member-row"><div class="m-av" style="background:var(--blue-dim);color:var(--blue);">AS</div><div class="m-info"><div class="m-name">Arjun Singh</div><div class="m-meta">Member since Feb 2025 · PPL</div></div><div class="m-stat"><div class="m-val" style="color:var(--amber)">16</div><div class="m-lbl">sessions/mo</div></div></div>
+    </div>
+
+    <div style="padding:12px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a4">ALERTS</div>
+    <div style="padding:0 16px;" class="a5">
+      <div class="alert-row" style="background:var(--red-dim);border:1px solid var(--red-bd);"><div class="ar-icon">⚠️</div><div class="ar-text" style="color:var(--text2)"><strong>14 members</strong> haven't logged in for 14+ days — at churn risk. Send re-engagement nudge.</div></div>
+      <div class="alert-row" style="background:var(--amber-dim);border:1px solid var(--amber-bd);"><div class="ar-icon">📊</div><div class="ar-text" style="color:var(--text2)"><strong>Peak hour alert:</strong> Friday 6–8 PM is at 94% capacity — consider managing slots.</div></div>
+      <div class="alert-row" style="background:var(--green-dim);border:1px solid var(--green-bd);"><div class="ar-icon">🏆</div><div class="ar-text" style="color:var(--text2)"><strong>38 new PRs</strong> set this week by members — great engagement!</div></div>
+    </div>
+
+    <div style="padding:14px 16px 0;" class="a6">
+      <button class="action-btn" style="background:var(--blue);color:#fff;">📧 &nbsp;Bulk Invite via Email List</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== PERSONAL TRAINER ======== -->
+<div class="screen hidden" id="s-trainer">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Trainer Mode</div>
+      <div class="b2b-badge" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple-bd);">PRO/ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div style="padding:0 16px;margin-bottom:4px;" class="a0">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" style="color:var(--purple)">18</div><div class="stat-lbl">My Clients</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--green)">14</div><div class="stat-lbl">Active today</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--amber)">50</div><div class="stat-lbl">Max capacity</div></div>
+      </div>
+    </div>
+
+    <div style="padding:12px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a1">MY CLIENTS</div>
+    <div style="padding:0 16px;" class="a2">
+      <div class="client-card">
+        <div class="cc-top">
+          <div class="cc-av" style="background:var(--amber-dim);color:var(--amber);">RK</div>
+          <div class="cc-info"><div class="cc-name">Rahul Kumar</div><div class="cc-goal">Goal: Bulk · PPL · 5 days/week</div></div>
+          <div class="cc-status" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);">● Active</div>
+        </div>
+        <div class="cc-stats">
+          <div class="cc-stat"><div class="cc-stat-val" style="color:var(--blue)">24</div><div class="cc-stat-lbl">sessions</div></div>
+          <div class="cc-stat"><div class="cc-stat-val" style="color:var(--green)">+8kg</div><div class="cc-stat-lbl">strength</div></div>
+          <div class="cc-stat"><div class="cc-stat-val" style="color:var(--amber)">73.4</div><div class="cc-stat-lbl">weight kg</div></div>
+          <div class="cc-stat"><div class="cc-stat-val" style="color:var(--purple)">74</div><div class="cc-stat-lbl">recovery</div></div>
+        </div>
+      </div>
+      <div class="client-card">
+        <div class="cc-top">
+          <div class="cc-av" style="background:var(--green-dim);color:var(--green);">PV</div>
+          <div class="cc-info"><div class="cc-name">Priya Verma</div><div class="cc-goal">Goal: Cut · HIIT · 4 days/week</div></div>
+          <div class="cc-status" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);">● Session now</div>
+        </div>
+        <div class="cc-stats">
+          <div class="cc-stat"><div class="cc-stat-val" style="color:var(--blue)">18</div><div class="cc-stat-lbl">sessions</div></div>
+          <div class="cc-stat"><div class="cc-stat-val" style="color:var(--red)">−3.2kg</div><div class="cc-stat-lbl">weight lost</div></div>
+          <div class="cc-stat"><div class="cc-stat-val" style="color:var(--amber)">62.1</div><div class="cc-stat-lbl">weight kg</div></div>
+          <div class="cc-stat"><div class="cc-stat-val" style="color:var(--green)">81</div><div class="cc-stat-lbl">recovery</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:12px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a3">IN-APP COACHING MESSAGE</div>
+    <div style="margin:0 16px 4px;" class="a4">
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:13px;">
+        <div class="message-bubble"><div class="m-av" style="width:28px;height:28px;border-radius:50%;background:var(--amber-dim);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">RK</div><div class="msg-in"><div class="msg-text">Coach, my shoulder hurts today — should I skip OHP?</div><div class="msg-time">9:30 AM</div></div></div>
+        <div class="message-bubble" style="flex-direction:row-reverse;"><div class="m-av" style="width:28px;height:28px;border-radius:50%;background:var(--purple-dim);color:var(--purple);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">ME</div><div class="msg-out"><div class="msg-text">Yes, skip OHP. Do lateral raises instead — 3×15 light weight. Rest that shoulder.</div><div class="msg-time">9:32 AM</div></div></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <input style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:9px 14px;font-size:13px;color:var(--text);outline:none;font-family:inherit;" placeholder="Message client…"/>
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex-shrink:0;">↑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== WHITE LABEL ======== -->
+<div class="screen hidden" id="s-whitelabel">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">White-label</div>
+      <div class="b2b-badge" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);">Enterprise</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <!-- LIVE PREVIEW -->
+    <div class="wl-preview a0">
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);">LIVE PREVIEW</div></div>
+      <div class="wl-phone">
+        <div class="wl-app-bar" id="wl-bar" style="background:#0a1a2e;">
+          <div class="wl-logo-text" id="wl-name" style="color:#4da6ff;">GoldFit</div>
+          <div class="wl-status-chip" id="wl-chip" style="background:rgba(77,166,255,0.2);color:#4da6ff;border:1px solid rgba(77,166,255,0.4);">PRO</div>
+        </div>
+        <div style="padding:12px;display:flex;flex-direction:column;gap:7px;">
+          <div style="background:rgba(77,166,255,0.08);border:1px solid rgba(77,166,255,0.2);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">💪</span><div><div style="font-size:13px;font-weight:700;color:#fff;">Workout Tracker</div><div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;">Log your sessions</div></div></div>
+          <div style="background:rgba(77,166,255,0.05);border:1px solid rgba(77,166,255,0.15);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🍱</span><div><div style="font-size:13px;font-weight:700;color:#fff;">Nutrition</div><div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;">Track your diet</div></div></div>
+          <div style="background:rgba(77,166,255,0.08);border:1px solid rgba(77,166,255,0.2);border-radius:10px;padding:10px;text-align:center;font-size:12px;font-weight:700;" id="wl-btn-preview" style="color:#4da6ff;">Powered by GoldFit</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMIZATION OPTIONS -->
+    <div style="padding:12px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a1">CUSTOMISE</div>
+    <div style="padding:0 16px;" class="a2">
+      <div class="wl-option-row">
+        <span style="font-size:20px;">🏷️</span>
+        <div class="wl-or-info"><div class="wl-or-name">App Name</div><div class="wl-or-sub">Shown in header and app store</div></div>
+        <input id="wl-name-in" style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;font-size:13px;color:var(--text);outline:none;width:90px;font-family:inherit;" value="GoldFit" oninput="document.getElementById('wl-name').textContent=this.value||'GoldFit'"/>
+      </div>
+      <div class="wl-option-row">
+        <span style="font-size:20px;">🎨</span>
+        <div class="wl-or-info"><div class="wl-or-name">Brand Color</div><div class="wl-or-sub">Primary accent color</div></div>
+        <div class="color-swatch-row">
+          <div class="color-swatch selected" style="background:#4da6ff;" onclick="setColor('#4da6ff',this)"></div>
+          <div class="color-swatch" style="background:#f5a623;" onclick="setColor('#f5a623',this)"></div>
+          <div class="color-swatch" style="background:#4cd964;" onclick="setColor('#4cd964',this)"></div>
+          <div class="color-swatch" style="background:#a78bfa;" onclick="setColor('#a78bfa',this)"></div>
+          <div class="color-swatch" style="background:#ff5c3a;" onclick="setColor('#ff5c3a',this)"></div>
+        </div>
+      </div>
+      <div class="wl-option-row">
+        <span style="font-size:20px;">📚</span>
+        <div class="wl-or-info"><div class="wl-or-name">Exercise Library</div><div class="wl-or-sub">Gym-specific exercises</div></div>
+        <div style="font-size:12px;color:var(--green);font-weight:700;">48 added</div>
+      </div>
+      <div class="wl-option-row">
+        <span style="font-size:20px;">🖼️</span>
+        <div class="wl-or-info"><div class="wl-or-name">Gym Logo</div><div class="wl-or-sub">Shown in app header</div></div>
+        <div style="font-size:12px;color:var(--blue);font-weight:700;cursor:pointer;">Upload ›</div>
+      </div>
+    </div>
+
+    <div class="revenue-card a3">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:8px;">REVENUE POTENTIAL</div>
+      <div style="display:flex;gap:12px;">
+        <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.5px;">₹10K</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">per single gym / mo</div></div>
+        <div style="width:1px;background:var(--border2);"></div>
+        <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:800;color:var(--amber);letter-spacing:-.5px;">₹50K</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">per gym chain / mo</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== ANALYTICS API ======== -->
+<div class="screen hidden" id="s-api">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Analytics API</div>
+      <div class="b2b-badge" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);">B2B API</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div style="padding:0 16px;margin-bottom:4px;" class="a0">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" style="color:var(--green)">99.9%</div><div class="stat-lbl">Uptime</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--blue)">2.4M</div><div class="stat-lbl">API calls/mo</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--amber)">48ms</div><div class="stat-lbl">Avg latency</div></div>
+      </div>
+    </div>
+
+    <div style="padding:12px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a1">API ENDPOINTS</div>
+    <div style="padding:0 16px;" class="a2">
+      <div class="api-endpoint"><span class="api-method get">GET</span><span class="api-path">/api/feed</span><div class="api-desc">Returns chronological workout feed for a gym</div></div>
+      <div class="api-endpoint"><span class="api-method post">POST</span><span class="api-path">/api/posts</span><div class="api-desc">Create a workout post from equipment data</div></div>
+      <div class="api-endpoint"><span class="api-method get">GET</span><span class="api-path">/api/gym/stats/{gymId}</span><div class="api-desc">Aggregate stats: sessions, peak times, exercises</div></div>
+      <div class="api-endpoint"><span class="api-method post">POST</span><span class="api-path">/api/exercise/push</span><div class="api-desc">Push exercise data from gym equipment automatically</div></div>
+      <div class="api-endpoint"><span class="api-method get">GET</span><span class="api-path">/api/members/{gymId}</span><div class="api-desc">Member list with activity levels and stats</div></div>
+    </div>
+
+    <div style="padding:12px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a3">WEBHOOKS</div>
+    <div style="padding:0 16px;" class="a4">
+      <div class="webhook-card">
+        <div class="wh-top"><div class="wh-name">member.session.completed</div><div class="wh-status" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);">● Active</div></div>
+        <div class="wh-url">https://api.mindbody.com/webhook/Wellfitness</div>
+      </div>
+      <div class="webhook-card">
+        <div class="wh-top"><div class="wh-name">member.pr.achieved</div><div class="wh-status" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);">● Active</div></div>
+        <div class="wh-url">https://api.glofox.com/hooks/Wellfitness</div>
+      </div>
+      <div class="webhook-card">
+        <div class="wh-top"><div class="wh-name">gym.peak_alert</div><div class="wh-status" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);">○ Paused</div></div>
+        <div class="wh-url">https://hooks.slack.com/gym-alerts</div>
+      </div>
+      <button class="action-btn" style="background:var(--green-dim);border:1px solid var(--green-bd);color:var(--green);margin-top:8px;">+ Add Webhook</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== ENTERPRISE BILLING ======== -->
+<div class="screen hidden" id="s-billing">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Enterprise Billing</div>
+      <div class="b2b-badge" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);">GST Ready</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="info-card a0" style="background:linear-gradient(135deg,rgba(245,166,35,0.1),rgba(77,166,255,0.06));">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Current plan · GoldFit Gym</div>
+      <div style="font-size:26px;font-weight:800;color:var(--amber);letter-spacing:-1px;line-height:1;">₹5,000<span style="font-size:14px;font-weight:400;color:var(--text3)">/month</span></div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px;">100 members · Annual contract · GST invoice</div>
+      <div style="height:1px;background:var(--border);margin:12px 0;"></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text2)">Next invoice</span><span style="font-weight:700;color:var(--text)">Apr 1, 2025</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:5px;"><span style="color:var(--text2)">Members used</span><span style="font-weight:700;color:var(--green)">342 / 500</span></div>
+    </div>
+
+    <div style="padding:0 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a1">BULK PRICING PLANS</div>
+    <div style="padding:0 16px;" class="a2">
+      <div class="plan-card">
+        <div class="plan-top"><div><div class="plan-name">Starter</div><div style="font-size:12px;color:var(--text2);margin-top:3px;">Up to 100 members</div></div><div class="plan-price"><div class="plan-amt">₹5K</div><div class="plan-per">/month</div></div></div>
+        <div class="plan-features">
+          <div class="pf-row"><div class="pf-dot"></div>All user features</div>
+          <div class="pf-row"><div class="pf-dot"></div>Gym admin dashboard</div>
+          <div class="pf-row"><div class="pf-dot"></div>5 trainer accounts</div>
+        </div>
+      </div>
+      <div class="plan-card selected">
+        <div style="font-size:10px;font-weight:700;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);border-radius:4px;padding:2px 8px;display:inline-block;margin-bottom:8px;">✓ CURRENT PLAN</div>
+        <div class="plan-top"><div><div class="plan-name">Growth</div><div style="font-size:12px;color:var(--text2);margin-top:3px;">Up to 500 members</div></div><div class="plan-price"><div class="plan-amt">₹15K</div><div class="plan-per">/month</div></div></div>
+        <div class="plan-features">
+          <div class="pf-row"><div class="pf-dot"></div>Everything in Starter</div>
+          <div class="pf-row"><div class="pf-dot"></div>White-label option</div>
+          <div class="pf-row"><div class="pf-dot"></div>Analytics API access</div>
+          <div class="pf-row"><div class="pf-dot"></div>20 trainer accounts</div>
+        </div>
+      </div>
+      <div class="plan-card">
+        <div class="plan-top"><div><div class="plan-name">Enterprise</div><div style="font-size:12px;color:var(--text2);margin-top:3px;">Unlimited · chain pricing</div></div><div class="plan-price"><div class="plan-amt">₹50K</div><div class="plan-per">/month</div></div></div>
+        <div class="plan-features">
+          <div class="pf-row"><div class="pf-dot"></div>Full white-label</div>
+          <div class="pf-row"><div class="pf-dot"></div>Unlimited trainers</div>
+          <div class="pf-row"><div class="pf-dot"></div>Dedicated support</div>
+          <div class="pf-row"><div class="pf-dot"></div>Custom SLA</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:12px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a3">GST INVOICES</div>
+    <div style="padding:0 16px;" class="a4">
+      <div class="invoice-row"><span style="font-size:20px;flex-shrink:0;">📋</span><div class="inv-info"><div class="inv-name">March 2025</div><div class="inv-date">Issued Mar 1 · GST: 18%</div></div><div style="text-align:right;"><div class="inv-amt">₹5,900</div><div class="inv-status" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);">Paid</div></div></div>
+      <div class="invoice-row"><span style="font-size:20px;flex-shrink:0;">📋</span><div class="inv-info"><div class="inv-name">February 2025</div><div class="inv-date">Issued Feb 1 · GST: 18%</div></div><div style="text-align:right;"><div class="inv-amt">₹5,900</div><div class="inv-status" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);">Paid</div></div></div>
+      <div class="invoice-row"><span style="font-size:20px;flex-shrink:0;">📋</span><div class="inv-info"><div class="inv-name">January 2025</div><div class="inv-date">Issued Jan 1 · GST: 18%</div></div><div style="text-align:right;"><div class="inv-amt">₹5,900</div><div class="inv-status" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-bd);">Paid</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== ADVANCED AI ======== -->
+<div class="screen hidden" id="s-ai">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Advanced AI</div>
+      <div class="b2b-badge" style="background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-bd);">ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="ai-program-card a0">
+      <div class="aip-top">
+        <div class="aip-icon">🧠</div>
+        <div class="aip-info"><div class="aip-title">12-Week Periodization — Rahul</div><div class="aip-sub">AI-generated · started Jan 1 · Week 11 now</div></div>
+      </div>
+      <div class="aip-weeks">
+        <div class="week-chip done">W1 ✓</div><div class="week-chip done">W2 ✓</div><div class="week-chip done">W3 ✓</div><div class="week-chip done">W4 ✓</div>
+        <div class="week-chip done">W5 ✓</div><div class="week-chip done">W6 ✓</div><div class="week-chip done">W7 ✓</div><div class="week-chip done">W8 ✓</div>
+        <div class="week-chip done">W9 ✓</div><div class="week-chip done">W10 ✓</div><div class="week-chip current">W11 ◀</div><div class="week-chip">W12</div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.5;">Block: <strong style="color:var(--text)">Peak strength</strong> — higher intensity, lower volume. Competition taper next week.</div>
+    </div>
+
+    <div style="padding:0 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a1">DIET PERIODIZATION CYCLES</div>
+    <div style="padding:0 16px;display:flex;gap:8px;margin-bottom:12px;" class="a2">
+      <div style="flex:1;background:var(--card);border:1px solid var(--amber-bd);border-radius:var(--r-sm);padding:12px;text-align:center;"><div style="font-size:22px;margin-bottom:4px;">🍚</div><div style="font-size:13px;font-weight:700;color:var(--amber)">Bulk</div><div style="font-size:10px;color:var(--text3);margin-top:3px;">Week 1–8<br>+300 kcal surplus</div></div>
+      <div style="flex:1;background:var(--card);border:1px solid var(--red-bd);border-radius:var(--r-sm);padding:12px;text-align:center;"><div style="font-size:22px;margin-bottom:4px;">🥗</div><div style="font-size:13px;font-weight:700;color:var(--red)">Cut</div><div style="font-size:10px;color:var(--text3);margin-top:3px;">Week 9–14<br>−400 kcal deficit</div></div>
+      <div style="flex:1;background:var(--card);border:1px solid var(--green-bd);border-radius:var(--r-sm);padding:12px;text-align:center;"><div style="font-size:22px;margin-bottom:4px;">⚖️</div><div style="font-size:13px;font-weight:700;color:var(--green)">Recomp</div><div style="font-size:10px;color:var(--text3);margin-top:3px;">Week 15+<br>Maintenance</div></div>
+    </div>
+
+    <div style="padding:0 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a3">INJURY PREVENTION FLAGS</div>
+    <div class="injury-flag a4"><div style="font-size:18px;flex-shrink:0;">⚠️</div><div style="font-size:13px;color:var(--text);line-height:1.5;"><strong>Vikram Nair</strong> — Volume spike detected on deadlift (+45% vs baseline). Injury risk elevated. Auto-reduced next session by 25%.</div></div>
+    <div style="margin:0 16px 8px;background:var(--amber-dim);border:1px solid var(--amber-bd);border-radius:var(--r-sm);padding:11px 13px;display:flex;gap:10px;" class="a5"><div style="font-size:18px;flex-shrink:0;">📊</div><div style="font-size:13px;color:var(--text);line-height:1.5;"><strong>Priya Verma</strong> — Competition in 3 weeks. Auto-adjusting plan to taper volume by 20% for peak performance.</div></div>
+  </div>
+</div>
+
+<!-- ======== AI FORM VIDEO LIBRARY ======== -->
+<div class="screen hidden" id="s-formvideo">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Form Video Library</div>
+      <div class="b2b-badge" style="background:var(--red-dim);color:var(--red);border:1px solid var(--red-bd);">ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div style="padding:0 16px;margin-bottom:4px;" class="a0">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" style="color:var(--blue)">4</div><div class="stat-lbl">Major lifts</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--green)">1,240</div><div class="stat-lbl">Videos analyzed</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--amber)">94.2%</div><div class="stat-lbl">AI accuracy</div></div>
+      </div>
+    </div>
+
+    <div class="video-card a1">
+      <div class="video-thumb">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0a1520,#1a1a2e);display:flex;align-items:center;justify-content:center;font-size:64px;">🏋️</div>
+        <div class="video-play">▶</div>
+        <div class="video-overlay"><div class="vo-title">Bench Press — Form Analysis</div><div class="vo-meta">Rahul Kumar · Mar 19 · 80kg</div></div>
+      </div>
+      <div class="video-body">
+        <div class="vb-score-row">
+          <div class="vb-score"><div class="vb-score-val" style="color:var(--green)">87</div><div class="vb-score-lbl">Form score</div></div>
+          <div class="vb-score"><div class="vb-score-val" style="color:var(--blue)">4</div><div class="vb-score-lbl">reps analyzed</div></div>
+          <div class="vb-score"><div class="vb-score-val" style="color:var(--amber)">2</div><div class="vb-score-lbl">flags</div></div>
+        </div>
+        <div class="form-feedback">
+          <div class="ff-item"><div class="ff-dot-good"></div><div><strong>Bar path:</strong> Clean straight line, good</div></div>
+          <div class="ff-item"><div class="ff-dot-good"></div><div><strong>Arch:</strong> Natural arch maintained throughout</div></div>
+          <div class="ff-item"><div class="ff-dot-warn"></div><div><strong>Elbow flare:</strong> Slight flare on rep 3 — watch this</div></div>
+          <div class="ff-item"><div class="ff-dot-bad"></div><div><strong>Leg drive:</strong> Not using leg drive — losing power</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:0 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);" class="a2">ALL SUPPORTED LIFTS</div>
+    <div style="padding:0 16px;" class="a3">
+      <div class="list-row"><span style="font-size:20px;">🏋️</span><div style="flex:1;"><div style="font-size:13.5px;font-weight:600;">Bench Press</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">12 checkpoints · bar path, arch, elbow flare</div></div><div style="text-align:right;"><div style="font-size:13px;font-weight:700;color:var(--green)">87 avg</div><div style="font-size:10px;color:var(--text3);">form score</div></div></div>
+      <div class="list-row"><span style="font-size:20px;">🦵</span><div style="flex:1;"><div style="font-size:13.5px;font-weight:600;">Squat</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">14 checkpoints · depth, knee track, torso angle</div></div><div style="text-align:right;"><div style="font-size:13px;font-weight:700;color:var(--amber)">79 avg</div><div style="font-size:10px;color:var(--text3);">form score</div></div></div>
+      <div class="list-row"><span style="font-size:20px;">🔗</span><div style="flex:1;"><div style="font-size:13.5px;font-weight:600;">Deadlift</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">10 checkpoints · hip hinge, bar contact, lockout</div></div><div style="text-align:right;"><div style="font-size:13px;font-weight:700;color:var(--green)">91 avg</div><div style="font-size:10px;color:var(--text3);">form score</div></div></div>
+      <div class="list-row"><span style="font-size:20px;">🙌</span><div style="flex:1;"><div style="font-size:13.5px;font-weight:600;">Overhead Press</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">8 checkpoints · bar path, core bracing, lockout</div></div><div style="text-align:right;"><div style="font-size:13px;font-weight:700;color:var(--blue)">83 avg</div><div style="font-size:10px;color:var(--text3);">form score</div></div></div>
+    </div>
+
+    <div style="padding:14px 16px 0;" class="a4">
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:var(--r-sm);padding:13px;display:flex;gap:10px;">
+        <span style="font-size:18px;flex-shrink:0;">🔒</span>
+        <div style="font-size:12.5px;color:var(--text2);line-height:1.5;">All form videos are <strong style="color:var(--text)">anonymized</strong> before being used to train the AI model. Members consent during onboarding. Data never shared externally.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const hist=[];
+function go(id){
+  const cur=document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if(cur){cur.classList.add('back-hidden');hist.push(cur.id);}
+  const next=document.getElementById(id);
+  next.classList.remove('hidden','back-hidden');
+  next.scrollTop=0;
+  next.querySelectorAll('.a0,.a1,.a2,.a3,.a4,.a5,.a6').forEach(el=>{el.style.animation='none';void el.offsetHeight;el.style.animation='';});
+}
+function back(){
+  if(!hist.length)return;
+  const cur=document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if(cur)cur.classList.add('hidden');
+  const prev=document.getElementById(hist.pop());
+  prev.classList.remove('back-hidden','hidden');
+}
+function setColor(hex, el){
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+  const name=document.getElementById('wl-name').textContent;
+  document.getElementById('wl-name').style.color=hex;
+  document.getElementById('wl-chip').style.color=hex;
+  document.getElementById('wl-chip').style.borderColor=hex+'66';
+  document.getElementById('wl-chip').style.background=hex+'22';
+  document.getElementById('wl-bar').style.background=hex+'15';
+}
+</script>
+</body>
+</html>

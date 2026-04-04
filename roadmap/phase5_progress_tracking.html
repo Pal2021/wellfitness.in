@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Phase 5 — Progress Tracking</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#111;--bg2:#181818;--bg3:#1f1f1f;--card:#1e1e1e;--card2:#252525;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,0.13);--amber-bd:rgba(245,166,35,0.3);
+  --green:#4cd964;--green-dim:rgba(76,217,100,0.12);--green-bd:rgba(76,217,100,0.3);
+  --blue:#4da6ff;--blue-dim:rgba(77,166,255,0.12);--blue-bd:rgba(77,166,255,0.3);
+  --red:#ff5c3a;--red-dim:rgba(255,92,58,0.12);--red-bd:rgba(255,92,58,0.3);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.12);--purple-bd:rgba(167,139,250,0.3);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.12);
+  --text:#fff;--text2:#888;--text3:#444;
+  --r:14px;--r-sm:10px;--r-xs:7px;
+}
+html,body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.shell{max-width:390px;margin:0 auto;min-height:100vh;position:relative;overflow:hidden;}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);transition:transform .32s cubic-bezier(.4,0,.2,1),opacity .32s ease;will-change:transform;}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
+.screen.back-hidden{transform:translateX(-28%);opacity:0;pointer-events:none;}
+::-webkit-scrollbar{display:none;}
+
+/* STATUS */
+.status{display:flex;justify-content:space-between;padding:14px 20px 4px;font-size:12px;font-weight:600;color:var(--text3);}
+
+/* HEADER */
+.pg-header{padding:4px 18px 14px;}
+.back-btn{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--amber);font-weight:600;cursor:pointer;margin-bottom:10px;}
+.pg-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.pg-title{font-size:21px;font-weight:800;letter-spacing:-.5px;line-height:1.2;}
+.pro-badge{background:var(--amber-dim);border:1px solid var(--amber-bd);border-radius:20px;padding:5px 11px;font-size:11px;font-weight:700;color:var(--amber);white-space:nowrap;flex-shrink:0;margin-top:3px;}
+
+/* HERO */
+.hero-card{margin:0 16px 18px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:26px 20px 22px;text-align:center;position:relative;overflow:hidden;}
+.hero-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -10%,rgba(245,166,35,0.07) 0%,transparent 65%);pointer-events:none;}
+.hero-emoji{font-size:50px;margin-bottom:12px;line-height:1;display:block;}
+.hero-desc{font-size:13.5px;color:var(--text2);line-height:1.65;max-width:270px;margin:0 auto 18px;}
+.hero-desc strong{color:var(--text);}
+.hero-lock{display:inline-flex;align-items:center;gap:7px;background:var(--amber-dim);border:1px solid var(--amber-bd);border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;color:var(--amber);cursor:pointer;}
+
+/* SECTION LABEL */
+.sec-label{padding:0 18px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:var(--text3);}
+
+/* FEATURE LIST */
+.feat-list{padding:0 16px;display:flex;flex-direction:column;gap:2px;}
+.feat-row{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--border);padding:14px 13px;cursor:pointer;transition:background .15s,transform .1s;}
+.feat-row:first-child{border-radius:var(--r) var(--r) var(--r-xs) var(--r-xs);}
+.feat-row:last-child{border-radius:var(--r-xs) var(--r-xs) var(--r) var(--r);}
+.feat-row:active{background:var(--card2);transform:scale(.99);}
+.feat-icon-wrap{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.feat-info{flex:1;min-width:0;}
+.feat-name{font-size:14.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px;}
+.feat-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.07);color:var(--text3);border:1px solid var(--border2);}
+.feat-arrow{font-size:13px;color:var(--text3);}
+
+/* NOTIFY */
+.notify-card{margin:18px 16px 8px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.notify-head{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+.notify-title{font-size:15px;font-weight:700;}
+.notify-sub{font-size:12.5px;color:var(--text2);margin-bottom:12px;line-height:1.5;}
+.input-row{display:flex;gap:8px;}
+.email-in{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px 13px;font-size:13px;color:var(--text);outline:none;font-family:inherit;}
+.email-in::placeholder{color:var(--text3);}
+.email-in:focus{border-color:var(--amber-bd);}
+.notify-btn{background:var(--amber);border:none;border-radius:var(--r-sm);padding:10px 16px;font-size:13px;font-weight:700;color:#111;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.back-bottom{display:block;width:calc(100%-32px);margin:14px 16px 36px;background:none;border:1px solid var(--border2);border-radius:50px;padding:14px;font-size:14px;font-weight:600;color:var(--amber);cursor:pointer;font-family:inherit;text-align:center;width:calc(100% - 32px);}
+.back-bottom:active{background:var(--card);}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.a0{animation:fadeUp .28s ease both;}
+.a1{animation:fadeUp .28s .07s ease both;}
+.a2{animation:fadeUp .28s .14s ease both;}
+.a3{animation:fadeUp .28s .21s ease both;}
+.a4{animation:fadeUp .28s .28s ease both;}
+.a5{animation:fadeUp .28s .35s ease both;}
+
+/* ===== COMMON SUB ===== */
+.sub-scroll{padding-bottom:44px;}
+.sdiv{padding:14px 18px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);}
+
+/* ===== SHARED CARD ===== */
+.info-card{margin:0 16px 10px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.stat-row{display:flex;gap:8px;margin-bottom:12px;}
+.stat-box{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px;text-align:center;}
+.stat-val{font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1;}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;}
+
+/* ===== BODY WEIGHT LOG ===== */
+.chart-wrap{position:relative;height:160px;margin-bottom:10px;}
+.chart-svg{width:100%;height:160px;}
+.chart-label{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px;}
+.weight-entries{display:flex;flex-direction:column;gap:6px;}
+.we-row{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:12px;}
+.we-date{font-size:12px;color:var(--text2);width:60px;flex-shrink:0;}
+.we-bar-wrap{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.we-bar{height:100%;border-radius:3px;background:var(--amber);}
+.we-val{font-size:15px;font-weight:800;color:var(--text);width:52px;text-align:right;}
+.we-delta{font-size:11px;font-weight:600;width:38px;text-align:right;}
+.we-today{border-color:var(--amber-bd);background:var(--amber-dim);}
+
+.avg-chip{display:inline-flex;align-items:center;gap:6px;background:var(--blue-dim);border:1px solid var(--blue-bd);border-radius:20px;padding:6px 13px;font-size:12px;font-weight:600;color:var(--blue);margin-bottom:10px;}
+
+/* ===== BODY FAT ESTIMATOR ===== */
+.bf-result{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:20px;text-align:center;position:relative;overflow:hidden;}
+.bf-result::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(77,166,255,0.06) 0%,transparent 65%);pointer-events:none;}
+.bf-big{font-size:64px;font-weight:800;letter-spacing:-3px;line-height:1;color:var(--blue);}
+.bf-unit{font-size:20px;color:var(--text2);font-weight:400;}
+.bf-label{font-size:14px;color:var(--text2);margin-top:4px;}
+.bf-category{display:inline-block;margin-top:12px;background:var(--blue-dim);border:1px solid var(--blue-bd);border-radius:20px;padding:6px 18px;font-size:13px;font-weight:700;color:var(--blue);}
+.bf-inputs{padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px;}
+.bf-input-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;gap:12px;}
+.bf-icon{font-size:18px;flex-shrink:0;}
+.bf-field{flex:1;}
+.bf-field-lbl{font-size:11px;color:var(--text3);margin-bottom:2px;}
+.bf-field-val{font-size:16px;font-weight:700;color:var(--text);}
+.bf-edit{font-size:12px;color:var(--blue);font-weight:600;cursor:pointer;}
+.bf-note{margin:10px 16px 0;font-size:12px;color:var(--text3);text-align:center;line-height:1.5;}
+
+/* ===== PROGRESS PHOTOS ===== */
+.photo-compare{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;}
+.pc-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);}
+.pc-title{font-size:14px;font-weight:700;}
+.pc-date{font-size:12px;color:var(--text3);}
+.pc-photos{display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+.pc-photo{aspect-ratio:.75;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.pc-photo-bg{position:absolute;inset:0;}
+.pc-photo-label{position:absolute;bottom:8px;left:8px;font-size:10px;font-weight:700;background:rgba(0,0,0,.6);color:var(--text);padding:3px 8px;border-radius:4px;backdrop-filter:blur(4px);}
+.pc-photo-date{position:absolute;top:8px;right:8px;font-size:10px;color:rgba(255,255,255,.6);}
+.add-photo-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-top:1px solid var(--border);font-size:13px;font-weight:600;color:var(--amber);cursor:pointer;}
+.add-photo-btn:active{background:var(--amber-dim);}
+.photo-timeline{padding:0 16px;}
+.pt-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;}
+.pt-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
+.pt-row::-webkit-scrollbar{display:none;}
+.pt-thumb{flex-shrink:0;width:72px;}
+.pt-thumb-img{width:72px;height:96px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:4px;border:1px solid var(--border);}
+.pt-thumb-date{font-size:10px;color:var(--text3);text-align:center;}
+
+/* ===== MEASUREMENTS ===== */
+.meas-list{padding:0 16px;display:flex;flex-direction:column;gap:7px;}
+.meas-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 14px;display:flex;align-items:center;gap:12px;}
+.meas-item:active{background:var(--card2);}
+.meas-icon{font-size:20px;flex-shrink:0;}
+.meas-info{flex:1;}
+.meas-name{font-size:14px;font-weight:600;color:var(--text);}
+.meas-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.meas-right{text-align:right;}
+.meas-val{font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1;}
+.meas-unit{font-size:11px;color:var(--text3);}
+.meas-delta{font-size:11px;font-weight:700;margin-top:3px;}
+.meas-delta.up{color:var(--red);}
+.meas-delta.down{color:var(--green);}
+
+/* ===== STRENGTH GRAPHS ===== */
+.sg-tabs{display:flex;gap:6px;padding:0 16px 14px;overflow-x:auto;}
+.sg-tabs::-webkit-scrollbar{display:none;}
+.sg-tab{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border2);background:var(--card);color:var(--text2);cursor:pointer;}
+.sg-tab.active{background:var(--amber-dim);border-color:var(--amber-bd);color:var(--amber);}
+.sg-card{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.sg-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.sg-exercise{font-size:16px;font-weight:800;}
+.sg-1rm{text-align:right;}
+.sg-1rm-val{font-size:24px;font-weight:800;color:var(--amber);letter-spacing:-1px;line-height:1;}
+.sg-1rm-lbl{font-size:10px;color:var(--text3);}
+.sg-chart{height:120px;position:relative;margin-bottom:8px;}
+.sg-chart svg{width:100%;height:120px;}
+.sg-meta{display:flex;gap:8px;}
+.sg-meta-item{flex:1;background:var(--bg3);border-radius:var(--r-xs);padding:8px;text-align:center;}
+.sg-meta-val{font-size:14px;font-weight:800;line-height:1;}
+.sg-meta-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
+
+.lift-list{padding:0 16px;display:flex;flex-direction:column;gap:7px;}
+.lift-item{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 13px;gap:12px;cursor:pointer;}
+.lift-item:active{background:var(--card2);}
+.lift-icon{font-size:20px;flex-shrink:0;}
+.lift-info{flex:1;}
+.lift-name{font-size:13.5px;font-weight:600;}
+.lift-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.lift-right{text-align:right;}
+.lift-pr{font-size:16px;font-weight:800;color:var(--amber);line-height:1;}
+.lift-trend{font-size:11px;font-weight:600;margin-top:3px;}
+
+/* ===== MONTHLY REPORT ===== */
+.report-card{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:18px;}
+.report-month{font-size:13px;color:var(--text3);margin-bottom:4px;}
+.report-title{font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:14px;}
+.report-highlights{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.rh-row{display:flex;align-items:center;gap:10px;}
+.rh-icon{font-size:16px;flex-shrink:0;}
+.rh-text{font-size:13px;color:var(--text2);flex:1;line-height:1.4;}
+.rh-text strong{color:var(--text);}
+.rh-val{font-size:13px;font-weight:700;color:var(--green);}
+.report-prs{background:var(--bg3);border-radius:var(--r-sm);padding:12px;}
+.prs-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px;}
+.pr-chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+.pr-chip{background:var(--amber-dim);border:1px solid var(--amber-bd);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--amber);}
+.download-btn{width:100%;margin-top:14px;background:var(--amber);border:none;border-radius:var(--r-sm);padding:13px;font-size:14px;font-weight:700;color:#111;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
+.download-btn:active{opacity:.85;}
+.past-reports{padding:0 16px;}
+.pr-item{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px;gap:12px;margin-bottom:7px;cursor:pointer;}
+.pr-item:active{background:var(--card2);}
+.pr-icon{font-size:22px;}
+.pr-info{flex:1;}
+.pr-name{font-size:13.5px;font-weight:600;}
+.pr-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.pr-dl{font-size:12px;color:var(--blue);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ======== HOME ======== -->
+<div class="screen" id="s-home">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Phase 5 —<br>Progress Tracking</div>
+      <div class="pro-badge">PRO · ₹299/mo</div>
+    </div>
+  </div>
+
+  <div class="hero-card a0">
+    <span class="hero-emoji">📈</span>
+    <div class="hero-desc">Body weight, measurements, progress photos, <strong>strength graphs</strong>, and monthly reports.</div>
+    <div class="hero-lock">🔒 &nbsp;PRO · ₹299/mo</div>
+  </div>
+
+  <div class="sec-label a1">UPCOMING FEATURES (6)</div>
+  <div class="feat-list a2">
+    <div class="feat-row" onclick="go('s-weight')">
+      <div class="feat-icon-wrap" style="background:rgba(245,166,35,0.12);">⚖️</div>
+      <div class="feat-info">
+        <div class="feat-name">Body Weight Log <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Daily weight with 7-day moving average trend</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-bodyfat')">
+      <div class="feat-icon-wrap" style="background:rgba(77,166,255,0.12);">📐</div>
+      <div class="feat-info">
+        <div class="feat-name">Body Fat Estimator <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Navy formula — no equipment needed</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-photos')">
+      <div class="feat-icon-wrap" style="background:rgba(167,139,250,0.12);">📸</div>
+      <div class="feat-info">
+        <div class="feat-name">Progress Photos <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Before/after comparison with timeline</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-measurements')">
+      <div class="feat-icon-wrap" style="background:rgba(45,212,191,0.12);">📏</div>
+      <div class="feat-info">
+        <div class="feat-name">Measurements <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Chest, waist, arms, thighs — trend arrows</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-strength')">
+      <div class="feat-icon-wrap" style="background:rgba(76,217,100,0.12);">📊</div>
+      <div class="feat-info">
+        <div class="feat-name">Strength Graphs <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Per-lift 1RM history and volume charts</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-report')">
+      <div class="feat-icon-wrap" style="background:rgba(255,92,58,0.12);">📋</div>
+      <div class="feat-info">
+        <div class="feat-name">Monthly Report <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Auto-generated PDF with all stats</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+  </div>
+
+  <div class="notify-card a3">
+    <div class="notify-head"><span style="font-size:22px">🔔</span><div class="notify-title">Get Notified</div></div>
+    <div class="notify-sub">We'll email you when Phase 5 launches.</div>
+    <div class="input-row">
+      <input class="email-in" type="email" placeholder="Enter your email…" id="em1"/>
+      <button class="notify-btn" onclick="notifyMe('em1',this)">Notify Me</button>
+    </div>
+  </div>
+  <button class="back-bottom">← Back</button>
+</div>
+
+<!-- ======== BODY WEIGHT LOG ======== -->
+<div class="screen hidden" id="s-weight">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Body Weight Log</div>
+      <div class="pro-badge">PRO</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="stat-row" style="padding:0 16px;margin-bottom:12px;" class="a0">
+      <div class="stat-box a0"><div class="stat-val" style="color:var(--amber)">73.4<span style="font-size:13px;color:var(--text2)">kg</span></div><div class="stat-lbl">Today</div></div>
+      <div class="stat-box a0"><div class="stat-val" style="color:var(--blue)">73.9<span style="font-size:13px;color:var(--text2)">kg</span></div><div class="stat-lbl">7-day avg</div></div>
+      <div class="stat-box a0"><div class="stat-val" style="color:var(--green)">−1.2<span style="font-size:13px;color:var(--text2)">kg</span></div><div class="stat-lbl">This month</div></div>
+    </div>
+
+    <div class="info-card a1">
+      <div class="chart-label">Weight trend — last 7 days</div>
+      <div class="avg-chip">📊 7-day moving avg: 73.9 kg</div>
+      <div class="chart-wrap">
+        <svg class="chart-svg" viewBox="0 0 340 140" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f5a623" stop-opacity=".25"/>
+              <stop offset="100%" stop-color="#f5a623" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- grid lines -->
+          <line x1="0" y1="30" x2="340" y2="30" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="70" x2="340" y2="70" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="110" x2="340" y2="110" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <!-- fill area -->
+          <path d="M20,90 L68,80 L116,75 L164,60 L212,65 L260,55 L308,50 L308,130 L20,130 Z" fill="url(#wg)"/>
+          <!-- weight line -->
+          <polyline points="20,90 68,80 116,75 164,60 212,65 260,55 308,50" fill="none" stroke="#f5a623" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- moving avg line -->
+          <polyline points="20,88 68,82 116,77 164,65 212,63 260,57 308,52" fill="none" stroke="#4da6ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,3"/>
+          <!-- dots -->
+          <circle cx="20" cy="90" r="3.5" fill="#f5a623"/>
+          <circle cx="68" cy="80" r="3.5" fill="#f5a623"/>
+          <circle cx="116" cy="75" r="3.5" fill="#f5a623"/>
+          <circle cx="164" cy="60" r="3.5" fill="#f5a623"/>
+          <circle cx="212" cy="65" r="3.5" fill="#f5a623"/>
+          <circle cx="260" cy="55" r="3.5" fill="#f5a623"/>
+          <circle cx="308" cy="50" r="5" fill="#f5a623" stroke="rgba(245,166,35,.3)" stroke-width="4"/>
+          <!-- labels -->
+          <text x="16" y="128" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">M</text>
+          <text x="64" y="128" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">T</text>
+          <text x="112" y="128" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">W</text>
+          <text x="160" y="128" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">T</text>
+          <text x="208" y="128" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">F</text>
+          <text x="256" y="128" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">S</text>
+          <text x="302" y="128" fill="rgba(245,166,35,0.8)" font-size="9" font-family="Inter" font-weight="700">S</text>
+        </svg>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;font-size:11px;color:var(--text3);">
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:2.5px;background:var(--amber);border-radius:2px;"></div> Daily weight</div>
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:1.5px;background:var(--blue);border-radius:2px;border-top:1px dashed var(--blue);"></div> 7-day avg</div>
+      </div>
+    </div>
+
+    <div class="sdiv a2">RECENT ENTRIES</div>
+    <div style="padding:0 16px;" class="a3">
+      <div class="weight-entries">
+        <div class="we-row we-today">
+          <div class="we-date" style="color:var(--amber);font-weight:700;">Today</div>
+          <div class="we-bar-wrap"><div class="we-bar" style="width:92%"></div></div>
+          <div class="we-val">73.4 kg</div>
+          <div class="we-delta" style="color:var(--green)">−0.3</div>
+        </div>
+        <div class="we-row"><div class="we-date">Yesterday</div><div class="we-bar-wrap"><div class="we-bar" style="width:94%"></div></div><div class="we-val">73.7 kg</div><div class="we-delta" style="color:var(--green)">−0.2</div></div>
+        <div class="we-row"><div class="we-date">Fri, Mar 17</div><div class="we-bar-wrap"><div class="we-bar" style="width:95%"></div></div><div class="we-val">73.9 kg</div><div class="we-delta" style="color:var(--red)">+0.1</div></div>
+        <div class="we-row"><div class="we-date">Thu, Mar 16</div><div class="we-bar-wrap"><div class="we-bar" style="width:96%"></div></div><div class="we-val">73.8 kg</div><div class="we-delta" style="color:var(--green)">−0.4</div></div>
+        <div class="we-row"><div class="we-date">Wed, Mar 15</div><div class="we-bar-wrap"><div class="we-bar" style="width:98%"></div></div><div class="we-val">74.2 kg</div><div class="we-delta" style="color:var(--green)">−0.2</div></div>
+      </div>
+    </div>
+
+    <div style="padding:16px 16px 0;" class="a4">
+      <button style="width:100%;background:var(--amber);border:none;border-radius:var(--r-sm);padding:13px;font-size:14px;font-weight:700;color:#111;cursor:pointer;font-family:inherit;">+ Log Today's Weight</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== BODY FAT ESTIMATOR ======== -->
+<div class="screen hidden" id="s-bodyfat">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Body Fat Estimator</div>
+      <div class="pro-badge">PRO</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="bf-result a0">
+      <div class="bf-big">16.4<span class="bf-unit">%</span></div>
+      <div class="bf-label">Estimated body fat · Navy formula</div>
+      <div class="bf-category">✓ Fitness range (15–20%)</div>
+    </div>
+
+    <div class="sdiv a1">YOUR MEASUREMENTS</div>
+    <div class="bf-inputs a2">
+      <div class="bf-input-row"><div class="bf-icon">📏</div><div class="bf-field"><div class="bf-field-lbl">Height</div><div class="bf-field-val">175 cm</div></div><div class="bf-edit">Edit</div></div>
+      <div class="bf-input-row"><div class="bf-icon">⚖️</div><div class="bf-field"><div class="bf-field-lbl">Weight</div><div class="bf-field-val">73.4 kg</div></div><div class="bf-edit">Edit</div></div>
+      <div class="bf-input-row"><div class="bf-icon">🔵</div><div class="bf-field"><div class="bf-field-lbl">Neck circumference</div><div class="bf-field-val">38 cm</div></div><div class="bf-edit">Edit</div></div>
+      <div class="bf-input-row"><div class="bf-icon">🟠</div><div class="bf-field"><div class="bf-field-lbl">Waist circumference</div><div class="bf-field-val">82 cm</div></div><div class="bf-edit">Edit</div></div>
+    </div>
+
+    <div class="sdiv a3">BODY FAT RANGES (MALE)</div>
+    <div style="padding:0 16px;" class="a4">
+      <div class="info-card" style="margin:0;padding:14px;">
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:13px;color:var(--text2);">Essential fat</span><span style="font-size:13px;font-weight:700;">2–5%</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:13px;color:var(--text2);">Athletes</span><span style="font-size:13px;font-weight:700;">6–13%</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--blue-dim);border:1px solid var(--blue-bd);border-radius:var(--r-xs);padding:8px 10px;margin:2px 0;">
+            <span style="font-size:13px;color:var(--blue);font-weight:600;">Fitness ← You are here</span>
+            <span style="font-size:13px;font-weight:700;color:var(--blue);">14–17%</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:13px;color:var(--text2);">Acceptable</span><span style="font-size:13px;font-weight:700;">18–24%</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:13px;color:var(--text2);">Obese</span><span style="font-size:13px;font-weight:700;">25%+</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="bf-note a5">Formula: US Navy method · For reference only, not medical advice.</div>
+  </div>
+</div>
+
+<!-- ======== PROGRESS PHOTOS ======== -->
+<div class="screen hidden" id="s-photos">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Progress Photos</div>
+      <div class="pro-badge">PRO</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="photo-compare a0">
+      <div class="pc-head">
+        <div class="pc-title">Before / After</div>
+        <div class="pc-date">Jan → Mar 2025</div>
+      </div>
+      <div class="pc-photos">
+        <div class="pc-photo">
+          <div class="pc-photo-bg" style="background:linear-gradient(160deg,#1a1a2e,#222);display:flex;align-items:center;justify-content:center;font-size:56px;">🧍</div>
+          <div class="pc-photo-label">BEFORE</div>
+          <div class="pc-photo-date">Jan 1</div>
+        </div>
+        <div class="pc-photo">
+          <div class="pc-photo-bg" style="background:linear-gradient(160deg,#1a2e1a,#222);display:flex;align-items:center;justify-content:center;font-size:56px;">🧍</div>
+          <div class="pc-photo-label" style="background:rgba(76,217,100,.7)">AFTER</div>
+          <div class="pc-photo-date">Mar 19</div>
+        </div>
+      </div>
+      <div class="add-photo-btn">📷 &nbsp;Add today's photo</div>
+    </div>
+
+    <div class="photo-timeline a1" style="padding:0 16px;">
+      <div class="pt-title">TIMELINE</div>
+      <div class="pt-row">
+        <div class="pt-thumb"><div class="pt-thumb-img" style="background:linear-gradient(160deg,#1a1a2e,#1e1e1e);">🧍</div><div class="pt-thumb-date">Jan 1</div></div>
+        <div class="pt-thumb"><div class="pt-thumb-img" style="background:linear-gradient(160deg,#1a1e2e,#1e1e1e);">🧍</div><div class="pt-thumb-date">Jan 15</div></div>
+        <div class="pt-thumb"><div class="pt-thumb-img" style="background:linear-gradient(160deg,#1a2a1e,#1e1e1e);">🧍</div><div class="pt-thumb-date">Feb 1</div></div>
+        <div class="pt-thumb"><div class="pt-thumb-img" style="background:linear-gradient(160deg,#1a2e1a,#1e1e1e);">🧍</div><div class="pt-thumb-date">Feb 15</div></div>
+        <div class="pt-thumb" style="position:relative;"><div class="pt-thumb-img" style="background:linear-gradient(160deg,#1e301a,#1e1e1e);border:2px solid var(--amber);">🧍</div><div class="pt-thumb-date" style="color:var(--amber)">Mar 19</div></div>
+        <div class="pt-thumb"><div class="pt-thumb-img" style="background:var(--bg3);border:2px dashed var(--border2);font-size:22px;">+</div><div class="pt-thumb-date" style="color:var(--text3)">Add</div></div>
+      </div>
+    </div>
+
+    <div style="margin:14px 16px 0;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;display:flex;align-items:center;gap:10px;" class="a2">
+      <span style="font-size:18px;">🔒</span>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);">Privacy protected</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px;">Stored encrypted · never shared without your action</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== MEASUREMENTS ======== -->
+<div class="screen hidden" id="s-measurements">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Measurements</div>
+      <div class="pro-badge">PRO</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="stat-row" style="padding:0 16px;margin-bottom:4px;" class="a0">
+      <div class="stat-box"><div class="stat-val" style="color:var(--teal)">6</div><div class="stat-lbl">Tracked</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--green)">4↓</div><div class="stat-lbl">Improved</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--amber)">Mar 18</div><div class="stat-lbl">Last logged</div></div>
+    </div>
+
+    <div class="sdiv a1">BODY MEASUREMENTS</div>
+    <div class="meas-list a2">
+      <div class="meas-item">
+        <div class="meas-icon">💪</div>
+        <div class="meas-info"><div class="meas-name">Chest</div><div class="meas-sub">Last: Mar 18 · +1.5cm this month</div></div>
+        <div class="meas-right"><div class="meas-val" style="color:var(--green)">98<span style="font-size:12px;color:var(--text3)">cm</span></div><div class="meas-delta up">↑ +1.5</div></div>
+      </div>
+      <div class="meas-item">
+        <div class="meas-icon">🔵</div>
+        <div class="meas-info"><div class="meas-name">Waist</div><div class="meas-sub">Last: Mar 18 · −2cm this month</div></div>
+        <div class="meas-right"><div class="meas-val" style="color:var(--blue)">82<span style="font-size:12px;color:var(--text3)">cm</span></div><div class="meas-delta down">↓ −2.0</div></div>
+      </div>
+      <div class="meas-item">
+        <div class="meas-icon">🦾</div>
+        <div class="meas-info"><div class="meas-name">Arms (L/R)</div><div class="meas-sub">Last: Mar 18 · +0.8cm this month</div></div>
+        <div class="meas-right"><div class="meas-val" style="color:var(--green)">36<span style="font-size:12px;color:var(--text3)">cm</span></div><div class="meas-delta up">↑ +0.8</div></div>
+      </div>
+      <div class="meas-item">
+        <div class="meas-icon">🦵</div>
+        <div class="meas-info"><div class="meas-name">Thighs</div><div class="meas-sub">Last: Mar 18 · −1.2cm this month</div></div>
+        <div class="meas-right"><div class="meas-val" style="color:var(--blue)">56<span style="font-size:12px;color:var(--text3)">cm</span></div><div class="meas-delta down">↓ −1.2</div></div>
+      </div>
+      <div class="meas-item">
+        <div class="meas-icon">🔴</div>
+        <div class="meas-info"><div class="meas-name">Hips</div><div class="meas-sub">Last: Mar 18 · −0.5cm this month</div></div>
+        <div class="meas-right"><div class="meas-val" style="color:var(--amber)">90<span style="font-size:12px;color:var(--text3)">cm</span></div><div class="meas-delta down">↓ −0.5</div></div>
+      </div>
+      <div class="meas-item">
+        <div class="meas-icon">🟣</div>
+        <div class="meas-info"><div class="meas-name">Neck</div><div class="meas-sub">Last: Mar 18 · stable</div></div>
+        <div class="meas-right"><div class="meas-val">38<span style="font-size:12px;color:var(--text3)">cm</span></div><div class="meas-delta" style="color:var(--text3)">→ 0.0</div></div>
+      </div>
+    </div>
+    <div style="padding:14px 16px 0;" class="a3">
+      <button style="width:100%;background:var(--teal);border:none;border-radius:var(--r-sm);padding:13px;font-size:14px;font-weight:700;color:#111;cursor:pointer;font-family:inherit;">+ Log Today's Measurements</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== STRENGTH GRAPHS ======== -->
+<div class="screen hidden" id="s-strength">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Strength Graphs</div>
+      <div class="pro-badge">PRO</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="sg-tabs a0">
+      <div class="sg-tab active">Bench Press</div>
+      <div class="sg-tab">Squat</div>
+      <div class="sg-tab">Deadlift</div>
+      <div class="sg-tab">OHP</div>
+      <div class="sg-tab">Pull-up</div>
+    </div>
+
+    <div class="sg-card a1">
+      <div class="sg-top">
+        <div>
+          <div class="sg-exercise">Bench Press</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;">1RM history · 6 weeks</div>
+        </div>
+        <div class="sg-1rm">
+          <div class="sg-1rm-val">97.5kg</div>
+          <div class="sg-1rm-lbl">estimated 1RM</div>
+        </div>
+      </div>
+      <div class="sg-chart">
+        <svg viewBox="0 0 320 110" preserveAspectRatio="none" style="width:100%;height:110px;">
+          <defs>
+            <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4cd964" stop-opacity=".2"/>
+              <stop offset="100%" stop-color="#4cd964" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <line x1="0" y1="25" x2="320" y2="25" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <line x1="0" y1="55" x2="320" y2="55" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <line x1="0" y1="85" x2="320" y2="85" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <path d="M26,85 L80,72 L134,65 L188,58 L242,62 L296,55 L296,100 L26,100 Z" fill="url(#sg)"/>
+          <polyline points="26,85 80,72 134,65 188,58 242,62 296,55" fill="none" stroke="#4cd964" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="26" cy="85" r="3.5" fill="#4cd964"/>
+          <circle cx="80" cy="72" r="3.5" fill="#4cd964"/>
+          <circle cx="134" cy="65" r="3.5" fill="#4cd964"/>
+          <circle cx="188" cy="58" r="3.5" fill="#4cd964"/>
+          <circle cx="242" cy="62" r="3.5" fill="#4cd964"/>
+          <circle cx="296" cy="55" r="5" fill="#4cd964" stroke="rgba(76,217,100,.3)" stroke-width="5"/>
+          <text x="20" y="105" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">W1</text>
+          <text x="74" y="105" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">W2</text>
+          <text x="128" y="105" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">W3</text>
+          <text x="182" y="105" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">W4</text>
+          <text x="236" y="105" fill="rgba(255,255,255,0.3)" font-size="9" font-family="Inter">W5</text>
+          <text x="288" y="105" fill="rgba(76,217,100,0.8)" font-size="9" font-family="Inter" font-weight="700">W6</text>
+        </svg>
+      </div>
+      <div class="sg-meta">
+        <div class="sg-meta-item"><div class="sg-meta-val" style="color:var(--green)">+12.5<span style="font-size:11px;color:var(--text3)">kg</span></div><div class="sg-meta-lbl">6-week gain</div></div>
+        <div class="sg-meta-item"><div class="sg-meta-val" style="color:var(--blue)">4×8</div><div class="sg-meta-lbl">Best set</div></div>
+        <div class="sg-meta-item"><div class="sg-meta-val" style="color:var(--amber)">80<span style="font-size:11px;color:var(--text3)">kg</span></div><div class="sg-meta-lbl">Working weight</div></div>
+      </div>
+    </div>
+
+    <div class="sdiv a2">ALL LIFTS</div>
+    <div class="lift-list a3">
+      <div class="lift-item" onclick="">
+        <div class="lift-icon">🏋️</div>
+        <div class="lift-info"><div class="lift-name">Bench Press</div><div class="lift-sub">Last: Mar 18 · 80kg × 4×8</div></div>
+        <div class="lift-right"><div class="lift-pr">97.5kg</div><div class="lift-trend" style="color:var(--green)">↑ +12.5kg</div></div>
+      </div>
+      <div class="lift-item">
+        <div class="lift-icon">🦵</div>
+        <div class="lift-info"><div class="lift-name">Squat</div><div class="lift-sub">Last: Mar 17 · 100kg × 4×5</div></div>
+        <div class="lift-right"><div class="lift-pr">118kg</div><div class="lift-trend" style="color:var(--green)">↑ +15kg</div></div>
+      </div>
+      <div class="lift-item">
+        <div class="lift-icon">🔗</div>
+        <div class="lift-info"><div class="lift-name">Deadlift</div><div class="lift-sub">Last: Mar 16 · 120kg × 3×5</div></div>
+        <div class="lift-right"><div class="lift-pr">140kg</div><div class="lift-trend" style="color:var(--green)">↑ +20kg</div></div>
+      </div>
+      <div class="lift-item">
+        <div class="lift-icon">🙌</div>
+        <div class="lift-info"><div class="lift-name">Overhead Press</div><div class="lift-sub">Last: Mar 18 · 60kg × 4×6</div></div>
+        <div class="lift-right"><div class="lift-pr">72kg</div><div class="lift-trend" style="color:var(--green)">↑ +5kg</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== MONTHLY REPORT ======== -->
+<div class="screen hidden" id="s-report">
+  <div class="status"><span>9:41</span><span style="color:#444">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Monthly Report</div>
+      <div class="pro-badge">PRO</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="report-card a0">
+      <div class="report-month">March 2025</div>
+      <div class="report-title">Your transformation<br>this month 💪</div>
+      <div class="report-highlights">
+        <div class="rh-row"><div class="rh-icon">⚖️</div><div class="rh-text"><strong>Lost 1.2 kg</strong> — from 74.6kg to 73.4kg</div><div class="rh-val">−1.2kg</div></div>
+        <div class="rh-row"><div class="rh-icon">🏋️</div><div class="rh-text"><strong>42 workouts</strong> logged · 38.5 hrs total</div><div class="rh-val">42 ✓</div></div>
+        <div class="rh-row"><div class="rh-icon">💪</div><div class="rh-text"><strong>4 new PRs</strong> — Bench, Squat, Deadlift, OHP</div><div class="rh-val">4 PRs</div></div>
+        <div class="rh-row"><div class="rh-icon">🍱</div><div class="rh-text">Avg <strong>2,080 kcal/day</strong> · 148g protein avg</div><div class="rh-val">✓ On track</div></div>
+        <div class="rh-row"><div class="rh-icon">📏</div><div class="rh-text">Waist <strong>−2cm</strong> · Chest <strong>+1.5cm</strong></div><div class="rh-val">↓ ↑</div></div>
+      </div>
+      <div class="report-prs">
+        <div class="prs-title">NEW PERSONAL RECORDS 🏆</div>
+        <div class="pr-chip-row">
+          <div class="pr-chip">Bench 97.5kg</div>
+          <div class="pr-chip">Squat 118kg</div>
+          <div class="pr-chip">DL 140kg</div>
+          <div class="pr-chip">OHP 72kg</div>
+        </div>
+      </div>
+      <button class="download-btn">📄 &nbsp;Download PDF Report</button>
+    </div>
+
+    <div class="sdiv a1">PAST REPORTS</div>
+    <div class="past-reports a2">
+      <div class="pr-item"><div class="pr-icon">📋</div><div class="pr-info"><div class="pr-name">February 2025</div><div class="pr-sub">38 workouts · −0.8kg · 2 PRs</div></div><div class="pr-dl">PDF ↓</div></div>
+      <div class="pr-item"><div class="pr-icon">📋</div><div class="pr-info"><div class="pr-name">January 2025</div><div class="pr-sub">35 workouts · −1.5kg · 3 PRs</div></div><div class="pr-dl">PDF ↓</div></div>
+      <div class="pr-item"><div class="pr-icon">📋</div><div class="pr-info"><div class="pr-name">December 2024</div><div class="pr-sub">30 workouts · +0.2kg · 1 PR</div></div><div class="pr-dl">PDF ↓</div></div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const hist=[];
+function go(id){
+  const cur=document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if(cur){cur.classList.add('back-hidden');hist.push(cur.id);}
+  const next=document.getElementById(id);
+  next.classList.remove('hidden','back-hidden');
+  next.scrollTop=0;
+  next.querySelectorAll('.a0,.a1,.a2,.a3,.a4,.a5').forEach(el=>{el.style.animation='none';void el.offsetHeight;el.style.animation='';});
+}
+function back(){
+  if(!hist.length)return;
+  const cur=document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if(cur)cur.classList.add('hidden');
+  const prev=document.getElementById(hist.pop());
+  prev.classList.remove('back-hidden','hidden');
+}
+function notifyMe(inputId,btn){
+  const val=document.getElementById(inputId).value.trim();
+  if(!val||!val.includes('@')){document.getElementById(inputId).style.borderColor='var(--red)';return;}
+  btn.textContent='✓ Done!';btn.style.background='var(--green)';btn.style.color='#111';
+  document.getElementById(inputId).value='';
+}
+</script>
+</body>
+</html>

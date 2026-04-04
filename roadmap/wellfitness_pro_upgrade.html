@@ -1,0 +1,705 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#070709;--bg2:#0f0f12;--bg3:#16161a;--bg4:#1e1e24;--border:#252530;--border2:#32323f;
+  --text:#f0f0f5;--text2:#9090a0;--text3:#505060;
+  --gold:#F5C842;--gold2:#e6a800;--gold-dim:#1a1500;--gold-glow:#F5C84233;
+  --amber:#F59E0B;--amber-dim:#1C1200;
+  --green:#34D399;--green-dim:#052e1a;
+  --blue:#60A5FA;--blue-dim:#071e3d;
+  --purple:#A78BFA;--purple-dim:#1a1030;
+  --red:#F87171;
+  --r:18px;--r2:14px;--r3:10px;
+}
+
+body{font-family:'DM Sans',sans-serif;background:#000;min-height:100vh;display:flex;justify-content:center;}
+
+/* ── SHELL ── */
+.shell{width:100%;max-width:400px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden;}
+.sb{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;flex-shrink:0;}
+.sb-t{font-size:15px;font-weight:600;color:var(--text);}
+.sb-r{display:flex;gap:5px;align-items:center;}
+
+/* ── PAGES ── */
+.pages{flex:1;position:relative;overflow:hidden;}
+.pg{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;display:none;padding-bottom:90px;}
+.pg::-webkit-scrollbar{display:none;}
+.pg.on{display:block;}
+
+/* ── BOTTOM NAV ── */
+.nav{height:78px;background:var(--bg);border-top:0.5px solid var(--border);display:flex;align-items:center;padding:6px 4px 16px;flex-shrink:0;z-index:100;}
+.nt{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:8px 2px 4px;border-radius:14px;transition:all .2s;}
+.nt:hover{background:var(--bg3);}
+.nt.on{background:var(--gold-dim);}
+.ni{font-size:20px;line-height:1;transition:transform .2s;}
+.nt.on .ni{transform:scale(1.12);}
+.nl{font-size:9px;font-weight:700;color:var(--text3);letter-spacing:0.4px;transition:color .2s;}
+.nt.on .nl{color:var(--gold);}
+
+/* ── SHARED ── */
+.ph{padding:16px 18px 10px;background:var(--bg);position:sticky;top:0;z-index:50;backdrop-filter:blur(24px);}
+.ph-row{display:flex;align-items:center;justify-content:space-between;}
+.ptitle{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.5px;}
+.psub{font-size:12px;color:var(--text3);margin-top:3px;font-weight:500;}
+.sec{font-size:10px;font-weight:800;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;margin:16px 18px 8px;}
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);margin:0 14px 10px;padding:16px;}
+.dv{height:0.5px;background:var(--border);margin:10px 0;}
+.row{display:flex;align-items:center;}
+.col{display:flex;flex-direction:column;}
+.bet{justify-content:space-between;}
+
+/* badges */
+.badge{font-size:10px;font-weight:800;padding:4px 11px;border-radius:20px;letter-spacing:0.3px;}
+.bg-gold{background:var(--gold-dim);color:var(--gold);border:0.5px solid var(--gold-glow);}
+.bg-green{background:var(--green-dim);color:var(--green);border:0.5px solid #34D39933;}
+.bg-blue{background:var(--blue-dim);color:var(--blue);border:0.5px solid #60A5FA33;}
+.bg-purple{background:var(--purple-dim);color:var(--purple);border:0.5px solid #A78BFA33;}
+.bg-red{background:#2a0808;color:var(--red);border:0.5px solid #F8717133;animation:pulse .8s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* button */
+.btn{display:block;margin:0 14px 10px;width:calc(100% - 28px);background:var(--gold);color:#000;border:none;border-radius:var(--r);padding:16px;font-size:16px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:-0.2px;transition:opacity .15s,transform .1s;}
+.btn:active{opacity:.85;transform:scale(.98);}
+.btn-sm{background:var(--bg3);color:var(--text2);border:0.5px solid var(--border);border-radius:12px;padding:8px 15px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.btn-sm:hover{border-color:var(--border2);color:var(--text);}
+.btn-gold-sm{background:var(--gold-dim);color:var(--gold);border:0.5px solid var(--gold-glow);border-radius:12px;padding:8px 16px;font-size:12px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* gold glow card */
+.gold-card{background:linear-gradient(135deg,#1a1400,#0f0f12);border:0.5px solid var(--gold-glow);border-radius:var(--r);}
+
+/* ═══════════════════ UPGRADE SCREEN ═══════════════════ */
+.upgrade-hero{margin:0 14px 14px;position:relative;overflow:hidden;background:linear-gradient(135deg,#1a1200,#0a0a0d);border:0.5px solid var(--gold-glow);border-radius:24px;padding:26px 20px 22px;}
+.uh-glow{position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:var(--gold);opacity:.06;border-radius:50%;pointer-events:none;}
+.uh-glow2{position:absolute;bottom:-40px;left:-40px;width:140px;height:140px;background:var(--gold);opacity:.04;border-radius:50%;pointer-events:none;}
+.uh-badge{display:inline-flex;align-items:center;gap:5px;background:var(--gold-dim);border:0.5px solid var(--gold-glow);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800;color:var(--gold);letter-spacing:0.5px;margin-bottom:12px;}
+.uh-title{font-size:28px;font-weight:800;color:var(--text);letter-spacing:-0.5px;line-height:1.2;}
+.uh-sub{font-size:14px;color:var(--text2);margin-top:8px;line-height:1.6;}
+.price-row{display:flex;align-items:baseline;gap:6px;margin-top:16px;}
+.price-big{font-size:38px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace;line-height:1;}
+.price-per{font-size:14px;color:var(--text3);font-weight:500;}
+.price-save{background:#1a1500;color:var(--gold);border:0.5px solid var(--gold-glow);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:800;margin-left:auto;}
+
+.feature-list{margin:0 14px 10px;display:flex;flex-direction:column;gap:8px;}
+.feat-item{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r2);padding:14px 16px;display:flex;align-items:center;gap:13px;transition:border-color .2s;}
+.feat-item:hover{border-color:var(--gold-glow);}
+.feat-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.feat-name{font-size:14px;font-weight:700;color:var(--text);}
+.feat-desc{font-size:11px;color:var(--text3);margin-top:2px;font-weight:400;line-height:1.4;}
+.feat-lock{margin-left:auto;font-size:16px;}
+
+.compare-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 14px 10px;}
+.compare-box{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r2);padding:14px;}
+.compare-box.pro{background:var(--gold-dim);border-color:var(--gold-glow);}
+.compare-lbl{font-size:10px;font-weight:800;letter-spacing:0.8px;margin-bottom:10px;}
+.compare-feat{font-size:12px;padding:5px 0;border-bottom:0.5px solid var(--border);display:flex;gap:6px;align-items:center;font-weight:500;}
+.compare-feat:last-child{border-bottom:none;}
+.compare-box.pro .compare-feat{border-color:#F5C84222;}
+
+/* ═══════════════════ PRO HOME ═══════════════════ */
+.pro-banner{margin:0 14px 12px;background:linear-gradient(135deg,#1a1200,#0f0f12);border:0.5px solid var(--gold-glow);border-radius:20px;padding:18px 20px;position:relative;overflow:hidden;}
+.pb-glow{position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:var(--gold);opacity:.05;border-radius:50%;}
+.pb-name{font-size:13px;color:var(--text3);font-weight:500;}
+.pb-user{font-size:24px;font-weight:800;color:var(--text);letter-spacing:-0.3px;margin-top:2px;}
+.pb-streak{display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:0.5px solid var(--gold-glow);}
+.pbs-num{font-size:34px;font-weight:800;color:var(--gold);line-height:1;font-family:'DM Mono',monospace;}
+.pbs-lbl{font-size:12px;color:var(--text3);font-weight:500;line-height:1.4;}
+.pbs-ring{margin-left:auto;}
+
+.kpi3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 14px 12px;}
+.kpi{background:var(--bg2);border:0.5px solid var(--border);border-radius:14px;padding:13px 11px;}
+.kv{font-size:20px;font-weight:800;color:var(--text);font-family:'DM Mono',monospace;}
+.kl{font-size:10px;color:var(--text3);font-weight:700;margin-top:4px;letter-spacing:0.3px;}
+
+.today-card{margin:0 14px 10px;background:var(--bg2);border:1.5px solid var(--gold-glow);border-radius:var(--r);padding:17px;cursor:pointer;transition:border-color .2s;}
+.today-card:hover{border-color:#F5C84255;}
+.tc-tag{font-size:10px;font-weight:800;color:var(--gold);letter-spacing:1px;margin-bottom:7px;}
+.tc-name{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.3px;}
+.tc-meta{font-size:12px;color:var(--text3);margin-top:4px;}
+.tc-chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.tc-chip{font-size:11px;padding:4px 10px;border-radius:8px;background:var(--bg3);color:var(--text2);border:0.5px solid var(--border);font-weight:500;}
+
+/* ai insight */
+.ai-insight{margin:0 14px 10px;background:linear-gradient(135deg,var(--purple-dim),#0f0f12);border:0.5px solid #A78BFA33;border-radius:var(--r);padding:16px;}
+.ai-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.ai-dot{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#e85d0a);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ai-title{font-size:13px;font-weight:800;color:var(--purple);}
+.ai-sub{font-size:10px;color:var(--text3);margin-top:1px;}
+.ai-body{font-size:13px;color:var(--text2);line-height:1.65;}
+.ai-chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.ai-chip{font-size:11px;padding:5px 12px;border-radius:20px;background:var(--purple-dim);color:var(--purple);border:0.5px solid #A78BFA33;cursor:pointer;font-weight:600;transition:all .2s;}
+.ai-chip:hover{background:#2a2040;}
+
+/* vol chart */
+.vc-wrap{display:flex;align-items:flex-end;gap:5px;height:60px;}
+.vcc{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.vcb{width:100%;border-radius:4px 4px 0 0;min-height:3px;}
+.vcl{font-size:9px;color:var(--text3);font-weight:700;}
+
+/* recovery */
+.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.rec{border-radius:12px;padding:11px 13px;}
+.rec-s{font-size:10px;font-weight:800;margin-bottom:3px;letter-spacing:0.3px;}
+.rec-m{font-size:13px;color:var(--text);font-weight:700;}
+
+/* ═══════════════════ PRO AI COACH ═══════════════════ */
+.coach-bar{background:var(--bg2);border-bottom:0.5px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;}
+.coach-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#e85d0a);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.coach-nm{font-size:15px;font-weight:800;color:var(--text);}
+.coach-st{font-size:11px;color:var(--green);font-weight:600;margin-top:1px;}
+.coach-model{background:var(--purple-dim);color:var(--purple);border:0.5px solid #A78BFA33;border-radius:10px;padding:4px 10px;font-size:10px;font-weight:800;margin-left:auto;}
+
+.insight-card{margin:12px 14px;background:linear-gradient(135deg,var(--green-dim),#071510);border:0.5px solid #34D39922;border-radius:var(--r);padding:15px;}
+.ic-head{font-size:11px;font-weight:800;color:var(--green);letter-spacing:0.5px;margin-bottom:6px;}
+.ic-body{font-size:13px;color:var(--text2);line-height:1.65;}
+.ic-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;}
+.ic-stat{background:#052e1a;border:0.5px solid #34D39922;border-radius:10px;padding:9px;}
+.ic-sv{font-size:16px;font-weight:800;color:var(--green);font-family:'DM Mono',monospace;}
+.ic-sl{font-size:10px;color:var(--green);opacity:.7;margin-top:2px;font-weight:700;}
+
+.bubble-wrap{margin:4px 14px 8px;}
+.bubble-wrap.usr{display:flex;justify-content:flex-end;}
+.bbl{padding:12px 15px;border-radius:18px;font-size:13px;line-height:1.65;max-width:88%;}
+.bbl.bot{background:var(--bg2);border:0.5px solid var(--border);color:var(--text2);border-radius:4px 18px 18px 18px;}
+.bbl.usr{background:var(--gold);color:#000;font-weight:700;border-radius:18px 18px 4px 18px;}
+.bbl-tag{display:inline-block;background:var(--purple-dim);color:var(--purple);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:800;margin-bottom:6px;}
+
+.qps{display:flex;gap:6px;padding:8px 14px;flex-wrap:wrap;}
+.qp{background:var(--bg2);border:0.5px solid var(--border);border-radius:20px;padding:8px 14px;font-size:11px;font-weight:700;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all .2s;}
+.qp:hover{border-color:var(--gold-glow);color:var(--gold);background:var(--gold-dim);}
+
+.chat-bar{padding:10px 14px 14px;background:var(--bg);border-top:0.5px solid var(--border);display:flex;gap:8px;align-items:center;position:sticky;bottom:0;}
+.chat-inp{flex:1;background:var(--bg2);border:0.5px solid var(--border);border-radius:24px;padding:12px 18px;font-size:14px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s;}
+.chat-inp:focus{border-color:var(--gold-glow);}
+.chat-send{width:46px;height:46px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;font-size:20px;color:#000;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s;}
+.chat-send:hover{opacity:.85;}
+
+/* ═══════════════════ PRO DIET ═══════════════════ */
+.cal-hero{margin:0 14px 12px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:18px;display:flex;align-items:center;gap:18px;}
+.donut{position:relative;width:100px;height:100px;flex-shrink:0;}
+.donut svg{transform:rotate(-90deg);}
+.dc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.dc-val{font-size:19px;font-weight:800;color:var(--text);font-family:'DM Mono',monospace;}
+.dc-lbl{font-size:9px;color:var(--text3);font-weight:800;letter-spacing:0.3px;margin-top:1px;}
+.macro-s{flex:1;display:flex;flex-direction:column;gap:10px;}
+.mr{display:flex;flex-direction:column;gap:4px;}
+.mrh{display:flex;justify-content:space-between;font-size:11px;font-weight:700;}
+.mrb{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.mrf{height:100%;border-radius:3px;transition:width .6s;}
+
+.meal-grp{margin:0 14px 12px;}
+.mg-t{font-size:11px;font-weight:800;color:var(--text3);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:7px;}
+.meal{background:var(--bg2);border:0.5px solid var(--border);border-radius:14px;padding:13px 15px;margin-bottom:6px;display:flex;align-items:center;gap:12px;transition:border-color .2s;}
+.meal:hover{border-color:var(--border2);}
+.meal-ico{font-size:26px;width:34px;text-align:center;}
+.meal-info{flex:1;}
+.meal-n{font-size:14px;font-weight:700;color:var(--text);}
+.meal-m{font-size:11px;color:var(--text3);margin-top:3px;font-weight:500;}
+.meal-k{font-size:15px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace;}
+.add-meal{background:var(--bg2);border:0.5px dashed var(--border2);border-radius:14px;padding:13px 15px;margin-bottom:6px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .2s;}
+.add-meal:hover{border-color:var(--gold);background:var(--gold-dim);}
+.add-meal-ico{font-size:18px;color:var(--text3);}
+.add-meal-t{font-size:13px;color:var(--text3);font-weight:700;}
+.add-meal:hover .add-meal-t{color:var(--gold);}
+
+.water{margin:0 14px 12px;background:var(--blue-dim);border:0.5px solid #60A5FA22;border-radius:var(--r);padding:16px 18px;display:flex;align-items:center;gap:14px;}
+.drops{display:flex;gap:5px;}
+.dr{width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);}
+.dr.f{background:var(--blue);}
+.dr.e{background:#112038;}
+.water-info{flex:1;}
+.water-v{font-size:18px;font-weight:800;color:var(--blue);font-family:'DM Mono',monospace;}
+.water-g{font-size:11px;color:var(--blue);opacity:.7;font-weight:600;margin-top:2px;}
+
+.pro-feature-card{margin:0 14px 10px;background:linear-gradient(135deg,var(--purple-dim),var(--bg2));border:0.5px solid #A78BFA22;border-radius:var(--r);padding:15px;}
+.pfc-head{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+.pfc-ico{font-size:20px;}
+.pfc-title{font-size:13px;font-weight:800;color:var(--purple);}
+.pfc-body{font-size:12px;color:var(--text2);line-height:1.6;}
+
+/* ═══════════════════ PRO PROGRESS ═══════════════════ */
+.prog-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 14px 12px;}
+.ps{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;}
+.ps-big{font-size:24px;font-weight:800;font-family:'DM Mono',monospace;}
+.ps-u{font-size:13px;color:var(--text3);font-weight:500;}
+.ps-l{font-size:10px;font-weight:800;color:var(--text3);letter-spacing:0.5px;margin-top:4px;}
+.ps-tr{font-size:11px;font-weight:800;margin-top:6px;}
+.spark{display:flex;align-items:flex-end;gap:3px;height:28px;margin-top:8px;}
+.spb{flex:1;border-radius:2px 2px 0 0;min-height:3px;}
+
+.photo-row{display:flex;gap:8px;margin:0 14px 12px;}
+.photo-box{flex:1;height:108px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:border-color .2s;}
+.photo-box:hover{border-color:var(--border2);}
+.photo-box-ico{font-size:28px;}
+.photo-box-lbl{font-size:10px;font-weight:800;color:var(--text3);letter-spacing:0.3px;}
+.photo-box.add{border-style:dashed;}
+
+.lift-bars{padding:4px 0 6px;}
+.lb-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);}
+.lb-row:last-child{border:none;}
+.lb-name{font-size:13px;font-weight:700;color:var(--text2);width:88px;flex-shrink:0;}
+.lb-bg{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.lb-fill{height:100%;border-radius:3px;}
+.lb-val{font-size:12px;font-weight:800;font-family:'DM Mono',monospace;width:52px;text-align:right;flex-shrink:0;}
+
+.body-meas .bm-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--border);}
+.body-meas .bm-row:last-child{border:none;}
+.bm-lbl{font-size:13px;font-weight:600;color:var(--text2);}
+.bm-val{font-size:14px;font-weight:800;font-family:'DM Mono',monospace;}
+.bm-trend{font-size:11px;font-weight:800;}
+
+/* ═══════════════════ PRO PROFILE ═══════════════════ */
+.pro-profile-hero{margin:0 14px 14px;background:linear-gradient(135deg,#1a1200,#0f0f12);border:0.5px solid var(--gold-glow);border-radius:22px;padding:20px;position:relative;overflow:hidden;}
+.pph-glow{position:absolute;top:-40px;right:-40px;width:150px;height:150px;background:var(--gold);opacity:.05;border-radius:50%;}
+.pph-crown{position:absolute;top:16px;right:16px;font-size:24px;}
+.pph-ava{width:68px;height:68px;border-radius:50%;background:var(--gold-dim);border:2.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:10px;}
+.pph-name{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.3px;}
+.pph-sub{font-size:12px;color:var(--text3);margin-top:2px;font-weight:500;}
+.pph-badges{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+
+.goal-sel{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 14px 12px;}
+.gb{background:var(--bg2);border:0.5px solid var(--border);border-radius:14px;padding:13px 8px;text-align:center;cursor:pointer;transition:all .2s;}
+.gb.on{border-color:var(--gold);background:var(--gold-dim);}
+.gb-ico{font-size:22px;margin-bottom:5px;}
+.gb-lbl{font-size:10px;font-weight:800;color:var(--text3);letter-spacing:0.3px;}
+.gb.on .gb-lbl{color:var(--gold);}
+
+.set-item{margin:0 14px 6px;background:var(--bg2);border:0.5px solid var(--border);border-radius:14px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .2s;}
+.set-item:hover{border-color:var(--border2);}
+.set-l{display:flex;align-items:center;gap:11px;}
+.set-ico{font-size:18px;width:26px;text-align:center;}
+.set-lbl{font-size:14px;font-weight:700;color:var(--text);}
+.set-sub{font-size:11px;color:var(--text3);margin-top:2px;font-weight:500;}
+.set-r{font-size:13px;color:var(--text3);}
+
+.pro-stats-card{margin:0 14px 12px;background:var(--gold-dim);border:0.5px solid var(--gold-glow);border-radius:var(--r);padding:16px;}
+.psc-title{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:0.5px;margin-bottom:12px;}
+.psc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.psc-item{text-align:center;}
+.psc-val{font-size:20px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace;}
+.psc-lbl{font-size:10px;color:var(--gold);opacity:.7;font-weight:700;margin-top:3px;}
+</style>
+
+<div class="shell">
+  <div class="sb">
+    <span class="sb-t">9:41</span>
+    <div class="sb-r"><span style="font-size:12px;color:var(--text3);">●●●●</span>&nbsp;<span style="font-size:14px;">🔋</span></div>
+  </div>
+
+  <div class="pages">
+
+    <!-- ═══ UPGRADE SCREEN ═══ -->
+    <div class="pg on" id="pg-up">
+      <div class="ph" style="padding-bottom:4px;">
+        <div class="ph-row">
+          <button class="btn-sm" onclick="activatePro()">← Back</button>
+          <div class="badge bg-gold">⭐ Wellfitness PRO</div>
+        </div>
+      </div>
+
+      <div class="upgrade-hero">
+        <div class="uh-glow"></div><div class="uh-glow2"></div>
+        <div class="uh-badge">⭐ PRO MEMBERSHIP</div>
+        <div class="uh-title">Unlock your full potential</div>
+        <div class="uh-sub">AI coaching, diet tracking, advanced analytics and everything you need to hit your goals faster.</div>
+        <div class="price-row">
+          <div class="price-big">₹299</div>
+          <div class="price-per">/month</div>
+          <div class="price-save">Save 30% yearly</div>
+        </div>
+      </div>
+
+      <button class="btn" onclick="activatePro()">Upgrade to Pro →</button>
+
+      <div class="sec">What you unlock</div>
+      <div class="feature-list">
+        <div class="feat-item"><div class="feat-ico" style="background:var(--purple-dim);">🤖</div><div><div class="feat-name">Unlimited AI Coach</div><div class="feat-desc">Personalized advice based on your full training history, diet and recovery data</div></div></div>
+        <div class="feat-item"><div class="feat-ico" style="background:var(--blue-dim);">🥗</div><div><div class="feat-name">Full Diet Tracking</div><div class="feat-desc">Indian food database, macro tracking, meal logging, calorie targets</div></div></div>
+        <div class="feat-item"><div class="feat-ico" style="background:var(--green-dim);">📈</div><div><div class="feat-name">Advanced Analytics</div><div class="feat-desc">Volume trends, strength curves, body composition graphs, recovery scores</div></div></div>
+        <div class="feat-item"><div class="feat-ico" style="background:var(--gold-dim);">⚡</div><div><div class="feat-name">Adaptive Workout Plans</div><div class="feat-desc">AI auto-adjusts your plan based on fatigue, performance and recovery</div></div></div>
+        <div class="feat-item"><div class="feat-ico" style="background:#2a0a0a;">📷</div><div><div class="feat-name">Progress Photo Tracking</div><div class="feat-desc">Before/after comparisons, body measurements, transformation timeline</div></div></div>
+        <div class="feat-item"><div class="feat-ico" style="background:#1a1030;">🏆</div><div><div class="feat-name">Badges & Leaderboards</div><div class="feat-desc">Earn achievements, compete with friends, track XP and level up</div></div></div>
+      </div>
+
+      <div class="sec">Free vs Pro</div>
+      <div class="compare-row">
+        <div class="compare-box">
+          <div class="compare-lbl" style="color:var(--text3);">FREE</div>
+          <div class="compare-feat"><span>✓</span><span>Workout logging</span></div>
+          <div class="compare-feat"><span>✓</span><span>Split builder</span></div>
+          <div class="compare-feat"><span>✓</span><span>Exercise library</span></div>
+          <div class="compare-feat"><span style="color:var(--text3);">✗</span><span style="color:var(--text3);">AI coach</span></div>
+          <div class="compare-feat"><span style="color:var(--text3);">✗</span><span style="color:var(--text3);">Diet tracking</span></div>
+          <div class="compare-feat"><span style="color:var(--text3);">✗</span><span style="color:var(--text3);">Analytics</span></div>
+          <div class="compare-feat"><span style="color:var(--text3);">✗</span><span style="color:var(--text3);">Progress photos</span></div>
+        </div>
+        <div class="compare-box pro">
+          <div class="compare-lbl" style="color:var(--gold);">⭐ PRO</div>
+          <div class="compare-feat" style="color:var(--text);"><span style="color:var(--gold);">✓</span><span>Everything free</span></div>
+          <div class="compare-feat" style="color:var(--text);"><span style="color:var(--gold);">✓</span><span>Unlimited AI</span></div>
+          <div class="compare-feat" style="color:var(--text);"><span style="color:var(--gold);">✓</span><span>Diet tracker</span></div>
+          <div class="compare-feat" style="color:var(--text);"><span style="color:var(--gold);">✓</span><span>Full analytics</span></div>
+          <div class="compare-feat" style="color:var(--text);"><span style="color:var(--gold);">✓</span><span>Progress photos</span></div>
+          <div class="compare-feat" style="color:var(--text);"><span style="color:var(--gold);">✓</span><span>Adaptive plans</span></div>
+          <div class="compare-feat" style="color:var(--text);"><span style="color:var(--gold);">✓</span><span>Achievements</span></div>
+        </div>
+      </div>
+      <button class="btn" onclick="activatePro()" style="margin-bottom:6px;">Start Pro — ₹299/month →</button>
+      <div style="text-align:center;font-size:11px;color:var(--text3);margin-bottom:20px;">Cancel anytime · Secure payment · Instant access</div>
+    </div>
+
+    <!-- ═══ PRO HOME ═══ -->
+    <div class="pg" id="pg0">
+      <div class="ph">
+        <div class="ph-row">
+          <div><div class="ptitle">Wellfitness</div><div class="psub">Monday · March 14</div></div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="badge bg-gold">⭐ PRO</div>
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;" onclick="goPage(5)">👤</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pro-banner">
+        <div class="pb-glow"></div>
+        <div class="pb-name">Good morning,</div>
+        <div class="pb-user">Rahul 💪</div>
+        <div class="pb-streak">
+          <span style="font-size:28px;">🔥</span>
+          <div style="margin-left:4px;"><div class="pbs-num">14</div></div>
+          <div class="pbs-lbl">day<br>streak</div>
+          <div class="pbs-ring">
+            <svg width="66" height="66" viewBox="0 0 66 66">
+              <circle cx="33" cy="33" r="27" fill="none" stroke="#1a1a00" stroke-width="7"/>
+              <circle cx="33" cy="33" r="27" fill="none" stroke="var(--gold)" stroke-width="7" stroke-dasharray="113 56" stroke-linecap="round" transform="rotate(-90 33 33)"/>
+              <text x="33" y="38" text-anchor="middle" font-size="12" fill="var(--gold)" font-weight="700" font-family="DM Mono">67%</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi3">
+        <div class="kpi"><div class="kv">48</div><div class="kl">Workouts</div></div>
+        <div class="kpi"><div class="kv" style="color:var(--gold);">112kg</div><div class="kl">Bench 1RM</div></div>
+        <div class="kpi"><div class="kv" style="color:var(--green);">78.4</div><div class="kl">Weight kg</div></div>
+      </div>
+
+      <div class="ai-insight">
+        <div class="ai-head">
+          <div class="ai-dot">🤖</div>
+          <div><div class="ai-title">AI Coach · Daily Brief</div><div class="ai-sub">Powered by your last 48 sessions</div></div>
+        </div>
+        <div class="ai-body">Bench progression is excellent — 5kg in 4 weeks. Today is Push Day A: target <strong style="color:var(--gold);">82.5kg × 4×10</strong>. Your hamstrings are undertrained — add RDLs Saturday. Sleep avg is 7.2hrs which is good, keep it up!</div>
+        <div class="ai-chips">
+          <div class="ai-chip" onclick="goPage(4)">View full analysis ↗</div>
+          <div class="ai-chip" onclick="goPage(1)">Ask coach ↗</div>
+        </div>
+      </div>
+
+      <div class="today-card" onclick="goPage(2)">
+        <div class="tc-tag">TODAY · PUSH DAY A</div>
+        <div class="tc-name">Chest, Shoulders & Triceps</div>
+        <div class="tc-meta">5 exercises · ~55 min · PPL split</div>
+        <div class="tc-chips">
+          <span class="tc-chip">Bench Press</span>
+          <span class="tc-chip">OHP</span>
+          <span class="tc-chip">Lateral Raise</span>
+          <span class="tc-chip">+2 more</span>
+        </div>
+      </div>
+      <button class="btn" onclick="goPage(2)">Start workout →</button>
+
+      <div class="sec">This week</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><span style="font-size:13px;font-weight:700;color:var(--text2);">Volume (kg)</span><span class="badge bg-green">+12% vs last week</span></div>
+        <div class="vc-wrap">
+          <div class="vcc"><div class="vcb" style="height:38px;background:var(--gold);opacity:.45;"></div><div class="vcl">M</div></div>
+          <div class="vcc"><div class="vcb" style="height:16px;background:var(--bg4);"></div><div class="vcl">T</div></div>
+          <div class="vcc"><div class="vcb" style="height:50px;background:var(--gold);opacity:.7;"></div><div class="vcl">W</div></div>
+          <div class="vcc"><div class="vcb" style="height:12px;background:var(--bg4);"></div><div class="vcl">T</div></div>
+          <div class="vcc"><div class="vcb" style="height:58px;background:var(--gold);"></div><div class="vcl">F</div></div>
+          <div class="vcc"><div class="vcb" style="height:7px;background:var(--bg4);"></div><div class="vcl">S</div></div>
+          <div class="vcc"><div class="vcb" style="height:3px;background:var(--bg4);"></div><div class="vcl">S</div></div>
+        </div>
+      </div>
+
+      <div class="sec">Recovery status</div>
+      <div class="card">
+        <div class="rec-grid">
+          <div class="rec" style="background:var(--green-dim);border:0.5px solid #34D39922;"><div class="rec-s" style="color:var(--green);">✓ READY</div><div class="rec-m">Chest</div></div>
+          <div class="rec" style="background:var(--amber-dim);border:0.5px solid #F59E0B22;"><div class="rec-s" style="color:var(--amber);">⚡ 80%</div><div class="rec-m">Back</div></div>
+          <div class="rec" style="background:var(--green-dim);border:0.5px solid #34D39922;"><div class="rec-s" style="color:var(--green);">✓ READY</div><div class="rec-m">Legs</div></div>
+          <div class="rec" style="background:#2a0808;border:0.5px solid #F8717122;"><div class="rec-s" style="color:var(--red);">⏳ REST</div><div class="rec-m">Shoulders</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PRO AI COACH ═══ -->
+    <div class="pg" id="pg1" style="padding-bottom:0;">
+      <div class="coach-bar">
+        <div class="coach-av">🤖</div>
+        <div><div class="coach-nm">Wellfitness Coach</div><div class="coach-st">● Analyzing 48 sessions</div></div>
+        <div class="coach-model">Claude AI</div>
+      </div>
+      <div id="chat-area">
+        <div class="insight-card">
+          <div class="ic-head">📊 THIS WEEK'S ANALYSIS</div>
+          <div class="ic-body">Bench is up 5kg — great progress! Hamstrings undertrained. OHP stalled at 60kg for 3 weeks — focus on rear delts and upper back accessory work.</div>
+          <div class="ic-stats">
+            <div class="ic-stat"><div class="ic-sv">+5kg</div><div class="ic-sl">Bench gain</div></div>
+            <div class="ic-stat"><div class="ic-sv">4</div><div class="ic-sl">Sessions</div></div>
+            <div class="ic-stat"><div class="ic-sv">7.2h</div><div class="ic-sl">Avg sleep</div></div>
+          </div>
+        </div>
+        <div class="bubble-wrap"><div class="bbl bot"><div class="bbl-tag">PERSONALIZED</div><br>Hey Rahul! Push Day today — based on your last session at 80kg×10, let's target <strong style="color:var(--gold);">82.5kg × 4×10</strong> on bench. You're ready for this. 💪</div></div>
+        <div class="bubble-wrap usr"><div class="bbl usr">Why is my OHP stuck at 60kg?</div></div>
+        <div class="bubble-wrap"><div class="bbl bot"><div class="bbl-tag">ANALYSIS</div><br>I checked your last 6 OHP sessions — flat at 60kg for 3 weeks. Top causes at your level:<br><br>1. Weak rear delts & upper back (most likely)<br>2. Low calories on press days<br>3. Poor shoulder mobility<br><br>Fix: Add 3 sets face pulls before pressing. Based on your diet logs, you're also eating 400kcal under target on Press days — fix that first.</div></div>
+        <div class="bubble-wrap usr"><div class="bbl usr">What should I eat today?</div></div>
+        <div class="bubble-wrap"><div class="bbl bot"><div class="bbl-tag">DIET PLAN</div><br>Push Day = high demand. Your target: <strong style="color:var(--gold);">2,400 kcal · 180g protein</strong><br><br>You're at 1,840 kcal (142g protein). Need 560 more kcal and 38g protein.<br><br>Best option: Paneer bhurji 200g + 2 roti = 560 kcal, 38g protein. Perfect match! 🎯</div></div>
+      </div>
+      <div class="qps">
+        <div class="qp" onclick="sendQ(this)">Adaptive plan ↗</div>
+        <div class="qp" onclick="sendQ(this)">Weakest lift ↗</div>
+        <div class="qp" onclick="sendQ(this)">Deload week? ↗</div>
+        <div class="qp" onclick="sendQ(this)">Form tips ↗</div>
+        <div class="qp" onclick="sendQ(this)">Overtrained? ↗</div>
+      </div>
+      <div class="chat-bar">
+        <input class="chat-inp" id="chat-in" placeholder="Ask your AI coach..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="chat-send" onclick="sendMsg()">↑</button>
+      </div>
+    </div>
+
+    <!-- ═══ PRO WORKOUT ═══ -->
+    <div class="pg" id="pg2">
+      <div class="ph">
+        <div class="ph-row">
+          <button class="btn-sm" onclick="goPage(0)">✕ End</button>
+          <div style="text-align:center;"><div style="font-size:17px;font-weight:800;color:var(--text);">Push Day A</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Exercise 2 of 5</div></div>
+          <div class="badge bg-red">● LIVE</div>
+        </div>
+        <div style="margin-top:10px;background:var(--bg4);border-radius:4px;height:5px;overflow:hidden;"><div style="width:40%;height:100%;background:linear-gradient(90deg,var(--gold),var(--red));border-radius:4px;"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:5px;font-weight:700;"><span>40% done</span><span>32 min elapsed</span></div>
+      </div>
+      <div style="margin:0 14px 12px;background:var(--gold-dim);border:0.5px solid var(--gold-glow);border-radius:var(--r);padding:15px 18px;display:flex;align-items:center;justify-content:space-between;">
+        <div><div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;">REST TIMER</div><div style="font-size:32px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace;" id="tmr">1:45</div></div>
+        <div style="display:flex;gap:7px;"><button class="btn-gold-sm" onclick="tv=Math.min(tv+30,200)">+30s</button><button class="btn-gold-sm" onclick="tv=0">Skip</button></div>
+      </div>
+      <div style="margin:0 14px 12px;background:var(--green-dim);border:0.5px solid #34D39933;border-radius:var(--r);padding:13px 16px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:22px;">🏆</span>
+        <div><div style="font-size:13px;color:var(--green);font-weight:800;">New PR last session!</div><div style="font-size:11px;color:var(--green);opacity:.7;margin-top:2px;">Bench Press · 102.5kg × 5 reps</div></div>
+      </div>
+      <div style="margin:0 14px 12px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;">
+        <div style="padding:13px 16px;background:var(--bg3);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:16px;font-weight:800;color:var(--text);">Bench Press</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Chest · Triceps · Anterior delt</div></div>
+          <span class="badge bg-gold">+2.5kg today</span>
+        </div>
+        <div style="padding:8px 16px 14px;">
+          <div style="display:grid;grid-template-columns:30px 1fr 1fr 1fr 38px;gap:5px;padding:5px 0 7px;font-size:10px;color:var(--text3);text-align:center;font-weight:800;letter-spacing:.3px;"><div></div><div>PREV</div><div>KG</div><div>REPS</div><div></div></div>
+          <div style="display:grid;grid-template-columns:30px 1fr 1fr 1fr 38px;gap:5px;margin-bottom:5px;"><div style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);font-weight:800;font-family:'DM Mono',monospace;">S1</div><div style="background:var(--green-dim);border:0.5px solid #34D39933;border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--green);font-family:'DM Mono',monospace;">80</div><div style="background:var(--green-dim);border:0.5px solid #34D39933;border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--green);font-family:'DM Mono',monospace;">82.5</div><div style="background:var(--green-dim);border:0.5px solid #34D39933;border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--green);font-family:'DM Mono',monospace;">11</div><div style="background:var(--green-dim);border:0.5px solid #34D39933;border-radius:9px;padding:9px 3px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--green);">✓</div></div>
+          <div style="display:grid;grid-template-columns:30px 1fr 1fr 1fr 38px;gap:5px;margin-bottom:5px;"><div style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);font-weight:800;font-family:'DM Mono',monospace;">S2</div><div style="background:var(--green-dim);border:0.5px solid #34D39933;border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--green);font-family:'DM Mono',monospace;">80</div><div style="background:var(--green-dim);border:0.5px solid #34D39933;border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--green);font-family:'DM Mono',monospace;">82.5</div><div style="background:var(--green-dim);border:0.5px solid #34D39933;border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--green);font-family:'DM Mono',monospace;">10</div><div style="background:var(--green-dim);border:0.5px solid #34D39933;border-radius:9px;padding:9px 3px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--green);">✓</div></div>
+          <div style="display:grid;grid-template-columns:30px 1fr 1fr 1fr 38px;gap:5px;margin-bottom:5px;"><div style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);font-weight:800;font-family:'DM Mono',monospace;">S3</div><div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--text);font-family:'DM Mono',monospace;">80</div><div style="background:var(--gold-dim);border:1px dashed #F5C84255;border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace;">82.5</div><div style="background:var(--gold-dim);border:1px dashed #F5C84255;border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace;">10+</div><div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:9px;padding:9px 3px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text3);cursor:pointer;" onclick="this.style.background='var(--green-dim)';this.style.color='var(--green)';this.style.borderColor='#34D39933';this.textContent='✓'">○</div></div>
+          <div style="display:grid;grid-template-columns:30px 1fr 1fr 1fr 38px;gap:5px;"><div style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);font-weight:800;font-family:'DM Mono',monospace;">S4</div><div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--text);font-family:'DM Mono',monospace;">80</div><div style="background:var(--gold-dim);border:1px dashed #F5C84255;border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace;">82.5</div><div style="background:var(--gold-dim);border:1px dashed #F5C84255;border-radius:9px;padding:9px 3px;text-align:center;font-size:13px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace;">9+</div><div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:9px;padding:9px 3px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text3);cursor:pointer;" onclick="this.style.background='var(--green-dim)';this.style.color='var(--green)';this.style.borderColor='#34D39933';this.textContent='✓'">○</div></div>
+        </div>
+      </div>
+      <div style="margin:0 14px 6px;background:var(--bg2);border:0.5px solid var(--border);border-radius:14px;padding:12px 16px;opacity:.4;"><div style="font-size:13px;font-weight:800;color:var(--text2);">Overhead Press <span style="font-size:11px;color:var(--text3);font-weight:500;">— up next</span></div><div style="font-size:12px;color:var(--text3);margin-top:3px;">4 × 8 · 60kg</div></div>
+      <div style="margin:0 14px;background:var(--bg2);border:0.5px solid var(--border);border-radius:14px;padding:12px 16px;opacity:.2;"><div style="font-size:13px;font-weight:800;color:var(--text2);">Incline DB Press</div></div>
+    </div>
+
+    <!-- ═══ PRO DIET ═══ -->
+    <div class="pg" id="pg3">
+      <div class="ph">
+        <div class="ph-row">
+          <div><div class="ptitle">Diet</div><div class="psub">Monday · March 14</div></div>
+          <span class="badge bg-green">On track ✓</span>
+        </div>
+      </div>
+      <div class="cal-hero">
+        <div class="donut">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#1a1a00" stroke-width="9"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--gold)" stroke-width="9" stroke-dasharray="175 89" stroke-linecap="round"/>
+          </svg>
+          <div class="dc"><div class="dc-val">1840</div><div class="dc-lbl">/ 2400 kcal</div></div>
+        </div>
+        <div class="macro-s">
+          <div class="mr"><div class="mrh"><span style="color:var(--text3);">Protein</span><span>142 / 180g</span></div><div class="mrb"><div class="mrf" style="width:79%;background:var(--blue);"></div></div></div>
+          <div class="mr"><div class="mrh"><span style="color:var(--text3);">Carbs</span><span>195 / 280g</span></div><div class="mrb"><div class="mrf" style="width:70%;background:var(--green);"></div></div></div>
+          <div class="mr"><div class="mrh"><span style="color:var(--text3);">Fat</span><span>52 / 80g</span></div><div class="mrb"><div class="mrf" style="width:65%;background:var(--gold);"></div></div></div>
+        </div>
+      </div>
+      <div class="pro-feature-card">
+        <div class="pfc-head"><span class="pfc-ico">🤖</span><div class="pfc-title">AI Diet Insight</div></div>
+        <div class="pfc-body">You're 38g short on protein today. Push Day requires higher intake — add a protein shake post-workout. Based on your logs, paneer-heavy dinners give you the best macro ratios.</div>
+      </div>
+      <div class="meal-grp">
+        <div class="mg-t">Breakfast · 7:30 AM</div>
+        <div class="meal"><div class="meal-ico">🍳</div><div class="meal-info"><div class="meal-n">4 Eggs + Oats 80g</div><div class="meal-m">P: 32g · C: 55g · F: 14g</div></div><div class="meal-k">480</div></div>
+      </div>
+      <div class="meal-grp">
+        <div class="mg-t">Lunch · 12:45 PM</div>
+        <div class="meal"><div class="meal-ico">🍗</div><div class="meal-info"><div class="meal-n">Chicken Rice Bowl</div><div class="meal-m">P: 52g · C: 78g · F: 8g</div></div><div class="meal-k">620</div></div>
+        <div class="meal"><div class="meal-ico">🥛</div><div class="meal-info"><div class="meal-n">Whey Protein Shake</div><div class="meal-m">P: 25g · C: 5g · F: 2g</div></div><div class="meal-k">136</div></div>
+      </div>
+      <div class="meal-grp">
+        <div class="mg-t">Dinner</div>
+        <div class="meal"><div class="meal-ico">🍛</div><div class="meal-info"><div class="meal-n">Dal + 2 Roti + Sabzi</div><div class="meal-m">P: 18g · C: 62g · F: 8g</div></div><div class="meal-k">380</div></div>
+        <div class="add-meal"><div class="add-meal-ico">＋</div><div class="add-meal-t">Add food · 784 kcal remaining</div></div>
+      </div>
+      <div class="water">
+        <div class="drops"><div class="dr f"></div><div class="dr f"></div><div class="dr f"></div><div class="dr f"></div><div class="dr f"></div><div class="dr e"></div><div class="dr e"></div><div class="dr e"></div></div>
+        <div class="water-info"><div class="water-v">2.0 L</div><div class="water-g">of 3.2L daily goal</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ PRO PROGRESS ═══ -->
+    <div class="pg" id="pg4">
+      <div class="ph">
+        <div class="ph-row">
+          <div><div class="ptitle">Progress</div><div class="psub">Last 30 days</div></div>
+          <span class="badge bg-green">↓ 2.1kg fat</span>
+        </div>
+      </div>
+      <div class="prog-grid">
+        <div class="ps"><div><span class="ps-big">78.4</span><span class="ps-u"> kg</span></div><div class="ps-l">Body weight</div><div class="ps-tr" style="color:var(--green);">▼ 0.3kg / week</div><div class="spark"><div class="spb" style="height:80%;background:var(--green);opacity:.3;"></div><div class="spb" style="height:88%;background:var(--green);opacity:.45;"></div><div class="spb" style="height:70%;background:var(--green);opacity:.6;"></div><div class="spb" style="height:78%;background:var(--green);opacity:.8;"></div><div class="spb" style="height:62%;background:var(--green);"></div></div></div>
+        <div class="ps"><div><span class="ps-big">17</span><span class="ps-u">%</span></div><div class="ps-l">Body fat</div><div class="ps-tr" style="color:var(--green);">▼ 0.8% / month</div><div class="spark"><div class="spb" style="height:100%;background:var(--red);opacity:.3;"></div><div class="spb" style="height:88%;background:var(--red);opacity:.5;"></div><div class="spb" style="height:78%;background:var(--red);opacity:.7;"></div><div class="spb" style="height:68%;background:var(--red);opacity:.9;"></div><div class="spb" style="height:60%;background:var(--red);"></div></div></div>
+        <div class="ps"><div><span class="ps-big" style="color:var(--gold);">112</span><span class="ps-u"> kg</span></div><div class="ps-l">Bench 1RM</div><div class="ps-tr" style="color:var(--gold);">▲ 5kg since Jan</div></div>
+        <div class="ps"><div><span class="ps-big" style="color:var(--blue);">7.2</span><span class="ps-u"> hrs</span></div><div class="ps-l">Avg sleep</div><div class="ps-tr" style="color:var(--green);">Recovery: Good</div></div>
+      </div>
+      <div class="sec">Progress photos</div>
+      <div class="photo-row">
+        <div class="photo-box"><div class="photo-box-ico">📷</div><div class="photo-box-lbl">JAN 2025</div></div>
+        <div class="photo-box"><div class="photo-box-ico">📷</div><div class="photo-box-lbl">MAR 2025</div></div>
+        <div class="photo-box add"><div class="photo-box-ico" style="color:var(--text3);">＋</div><div class="photo-box-lbl">ADD PHOTO</div></div>
+      </div>
+      <div class="sec">Strength lifts</div>
+      <div class="card">
+        <div class="lift-bars">
+          <div class="lb-row"><div class="lb-name">Bench</div><div class="lb-bg"><div class="lb-fill" style="width:78%;background:var(--gold);"></div></div><div class="lb-val" style="color:var(--gold);">112 kg</div></div>
+          <div class="lb-row"><div class="lb-name">Squat</div><div class="lb-bg"><div class="lb-fill" style="width:95%;background:var(--green);"></div></div><div class="lb-val" style="color:var(--green);">140 kg</div></div>
+          <div class="lb-row"><div class="lb-name">Deadlift</div><div class="lb-bg"><div class="lb-fill" style="width:100%;background:var(--blue);"></div></div><div class="lb-val" style="color:var(--blue);">170 kg</div></div>
+          <div class="lb-row"><div class="lb-name">OHP</div><div class="lb-bg"><div class="lb-fill" style="width:44%;background:var(--purple);"></div></div><div class="lb-val" style="color:var(--purple);">65 kg</div></div>
+        </div>
+      </div>
+      <div class="sec">Body measurements</div>
+      <div class="card body-meas">
+        <div class="bm-row"><span class="bm-lbl">Chest</span><span style="display:flex;align-items:center;gap:8px;"><span class="bm-val">102 cm</span><span class="bm-trend" style="color:var(--green);">▲ 1.5</span></span></div>
+        <div class="bm-row"><span class="bm-lbl">Waist</span><span style="display:flex;align-items:center;gap:8px;"><span class="bm-val">84 cm</span><span class="bm-trend" style="color:var(--green);">▼ 2.0</span></span></div>
+        <div class="bm-row"><span class="bm-lbl">Right arm</span><span style="display:flex;align-items:center;gap:8px;"><span class="bm-val">37 cm</span><span class="bm-trend" style="color:var(--green);">▲ 0.8</span></span></div>
+        <div class="bm-row"><span class="bm-lbl">Thigh</span><span style="display:flex;align-items:center;gap:8px;"><span class="bm-val">58 cm</span><span class="bm-trend" style="color:var(--gold);">▲ 0.3</span></span></div>
+      </div>
+    </div>
+
+    <!-- ═══ PRO PROFILE ═══ -->
+    <div class="pg" id="pg5">
+      <div class="ph"><div class="ptitle">Profile</div></div>
+      <div class="pro-profile-hero">
+        <div class="pph-glow"></div>
+        <div class="pph-crown">👑</div>
+        <div class="pph-ava">👤</div>
+        <div class="pph-name">Rahul Sharma</div>
+        <div class="pph-sub">Pro member since Jan 2025</div>
+        <div class="pph-badges">
+          <span class="badge bg-gold">⭐ Pro</span>
+          <span class="badge bg-blue">Lv.12</span>
+          <span class="badge bg-gold">🔥 14 days</span>
+        </div>
+      </div>
+      <div class="pro-stats-card">
+        <div class="psc-title">YOUR STATS</div>
+        <div class="psc-grid">
+          <div class="psc-item"><div class="psc-val">48</div><div class="psc-lbl">Workouts</div></div>
+          <div class="psc-item"><div class="psc-val">14</div><div class="psc-lbl">Day streak</div></div>
+          <div class="psc-item"><div class="psc-val">112kg</div><div class="psc-lbl">Bench 1RM</div></div>
+        </div>
+      </div>
+      <div class="sec">Goal</div>
+      <div class="goal-sel">
+        <div class="gb on"><div class="gb-ico">💪</div><div class="gb-lbl">MUSCLE</div></div>
+        <div class="gb"><div class="gb-ico">🔥</div><div class="gb-lbl">FAT LOSS</div></div>
+        <div class="gb"><div class="gb-ico">⚡</div><div class="gb-lbl">STRENGTH</div></div>
+      </div>
+      <div class="sec">Settings</div>
+      <div class="set-item" onclick="goPage(0)"><div class="set-l"><span class="set-ico">📅</span><div><div class="set-lbl">Training split</div><div class="set-sub">Push Pull Legs · 6 days</div></div></div><span class="set-r">›</span></div>
+      <div class="set-item"><div class="set-l"><span class="set-ico">⚖️</span><div><div class="set-lbl">Bodyweight</div><div class="set-sub">78.4 kg — updated today</div></div></div><span class="set-r">›</span></div>
+      <div class="set-item"><div class="set-l"><span class="set-ico">🔔</span><div><div class="set-lbl">Reminders</div><div class="set-sub">6:30 AM daily</div></div></div><span class="set-r" style="color:var(--gold);font-weight:800;">On</span></div>
+      <div class="set-item"><div class="set-l"><span class="set-ico">📏</span><div><div class="set-lbl">Units</div><div class="set-sub">Kilograms · Centimetres</div></div></div><span class="set-r">›</span></div>
+
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- ── NAV (hidden on upgrade screen) ── -->
+  <div class="nav" id="main-nav" style="display:none;">
+    <div class="nt on" id="n0" onclick="goPage(0)"><div class="ni">🏠</div><div class="nl">Home</div></div>
+    <div class="nt" id="n1" onclick="goPage(1)"><div class="ni">🤖</div><div class="nl">AI Coach</div></div>
+    <div class="nt" id="n2" onclick="goPage(2)"><div class="ni">💪</div><div class="nl">Workout</div></div>
+    <div class="nt" id="n3" onclick="goPage(3)"><div class="ni">🥗</div><div class="nl">Diet</div></div>
+    <div class="nt" id="n4" onclick="goPage(4)"><div class="ni">📈</div><div class="nl">Progress</div></div>
+    <div class="nt" id="n5" onclick="goPage(5)"><div class="ni">👤</div><div class="nl">Profile</div></div>
+  </div>
+</div>
+
+<script>
+let proActive = false;
+
+function activatePro() {
+  proActive = true;
+  document.getElementById('pg-up').classList.remove('on');
+  document.getElementById('pg0').classList.add('on');
+  document.getElementById('main-nav').style.display = 'flex';
+}
+
+function goPage(n) {
+  const pages = ['pg0','pg1','pg2','pg3','pg4','pg5'];
+  pages.forEach(p => document.getElementById(p)?.classList.remove('on'));
+  ['n0','n1','n2','n3','n4','n5'].forEach(nn => document.getElementById(nn)?.classList.remove('on'));
+  document.getElementById(pages[n])?.classList.add('on');
+  document.getElementById('n'+n)?.classList.add('on');
+  document.getElementById(pages[n])?.scrollTo(0,0);
+}
+
+// timer
+let tv = 105, timerOn = true;
+setInterval(() => {
+  if (!timerOn) return;
+  tv--; if (tv < 0) tv = 120;
+  const el = document.getElementById('tmr');
+  if (el) el.textContent = Math.floor(tv/60) + ':' + (tv%60 < 10 ? '0' : '') + tv%60;
+}, 1000);
+
+// chat
+const REPLIES = {
+  'Adaptive plan': "Based on your 4-week data, I'm adjusting your PPL: Push A gets +5kg on bench target, Pull B adds Nordic curls for lagging hamstrings. Recovery scores suggest you can handle an extra Push session this week.",
+  'Weakest lift': "OHP at 0.83× BW is your weakest relative lift. Squat (1.79×) and Deadlift (2.18×) are excellent. Focus: 2 extra shoulder accessory sets per Push day for 4 weeks.",
+  'Deload week?': "You've trained 14 straight days with increasing volume. I recommend a deload next week — drop volume 40%, maintain intensity. You'll come back stronger. Schedule it for March 17-23.",
+  'Form tips': "For your bench: based on your rep patterns, your S4 performance drops suggest grip fatigue. Try a slightly wider grip. For squats, your 3-rep drop on heavy sets suggests quad dominance — add box squats.",
+  'Overtrained?': "Not overtrained yet, but trending that way. Sleep is good at 7.2hrs. Resting HR data shows normal recovery. However, your S3/S4 rep quality has dropped 18% over 2 weeks. One extra rest day this week is recommended."
+};
+
+function sendMsg() {
+  const inp = document.getElementById('chat-in');
+  const msg = inp.value.trim(); if (!msg) return;
+  addBubble(msg, 'usr');
+  inp.value = '';
+  setTimeout(() => addBubble("Great question! Based on your training history across 48 sessions, I've analyzed your patterns. Your progressive overload has been excellent. Keep the current trajectory and focus on sleep quality this week. 💪", 'bot'), 600);
+}
+
+function sendQ(el) {
+  const txt = el.textContent.replace(' ↗', '');
+  addBubble(txt, 'usr');
+  setTimeout(() => addBubble(REPLIES[txt] || "Analyzing your data...", 'bot'), 500);
+}
+
+function addBubble(msg, type) {
+  const area = document.getElementById('chat-area');
+  const qps = document.querySelector('.qps');
+  const div = document.createElement('div');
+  div.className = 'bubble-wrap' + (type === 'usr' ? ' usr' : '');
+  div.innerHTML = `<div class="bbl ${type}">${msg}</div>`;
+  area.insertBefore(div, qps);
+  div.scrollIntoView({ behavior: 'smooth' });
+}
+</script>

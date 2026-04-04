@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Phase 4 — AI Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#111;--bg2:#181818;--bg3:#1f1f1f;--card:#1e1e1e;--card2:#252525;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.13);--purple-bd:rgba(167,139,250,0.3);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,0.13);--amber-bd:rgba(245,166,35,0.3);
+  --green:#4cd964;--green-dim:rgba(76,217,100,0.12);
+  --blue:#4da6ff;--red:#ff5c3a;--pink:#f472b6;
+  --text:#fff;--text2:#888;--text3:#444;
+  --r:14px;--r-sm:10px;--r-xs:7px;
+}
+html,body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.shell{max-width:390px;margin:0 auto;min-height:100vh;position:relative;overflow:hidden;}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);transition:transform .32s cubic-bezier(.4,0,.2,1),opacity .32s ease;will-change:transform;}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
+.screen.back-hidden{transform:translateX(-28%);opacity:0;pointer-events:none;}
+::-webkit-scrollbar{display:none;}
+
+/* STATUS */
+.status{display:flex;justify-content:space-between;padding:14px 20px 4px;font-size:12px;font-weight:600;color:var(--text3);}
+
+/* HEADER */
+.pg-header{padding:4px 18px 14px;}
+.back-btn{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--amber);font-weight:600;cursor:pointer;margin-bottom:10px;}
+.pg-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.pg-title{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.2;}
+.elite-badge{background:var(--purple-dim);border:1px solid var(--purple-bd);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--purple);white-space:nowrap;flex-shrink:0;margin-top:3px;}
+
+/* HERO */
+.hero-card{margin:0 16px 18px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:28px 20px 22px;text-align:center;position:relative;overflow:hidden;}
+.hero-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -10%,rgba(167,139,250,0.08) 0%,transparent 65%);pointer-events:none;}
+.hero-emoji{font-size:52px;margin-bottom:14px;line-height:1;display:block;}
+.hero-desc{font-size:13.5px;color:var(--text2);line-height:1.65;max-width:270px;margin:0 auto 18px;}
+.hero-desc strong{color:var(--text);}
+.hero-lock{display:inline-flex;align-items:center;gap:7px;background:var(--purple-dim);border:1px solid var(--purple-bd);border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;color:var(--purple);cursor:pointer;}
+
+/* SECTION LABEL */
+.sec-label{padding:0 18px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:var(--text3);}
+
+/* FEATURE LIST */
+.feat-list{padding:0 16px;display:flex;flex-direction:column;gap:2px;}
+.feat-row{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--border);padding:14px 13px;cursor:pointer;transition:background .15s,transform .1s;}
+.feat-row:first-child{border-radius:var(--r) var(--r) var(--r-xs) var(--r-xs);}
+.feat-row:last-child{border-radius:var(--r-xs) var(--r-xs) var(--r) var(--r);}
+.feat-row:only-child{border-radius:var(--r);}
+.feat-row:active{background:var(--card2);transform:scale(.99);}
+.feat-icon-wrap{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.feat-info{flex:1;min-width:0;}
+.feat-name{font-size:14.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px;}
+.feat-sub{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4;}
+.badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.07);color:var(--text3);border:1px solid var(--border2);flex-shrink:0;}
+.feat-arrow{font-size:13px;color:var(--text3);flex-shrink:0;}
+
+/* NOTIFY */
+.notify-card{margin:18px 16px 8px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.notify-head{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+.notify-title{font-size:15px;font-weight:700;}
+.notify-sub{font-size:12.5px;color:var(--text2);margin-bottom:12px;line-height:1.5;}
+.input-row{display:flex;gap:8px;}
+.email-in{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px 13px;font-size:13px;color:var(--text);outline:none;font-family:inherit;}
+.email-in::placeholder{color:var(--text3);}
+.email-in:focus{border-color:var(--amber-bd);}
+.notify-btn{background:var(--amber);border:none;border-radius:var(--r-sm);padding:10px 16px;font-size:13px;font-weight:700;color:#111;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.notify-btn:active{opacity:.85;}
+.back-bottom{display:block;width:calc(100% - 32px);margin:14px 16px 36px;background:none;border:1px solid var(--border2);border-radius:50px;padding:14px;font-size:14px;font-weight:600;color:var(--amber);cursor:pointer;font-family:inherit;text-align:center;}
+.back-bottom:active{background:var(--card);}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.a0{animation:fadeUp .28s ease both;}
+.a1{animation:fadeUp .28s .06s ease both;}
+.a2{animation:fadeUp .28s .12s ease both;}
+.a3{animation:fadeUp .28s .18s ease both;}
+.a4{animation:fadeUp .28s .24s ease both;}
+.a5{animation:fadeUp .28s .30s ease both;}
+
+/* ===== SUB-SCREEN BASE ===== */
+.sub-scroll{padding-bottom:40px;}
+
+/* ===== AI CHAT SCREEN ===== */
+.chat-context-bar{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;}
+.ctx-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px;}
+.ctx-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.ctx-chip{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--text2);}
+.ctx-dot{width:6px;height:6px;border-radius:50%;}
+
+.chat-messages{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.msg-ai{display:flex;gap:10px;align-items:flex-start;}
+.ai-avatar{width:30px;height:30px;border-radius:50%;background:var(--purple-dim);border:1px solid var(--purple-bd);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;margin-top:2px;}
+.msg-bubble-ai{background:var(--card);border:1px solid var(--border2);border-radius:0 var(--r) var(--r) var(--r);padding:11px 13px;max-width:80%;}
+.msg-text{font-size:13.5px;line-height:1.55;color:var(--text);}
+.msg-text .highlight{color:var(--purple);font-weight:600;}
+.msg-text .num{color:var(--amber);font-weight:700;}
+.msg-time{font-size:10px;color:var(--text3);margin-top:5px;}
+.msg-user{display:flex;justify-content:flex-end;}
+.msg-bubble-user{background:var(--purple-dim);border:1px solid var(--purple-bd);border-radius:var(--r) 0 var(--r) var(--r);padding:11px 13px;max-width:80%;}
+.msg-bubble-user .msg-text{color:var(--text);}
+
+.typing-indicator{display:flex;align-items:center;gap:10px;padding:0 16px;margin-bottom:10px;}
+.typing-dots{display:flex;gap:4px;align-items:center;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--purple);opacity:.4;animation:blink 1.2s ease-in-out infinite;}
+.dot:nth-child(2){animation-delay:.2s;}
+.dot:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,80%,100%{opacity:.4;}40%{opacity:1;}}
+
+.quick-prompts{padding:0 16px;margin-bottom:12px;}
+.qp-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px;}
+.qp-row{display:flex;gap:7px;overflow-x:auto;}
+.qp-row::-webkit-scrollbar{display:none;}
+.qp-chip{flex-shrink:0;background:var(--card);border:1px solid var(--purple-bd);border-radius:20px;padding:7px 13px;font-size:12px;font-weight:500;color:var(--purple);cursor:pointer;white-space:nowrap;}
+.qp-chip:active{background:var(--purple-dim);}
+
+.chat-input-bar{position:sticky;bottom:0;background:rgba(17,17,17,.97);backdrop-filter:blur(14px);border-top:1px solid var(--border2);padding:10px 16px 20px;display:flex;gap:8px;align-items:center;}
+.chat-in{flex:1;background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:10px 16px;font-size:14px;color:var(--text);outline:none;font-family:inherit;}
+.chat-in::placeholder{color:var(--text3);}
+.chat-in:focus{border-color:var(--purple-bd);}
+.send-btn{width:40px;height:40px;border-radius:50%;background:var(--purple);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:#fff;}
+.send-btn:active{opacity:.8;}
+
+/* ===== DAILY BRIEF SCREEN ===== */
+.brief-card{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:18px;}
+.brief-greeting{font-size:13px;color:var(--text3);margin-bottom:4px;}
+.brief-headline{font-size:18px;font-weight:800;letter-spacing:-.3px;line-height:1.3;margin-bottom:14px;}
+.brief-stat-row{display:flex;gap:8px;margin-bottom:14px;}
+.bstat{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;text-align:center;}
+.bstat-val{font-size:20px;font-weight:800;line-height:1;letter-spacing:-.5px;}
+.bstat-lbl{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;}
+.brief-insight{background:var(--bg3);border-radius:var(--r-sm);padding:12px 13px;display:flex;gap:10px;align-items:flex-start;}
+.bi-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.bi-text{font-size:13px;color:var(--text2);line-height:1.55;}
+.bi-text strong{color:var(--text);}
+
+.brief-section{margin:0 16px 10px;display:flex;flex-direction:column;gap:7px;}
+.bs-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:3px;}
+.bs-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:11px;}
+.bs-icon{font-size:20px;flex-shrink:0;}
+.bs-info{flex:1;}
+.bs-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.bs-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.bs-val{font-size:15px;font-weight:800;letter-spacing:-.3px;}
+
+/* ===== SMART OVERLOAD SCREEN ===== */
+.overload-card{margin:0 16px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.oc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.oc-exercise{font-size:16px;font-weight:800;}
+.oc-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;}
+.oc-badge.up{background:rgba(76,217,100,0.13);color:var(--green);border:1px solid rgba(76,217,100,0.3);}
+.oc-badge.hold{background:rgba(245,166,35,0.13);color:var(--amber);border:1px solid var(--amber-bd);}
+.oc-badge.deload{background:rgba(255,92,58,0.13);color:var(--red);border:1px solid rgba(255,92,58,0.3);}
+.trend-bars{display:flex;gap:5px;align-items:flex-end;height:56px;margin-bottom:8px;}
+.tb-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;}
+.tb{width:100%;border-radius:3px 3px 0 0;}
+.tb-lbl{font-size:9px;color:var(--text3);}
+.tb.latest{border:1px solid var(--green);}
+.oc-suggestion{background:var(--bg3);border-radius:var(--r-sm);padding:11px 13px;margin-bottom:10px;}
+.oc-sug-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:5px;}
+.oc-sug-text{font-size:13.5px;color:var(--text);line-height:1.5;}
+.oc-sug-text .why{font-size:12px;color:var(--text2);margin-top:4px;}
+.oc-reason{font-size:12px;color:var(--purple);font-weight:600;}
+.oc-actions{display:flex;gap:8px;}
+.oc-btn{flex:1;padding:11px;border-radius:var(--r-sm);font-size:13px;font-weight:700;cursor:pointer;text-align:center;border:none;font-family:inherit;}
+.oc-btn.accept{background:var(--green);color:#111;}
+.oc-btn.accept:active{opacity:.85;}
+.oc-btn.override{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
+
+.ex-list-label{padding:0 18px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);}
+.ex-list{padding:0 16px;display:flex;flex-direction:column;gap:7px;}
+.ex-item{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:11px;cursor:pointer;}
+.ex-item:active{background:var(--card2);}
+.ex-left{flex:1;}
+.ex-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.ex-trend{font-size:11px;color:var(--text2);margin-top:2px;}
+.ex-action{font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;}
+
+/* ===== DIET ADVISOR SCREEN ===== */
+.diet-hero{margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:16px;}
+.dh-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.dh-icon{font-size:28px;}
+.dh-info{flex:1;}
+.dh-title{font-size:15px;font-weight:700;}
+.dh-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.dh-today{background:var(--bg3);border-radius:var(--r-sm);padding:12px 13px;}
+.dh-today-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:6px;}
+.dh-message{font-size:13.5px;color:var(--text);line-height:1.55;}
+.dh-message .food-suggest{color:var(--amber);font-weight:600;}
+
+.diet-targets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 16px 12px;}
+.dt-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 10px;}
+.dt-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:4px;}
+.dt-val{font-size:19px;font-weight:800;letter-spacing:-.5px;line-height:1;}
+.dt-unit{font-size:10px;color:var(--text2);}
+.dt-bar{height:3px;background:var(--bg3);border-radius:2px;margin-top:7px;overflow:hidden;}
+.dt-fill{height:100%;border-radius:2px;}
+
+.food-suggestions{padding:0 16px;display:flex;flex-direction:column;gap:7px;}
+.fs-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:3px;}
+.fs-item{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;gap:12px;cursor:pointer;}
+.fs-item:active{background:var(--card2);}
+.fs-emoji{font-size:24px;flex-shrink:0;}
+.fs-info{flex:1;}
+.fs-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.fs-why{font-size:11px;color:var(--text2);margin-top:2px;}
+.fs-cal{text-align:right;}
+.fs-num{font-size:15px;font-weight:800;color:var(--text);}
+.fs-kcal{font-size:10px;color:var(--text3);}
+.fs-add{width:28px;height:28px;border-radius:50%;background:var(--amber-dim);border:1px solid var(--amber-bd);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--amber);flex-shrink:0;}
+
+/* ===== RECOVERY SCORE SCREEN ===== */
+.recovery-hero{margin:0 16px 14px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:20px;text-align:center;position:relative;overflow:hidden;}
+.recovery-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(76,217,100,0.06) 0%,transparent 65%);pointer-events:none;}
+.rec-score-num{font-size:72px;font-weight:800;letter-spacing:-3px;line-height:1;color:var(--green);}
+.rec-score-lbl{font-size:14px;color:var(--text2);margin-top:4px;font-weight:500;}
+.rec-verdict{display:inline-block;margin-top:12px;background:rgba(76,217,100,0.13);border:1px solid rgba(76,217,100,0.3);border-radius:20px;padding:7px 18px;font-size:13px;font-weight:700;color:var(--green);}
+
+.rec-factors{padding:0 16px;display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.rf-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:3px;}
+.rf-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 13px;gap:12px;}
+.rf-icon{font-size:20px;flex-shrink:0;}
+.rf-info{flex:1;}
+.rf-name{font-size:13.5px;font-weight:600;color:var(--text);}
+.rf-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.rf-score{text-align:right;}
+.rf-num{font-size:18px;font-weight:800;line-height:1;}
+.rf-out{font-size:10px;color:var(--text3);}
+.rf-bar{width:56px;height:3px;background:var(--bg3);border-radius:2px;margin-top:4px;overflow:hidden;}
+.rf-fill{height:100%;border-radius:2px;}
+
+.rec-advice{margin:0 16px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:14px;}
+.ra-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px;}
+.ra-item{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);}
+.ra-item:last-child{border-bottom:none;}
+.ra-dot{width:6px;height:6px;border-radius:50%;background:var(--purple);flex-shrink:0;margin-top:5px;}
+.ra-text{font-size:13px;color:var(--text2);line-height:1.5;}
+.ra-text strong{color:var(--text);}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ======== SCREEN: FEATURE LIST ======== -->
+<div class="screen" id="s-home">
+  <div class="status"><span>9:41</span><span style="color:#444;">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Phase 4 —<br>AI Coach</div>
+      <div class="elite-badge">PRO / ELITE</div>
+    </div>
+  </div>
+
+  <div class="hero-card a0">
+    <span class="hero-emoji">🤖</span>
+    <div class="hero-desc">Your personal AI trainer powered by Claude — reads your <strong>actual workout & diet history</strong> to give real advice.</div>
+    <div class="hero-lock">🔒 &nbsp;PRO / ELITE</div>
+  </div>
+
+  <div class="sec-label a1">UPCOMING FEATURES (5)</div>
+  <div class="feat-list a2">
+    <div class="feat-row" onclick="go('s-chat')">
+      <div class="feat-icon-wrap" style="background:rgba(167,139,250,0.12);">🧠</div>
+      <div class="feat-info">
+        <div class="feat-name">AI Chat <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Ask anything about your training, diet, or recovery</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-brief')">
+      <div class="feat-icon-wrap" style="background:rgba(77,166,255,0.12);">📊</div>
+      <div class="feat-info">
+        <div class="feat-name">Daily Brief <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Auto-generated morning insights & recommendations</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-overload')">
+      <div class="feat-icon-wrap" style="background:rgba(76,217,100,0.1);">📈</div>
+      <div class="feat-info">
+        <div class="feat-name">Smart Overload <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">6-week trend analysis with deload suggestions</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-diet')">
+      <div class="feat-icon-wrap" style="background:rgba(245,166,35,0.12);">🍱</div>
+      <div class="feat-info">
+        <div class="feat-name">Diet Advisor <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Cross-references workout + diet for Indian food suggestions</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-row" onclick="go('s-recovery')">
+      <div class="feat-icon-wrap" style="background:rgba(76,217,100,0.1);">😴</div>
+      <div class="feat-info">
+        <div class="feat-name">Recovery Score <span class="badge">UPCOMING</span></div>
+        <div class="feat-sub">Sleep, HRV, fatigue — scored 0–100 daily</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+  </div>
+
+  <div class="notify-card a3">
+    <div class="notify-head"><span style="font-size:22px;">🔔</span><div class="notify-title">Get Notified</div></div>
+    <div class="notify-sub">We'll email you when Phase 4 launches.</div>
+    <div class="input-row">
+      <input class="email-in" type="email" placeholder="Enter your email…" id="em1"/>
+      <button class="notify-btn" onclick="notifyMe('em1',this)">Notify Me</button>
+    </div>
+  </div>
+  <button class="back-bottom">← Back</button>
+</div>
+
+<!-- ======== SCREEN: AI CHAT ======== -->
+<div class="screen hidden" id="s-chat">
+  <div class="status"><span>9:41</span><span style="color:#444;">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">AI Chat</div>
+      <div class="elite-badge">PRO / ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="chat-context-bar a0">
+      <div class="ctx-title">Context loaded</div>
+      <div class="ctx-chips">
+        <div class="ctx-chip"><div class="ctx-dot" style="background:var(--green)"></div>42 workouts</div>
+        <div class="ctx-chip"><div class="ctx-dot" style="background:var(--amber)"></div>Diet logs</div>
+        <div class="ctx-chip"><div class="ctx-dot" style="background:var(--blue)"></div>Goals set</div>
+        <div class="ctx-chip"><div class="ctx-dot" style="background:var(--purple)"></div>Recovery data</div>
+      </div>
+    </div>
+
+    <div class="chat-messages a1">
+      <div class="msg-ai">
+        <div class="ai-avatar">🤖</div>
+        <div class="msg-bubble-ai">
+          <div class="msg-text">Hey Prashant! I've reviewed your last <span class="num">6 weeks</span> of training. Your bench press has <span class="highlight">stalled for 3 sessions</span> — I'd suggest a deload this week, then come back with <span class="num">+2.5kg</span>.</div>
+          <div class="msg-time">9:41 AM · AI Coach</div>
+        </div>
+      </div>
+      <div class="msg-user">
+        <div class="msg-bubble-user">
+          <div class="msg-text">What should I eat today for a push day?</div>
+          <div class="msg-time" style="text-align:right">9:42 AM</div>
+        </div>
+      </div>
+      <div class="msg-ai">
+        <div class="ai-avatar">🤖</div>
+        <div class="msg-bubble-ai">
+          <div class="msg-text">Push day today — you need <span class="num">2,400 kcal</span> with <span class="num">180g protein</span>. You're at <span class="num">1,840</span> so far.<br><br>Add: <span class="highlight">Paneer bhurji</span> (280 kcal, 22g protein) + <span class="highlight">2 rotis</span> for carbs before your session.</div>
+          <div class="msg-time">9:42 AM · AI Coach</div>
+        </div>
+      </div>
+      <div class="typing-indicator">
+        <div class="ai-avatar">🤖</div>
+        <div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      </div>
+    </div>
+
+    <div class="quick-prompts a2">
+      <div class="qp-label">Quick prompts</div>
+      <div class="qp-row">
+        <div class="qp-chip">💪 Best workout today?</div>
+        <div class="qp-chip">🍱 What should I eat?</div>
+        <div class="qp-chip">😴 Am I recovered?</div>
+        <div class="qp-chip">📈 My progress?</div>
+      </div>
+    </div>
+  </div>
+  <div class="chat-input-bar">
+    <input class="chat-in" placeholder="Ask your AI coach…"/>
+    <button class="send-btn">↑</button>
+  </div>
+</div>
+
+<!-- ======== SCREEN: DAILY BRIEF ======== -->
+<div class="screen hidden" id="s-brief">
+  <div class="status"><span>9:41</span><span style="color:#444;">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Daily Brief</div>
+      <div class="elite-badge">PRO / ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="brief-card a0">
+      <div class="brief-greeting">Good morning, Prashant 👋</div>
+      <div class="brief-headline">Push Day today — you're ready. Recovery score is 74.</div>
+      <div class="brief-stat-row">
+        <div class="bstat"><div class="bstat-val" style="color:var(--green)">74</div><div class="bstat-lbl">Recovery</div></div>
+        <div class="bstat"><div class="bstat-val" style="color:var(--amber)">1840</div><div class="bstat-lbl">kcal so far</div></div>
+        <div class="bstat"><div class="bstat-val" style="color:var(--blue)">7.2h</div><div class="bstat-lbl">Sleep</div></div>
+      </div>
+      <div class="brief-insight">
+        <div class="bi-icon">💡</div>
+        <div class="bi-text">Your <strong>bench press stalled</strong> for 3 weeks — AI suggests a light session today. Eat <strong>2,400 kcal</strong> with 180g protein for optimal recovery.</div>
+      </div>
+    </div>
+
+    <div class="sdiv a1" style="padding:0 18px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);">TODAY'S PLAN</div>
+    <div class="brief-section a2">
+      <div class="bs-row">
+        <div class="bs-icon">🏋️</div>
+        <div class="bs-info"><div class="bs-name">Push Day — Deload</div><div class="bs-sub">Bench, OHP, Triceps · 60% intensity</div></div>
+        <div class="bs-val" style="color:var(--purple)">5 PM</div>
+      </div>
+      <div class="bs-row">
+        <div class="bs-icon">🍱</div>
+        <div class="bs-info"><div class="bs-name">Calorie target</div><div class="bs-sub">560 kcal remaining · add paneer</div></div>
+        <div class="bs-val" style="color:var(--amber)">560</div>
+      </div>
+      <div class="bs-row">
+        <div class="bs-icon">💧</div>
+        <div class="bs-info"><div class="bs-name">Hydration</div><div class="bs-sub">3 / 8 cups · drink more before gym</div></div>
+        <div class="bs-val" style="color:var(--blue)">3/8</div>
+      </div>
+      <div class="bs-row">
+        <div class="bs-icon">😴</div>
+        <div class="bs-info"><div class="bs-name">Sleep last night</div><div class="bs-sub">Good — 7h 12m, HRV normal</div></div>
+        <div class="bs-val" style="color:var(--green)">74</div>
+      </div>
+    </div>
+
+    <div class="sdiv a3" style="padding:12px 18px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);">AI INSIGHT</div>
+    <div style="margin:0 16px 30px;" class="a4">
+      <div class="brief-card" style="margin:0;">
+        <div class="brief-insight">
+          <div class="bi-icon">🤖</div>
+          <div class="bi-text">Based on your last 6 weeks, <strong>progressive overload on OHP is working</strong> — +5kg added. Keep it going next week. Bench needs a reset — deload today then +2.5kg next session.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== SCREEN: SMART OVERLOAD ======== -->
+<div class="screen hidden" id="s-overload">
+  <div class="status"><span>9:41</span><span style="color:#444;">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Smart Overload</div>
+      <div class="elite-badge">PRO / ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <!-- BENCH PRESS card -->
+    <div class="overload-card a0">
+      <div class="oc-top">
+        <div class="oc-exercise">Bench Press</div>
+        <div class="oc-badge deload">Deload</div>
+      </div>
+      <div class="trend-bars">
+        <div class="tb-wrap"><div class="tb" style="height:55%;background:rgba(77,166,255,.5);border-radius:3px 3px 0 0;"></div><div class="tb-lbl">W1</div></div>
+        <div class="tb-wrap"><div class="tb" style="height:65%;background:rgba(77,166,255,.55);border-radius:3px 3px 0 0;"></div><div class="tb-lbl">W2</div></div>
+        <div class="tb-wrap"><div class="tb" style="height:75%;background:rgba(77,166,255,.65);border-radius:3px 3px 0 0;"></div><div class="tb-lbl">W3</div></div>
+        <div class="tb-wrap"><div class="tb" style="height:75%;background:rgba(77,166,255,.6);border-radius:3px 3px 0 0;"></div><div class="tb-lbl">W4</div></div>
+        <div class="tb-wrap"><div class="tb" style="height:74%;background:rgba(77,166,255,.55);border-radius:3px 3px 0 0;"></div><div class="tb-lbl">W5</div></div>
+        <div class="tb-wrap"><div class="tb latest" style="height:73%;background:rgba(255,92,58,.35);border-radius:3px 3px 0 0;"></div><div class="tb-lbl" style="color:var(--red)">W6</div></div>
+      </div>
+      <div class="oc-suggestion">
+        <div class="oc-sug-title">AI Suggestion</div>
+        <div class="oc-sug-text">Stalled for 3 weeks at 80kg. Deload to <strong>65kg this week</strong>, then return with 82.5kg next session.<div class="why">Your CNS is fatigued — lighter session will boost recovery.</div></div>
+      </div>
+      <div class="oc-actions">
+        <div class="oc-btn accept">✓ Accept</div>
+        <div class="oc-btn override">Override</div>
+      </div>
+    </div>
+
+    <div class="ex-list-label a1">ALL EXERCISES</div>
+    <div class="ex-list a2">
+      <div class="ex-item">
+        <div class="bs-icon" style="font-size:20px;">🏋️</div>
+        <div class="ex-left"><div class="ex-name">Overhead Press</div><div class="ex-trend">+5kg in 6 weeks · trending up</div></div>
+        <div class="ex-action" style="background:rgba(76,217,100,0.13);color:var(--green);border:1px solid rgba(76,217,100,0.3);">+2.5kg ↑</div>
+      </div>
+      <div class="ex-item">
+        <div class="bs-icon" style="font-size:20px;">💪</div>
+        <div class="ex-left"><div class="ex-name">Bicep Curl</div><div class="ex-trend">Steady for 4 weeks</div></div>
+        <div class="ex-action" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-bd);">+1 rep</div>
+      </div>
+      <div class="ex-item">
+        <div class="bs-icon" style="font-size:20px;">🦵</div>
+        <div class="ex-left"><div class="ex-name">Squat</div><div class="ex-trend">+7.5kg in 6 weeks · strong</div></div>
+        <div class="ex-action" style="background:rgba(76,217,100,0.13);color:var(--green);border:1px solid rgba(76,217,100,0.3);">+5kg ↑</div>
+      </div>
+      <div class="ex-item">
+        <div class="bs-icon" style="font-size:20px;">🔻</div>
+        <div class="ex-left"><div class="ex-name">Tricep Pushdown</div><div class="ex-trend">Declined last 2 weeks</div></div>
+        <div class="ex-action" style="background:rgba(255,92,58,0.13);color:var(--red);border:1px solid rgba(255,92,58,0.3);">Deload</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== SCREEN: DIET ADVISOR ======== -->
+<div class="screen hidden" id="s-diet">
+  <div class="status"><span>9:41</span><span style="color:#444;">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Diet Advisor</div>
+      <div class="elite-badge">PRO / ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="diet-hero a0">
+      <div class="dh-top">
+        <div class="dh-icon">🤖</div>
+        <div class="dh-info"><div class="dh-title">Push Day — High Protein</div><div class="dh-sub">AI diet plan based on today's workout</div></div>
+      </div>
+      <div class="dh-today">
+        <div class="dh-today-lbl">AI RECOMMENDATION</div>
+        <div class="dh-message">Push Day today — you need <span class="food-suggest">2,400 kcal</span> with <span class="food-suggest">180g protein</span>. You're at 1,840 — add <span class="food-suggest">Paneer bhurji</span>. India-specific options below 👇</div>
+      </div>
+    </div>
+
+    <div class="diet-targets a1">
+      <div class="dt-card"><div class="dt-lbl">Calories</div><div class="dt-val" style="color:var(--amber)">1840<span class="dt-unit"> kcal</span></div><div class="dt-bar"><div class="dt-fill" style="width:77%;background:var(--amber)"></div></div></div>
+      <div class="dt-card"><div class="dt-lbl">Protein</div><div class="dt-val" style="color:var(--blue)">112<span class="dt-unit"> g</span></div><div class="dt-bar"><div class="dt-fill" style="width:62%;background:var(--blue)"></div></div></div>
+      <div class="dt-card"><div class="dt-lbl">Carbs</div><div class="dt-val" style="color:var(--green)">220<span class="dt-unit"> g</span></div><div class="dt-bar"><div class="dt-fill" style="width:80%;background:var(--green)"></div></div></div>
+    </div>
+
+    <div style="padding:0 18px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);" class="a2">SUGGESTED FOODS NOW</div>
+    <div class="food-suggestions a3">
+      <div class="fs-item">
+        <div class="fs-emoji">🧀</div>
+        <div class="fs-info"><div class="fs-name">Paneer Bhurji</div><div class="fs-why">High protein · fits push day</div></div>
+        <div class="fs-cal"><div class="fs-num">280</div><div class="fs-kcal">kcal</div></div>
+        <div class="fs-add">+</div>
+      </div>
+      <div class="fs-item">
+        <div class="fs-emoji">🫓</div>
+        <div class="fs-info"><div class="fs-name">2 Phulka Rotis</div><div class="fs-why">Carbs for pre-workout energy</div></div>
+        <div class="fs-cal"><div class="fs-num">160</div><div class="fs-kcal">kcal</div></div>
+        <div class="fs-add">+</div>
+      </div>
+      <div class="fs-item">
+        <div class="fs-emoji">🥛</div>
+        <div class="fs-info"><div class="fs-name">Amul Protein Dahi</div><div class="fs-why">+15g protein · post-workout</div></div>
+        <div class="fs-cal"><div class="fs-num">120</div><div class="fs-kcal">kcal</div></div>
+        <div class="fs-add">+</div>
+      </div>
+      <div class="fs-item">
+        <div class="fs-emoji">🥚</div>
+        <div class="fs-info"><div class="fs-name">3 Boiled Eggs</div><div class="fs-why">Complete protein · quick prep</div></div>
+        <div class="fs-cal"><div class="fs-num">210</div><div class="fs-kcal">kcal</div></div>
+        <div class="fs-add">+</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== SCREEN: RECOVERY SCORE ======== -->
+<div class="screen hidden" id="s-recovery">
+  <div class="status"><span>9:41</span><span style="color:#444;">84%</span></div>
+  <div class="pg-header">
+    <div class="back-btn" onclick="back()">← Back</div>
+    <div class="pg-title-row">
+      <div class="pg-title">Recovery Score</div>
+      <div class="elite-badge">PRO / ELITE</div>
+    </div>
+  </div>
+  <div class="sub-scroll">
+    <div class="recovery-hero a0">
+      <div class="rec-score-num">74</div>
+      <div class="rec-score-lbl">out of 100 · updated daily</div>
+      <div class="rec-verdict">✓ Good to train today</div>
+    </div>
+
+    <div style="padding:0 18px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);" class="a1">SCORE FACTORS</div>
+    <div class="rec-factors a2">
+      <div class="rf-row">
+        <div class="rf-icon">😴</div>
+        <div class="rf-info"><div class="rf-name">Sleep</div><div class="rf-sub">7h 12m · good quality</div></div>
+        <div class="rf-score">
+          <div class="rf-num" style="color:var(--green)">28</div>
+          <div class="rf-out">/ 30 pts</div>
+          <div class="rf-bar"><div class="rf-fill" style="width:93%;background:var(--green)"></div></div>
+        </div>
+      </div>
+      <div class="rf-row">
+        <div class="rf-icon">❤️</div>
+        <div class="rf-info"><div class="rf-name">HRV</div><div class="rf-sub">62ms · above baseline</div></div>
+        <div class="rf-score">
+          <div class="rf-num" style="color:var(--green)">22</div>
+          <div class="rf-out">/ 25 pts</div>
+          <div class="rf-bar"><div class="rf-fill" style="width:88%;background:var(--green)"></div></div>
+        </div>
+      </div>
+      <div class="rf-row">
+        <div class="rf-icon">📅</div>
+        <div class="rf-info"><div class="rf-name">Rest since last session</div><div class="rf-sub">1 day · adequate</div></div>
+        <div class="rf-score">
+          <div class="rf-num" style="color:var(--amber)">14</div>
+          <div class="rf-out">/ 20 pts</div>
+          <div class="rf-bar"><div class="rf-fill" style="width:70%;background:var(--amber)"></div></div>
+        </div>
+      </div>
+      <div class="rf-row">
+        <div class="rf-icon">😓</div>
+        <div class="rf-info"><div class="rf-name">Subjective feel</div><div class="rf-sub">You rated 4/5 yesterday</div></div>
+        <div class="rf-score">
+          <div class="rf-num" style="color:var(--green)">10</div>
+          <div class="rf-out">/ 15 pts</div>
+          <div class="rf-bar"><div class="rf-fill" style="width:67%;background:var(--amber)"></div></div>
+        </div>
+      </div>
+      <div class="rf-row">
+        <div class="rf-icon">📉</div>
+        <div class="rf-info"><div class="rf-name">Volume trend</div><div class="rf-sub">High volume last 3 days</div></div>
+        <div class="rf-score">
+          <div class="rf-num" style="color:var(--red)">0</div>
+          <div class="rf-out">/ 10 pts</div>
+          <div class="rf-bar"><div class="rf-fill" style="width:0%;background:var(--red)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rec-advice a3">
+      <div class="ra-title">AI RECOMMENDATIONS</div>
+      <div class="ra-item"><div class="ra-dot"></div><div class="ra-text">Train today but <strong>keep intensity at 80%</strong> — volume trend is high.</div></div>
+      <div class="ra-item"><div class="ra-dot"></div><div class="ra-text">Sleep <strong>7.5h+ tonight</strong> to push tomorrow's score above 80.</div></div>
+      <div class="ra-item"><div class="ra-dot"></div><div class="ra-text">Your HRV dips on low-protein days — hit <strong>180g protein today</strong>.</div></div>
+    </div>
+    <div style="height:30px;"></div>
+  </div>
+</div>
+
+</div>
+<script>
+const hist=[];
+function go(id){
+  const cur=document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if(cur){cur.classList.add('back-hidden');hist.push(cur.id);}
+  const next=document.getElementById(id);
+  next.classList.remove('hidden','back-hidden');
+  next.scrollTop=0;
+  next.querySelectorAll('.a0,.a1,.a2,.a3,.a4,.a5').forEach(el=>{el.style.animation='none';void el.offsetHeight;el.style.animation='';});
+}
+function back(){
+  if(!hist.length)return;
+  const cur=document.querySelector('.screen:not(.hidden):not(.back-hidden)');
+  if(cur)cur.classList.add('hidden');
+  const prev=document.getElementById(hist.pop());
+  prev.classList.remove('back-hidden','hidden');
+}
+function notifyMe(inputId,btn){
+  const val=document.getElementById(inputId).value.trim();
+  if(!val||!val.includes('@')){document.getElementById(inputId).style.borderColor='var(--red)';return;}
+  btn.textContent='✓ Done!';btn.style.background='var(--green)';btn.style.color='#111';
+  document.getElementById(inputId).value='';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+export const typography = {
+  FONT_FAMILY: "'DM Sans', sans-serif",
+  FONT_MONO: "'DM Mono', monospace",
+  TEXT_XS: 10, TEXT_SM: 12, TEXT_BASE: 14, TEXT_MD: 16,
+  TEXT_LG: 18, TEXT_XL: 22, TEXT_2XL: 26, TEXT_3XL: 32,
+  WEIGHT_REGULAR: '400', WEIGHT_MEDIUM: '500',
+  WEIGHT_SEMIBOLD: '600', WEIGHT_BOLD: '700', WEIGHT_EXTRABOLD: '800',
+};
