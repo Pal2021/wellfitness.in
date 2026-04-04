@@ -1,25 +1,39 @@
 package com.wellfitness.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 /**
  * Service to send verification emails via SMTP (Gmail).
+ * If JavaMailSender is not configured (no MAIL_USERNAME env var),
+ * emails are logged but not sent — the app won't crash.
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
+
+    @Autowired(required = false)
+    public EmailService(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+        if (mailSender == null) {
+            log.warn("⚠️  JavaMailSender not configured — email sending is DISABLED. "
+                    + "Set MAIL_USERNAME and MAIL_PASSWORD env vars to enable.");
+        }
+    }
 
     /**
      * Send OTP verification email to user.
      */
     public void sendVerificationOtp(String toEmail, String otp) {
+        if (mailSender == null) {
+            log.warn("Email NOT sent (mail not configured). To: {}, OTP: {}", toEmail, otp);
+            return;
+        }
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
