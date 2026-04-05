@@ -20,4 +20,6 @@ public class AuthResponse {
     private String goal;
     private String experience;
     private Boolean onboardingComplete;
+    @Builder.Default
+    private boolean otpRequired = false;
 }

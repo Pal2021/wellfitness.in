@@ -5,6 +5,7 @@ import com.wellfitness.dto.request.RegisterRequest;
 import com.wellfitness.dto.response.ApiResponse;
 import com.wellfitness.dto.response.AuthResponse;
 import com.wellfitness.service.AuthService;
+import com.wellfitness.service.EmailOtpService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
-
+    private final EmailOtpService emailOtpService;
     // ─── Email Signup with BCrypt ───
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
@@ -83,5 +84,25 @@ public class AuthController {
         String phone = body.get("phone");
         AuthResponse response = authService.firebasePhoneAuth(idToken, phone);
         return ResponseEntity.ok(ApiResponse.success(response, "Phone authentication successful"));
+    }
+
+    // ─── Email OTP: Send OTP ───
+    @PostMapping("/otp/email/send")
+    public ResponseEntity<ApiResponse<String>> sendEmailOtp(
+            @RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        emailOtpService.sendOtp(email);
+        return ResponseEntity.ok(ApiResponse.success(
+                "OTP sent", "OTP sent to " + email));
+    }
+
+    // ─── Email OTP: Verify OTP → JWT ───
+    @PostMapping("/otp/email/verify")
+    public ResponseEntity<ApiResponse<AuthResponse>> verifyEmailOtp(
+            @RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String otp = body.get("otp");
+        AuthResponse response = authService.verifyEmailOtp(email, otp);
+        return ResponseEntity.ok(ApiResponse.success(response, "Email verified successfully"));
     }
 }

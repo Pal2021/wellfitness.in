@@ -23,6 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private final EmailOtpService emailOtpService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -40,31 +41,29 @@ public class AuthService {
             throw new BadRequestException("Email already registered");
         }
 
-        // Generate email verification token
-        String verificationToken = UUID.randomUUID().toString();
-
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail().toLowerCase().trim())
-                .passwordHash(passwordEncoder.encode(request.getPassword())) // BCrypt hashed
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .authProvider("LOCAL")
-                .emailVerified(false)
-                .emailVerificationToken(verificationToken)
-                .goal(request.getGoal())
-                .experience(request.getExperience())
-                .daysPerWeek(request.getDaysPerWeek())
+                .emailVerified(false)  // not verified yet
                 .onboardingComplete(false)
                 .build();
 
-        user = userRepository.save(user);
-        String token = jwtUtil.generateToken(user.getId(), user.getEmail());
+        userRepository.save(user);
 
-        // In production: send verification email with link containing verificationToken
-        log.info("User registered: {} | Verification token: {}", user.getEmail(), verificationToken);
+        // Send OTP email
+        emailOtpService.sendOtp(request.getEmail());
 
-        return buildAuthResponse(user, token);
+        log.info("User registered, OTP sent: {}", user.getEmail());
+
+        // Don't return JWT yet — user must verify OTP first
+        return AuthResponse.builder()
+                .email(user.getEmail())
+                .name(user.getName())
+                .otpRequired(true)  // frontend shows OTP screen
+                .build();
     }
-
     /**
      * Verify email using the verification token sent to user's email.
      */
@@ -91,7 +90,7 @@ public class AuthService {
 
         if (!"LOCAL".equals(user.getAuthProvider())) {
             throw new BadCredentialsException(
-                    "This account uses " + user.getAuthProvider() + " login. Please use the appropriate method.");
+                    "This account uses " + user.getAuthProvider() + " login.");
         }
 
         if (user.getPasswordHash() == null ||
@@ -99,11 +98,16 @@ public class AuthService {
             throw new BadCredentialsException("Invalid email or password");
         }
 
+        // Block login if email not verified
+        if (!user.getEmailVerified()) {
+            emailOtpService.sendOtp(request.getEmail()); // resend OTP
+            throw new BadRequestException("EMAIL_NOT_VERIFIED"); // frontend catches this
+        }
+
         String token = jwtUtil.generateToken(user.getId(), user.getEmail());
         log.info("User logged in (EMAIL): {}", user.getEmail());
         return buildAuthResponse(user, token);
     }
-
     // ════════════════════════════════════════════
     //  2. MOBILE OTP — Generate → Store → Verify → JWT
     // ════════════════════════════════════════════
@@ -123,7 +127,20 @@ public class AuthService {
         log.info("📱 Mobile OTP sent to +91{}: {}", cleanPhone, otp);
         return otp;
     }
+    @Transactional
+    public AuthResponse verifyEmailOtp(String email, String otp) {
+        boolean verified = emailOtpService.verifyOtp(email, otp);
+        if (!verified) {
+            throw new BadCredentialsException("Invalid or expired OTP");
+        }
 
+        User user = userRepository.findByEmail(email.toLowerCase().trim())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        String token = jwtUtil.generateToken(user.getId(), user.getEmail());
+        log.info("Email OTP verified, JWT issued: {}", email);
+        return buildAuthResponse(user, token);
+    }
     /**
      * Step 2: Verify mobile OTP → Create user if not exists → Return JWT.
      */
