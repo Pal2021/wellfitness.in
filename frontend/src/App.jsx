@@ -1,8 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import LandingScreen from "./screens/LandingScreen";
-import LoginScreen from "./screens/LoginScreen";
-import RegisterScreen from "./screens/RegisterScreen";
+import LoginPage from "./features/auth/pages/LoginPage";
+import RegisterPage from "./features/auth/pages/RegisterPage";
 import OnboardingScreen from "./screens/OnboardingScreen";
 import DashboardScreen from "./screens/DashboardScreen";
 import WorkoutScreen from "./screens/WorkoutScreen";
@@ -50,7 +50,7 @@ export default function App() {
         path="/login"
         element={
           <AuthRoute>
-            <LoginScreen />
+            <LoginPage />
           </AuthRoute>
         }
       />
@@ -58,7 +58,7 @@ export default function App() {
         path="/register"
         element={
           <AuthRoute>
-            <RegisterScreen />
+            <RegisterPage />
           </AuthRoute>
         }
       />

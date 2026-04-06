@@ -1,8 +1,8 @@
 package com.wellfitness.controller;
 
-import com.wellfitness.dto.response.ApiResponse;
-import com.wellfitness.model.User;
-import com.wellfitness.model.UserStreak;
+import com.wellfitness.common.response.ApiResponse;
+import com.wellfitness.features.auth.entity.User;
+import com.wellfitness.features.streak.entity.UserStreak;
 import com.wellfitness.service.StreakService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

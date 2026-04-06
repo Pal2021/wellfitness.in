@@ -1,6 +1,6 @@
 package com.wellfitness.service;
 
-import com.wellfitness.model.PersonalRecord;
+import com.wellfitness.features.pr.entity.PersonalRecord;
 import com.wellfitness.repository.PersonalRecordRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

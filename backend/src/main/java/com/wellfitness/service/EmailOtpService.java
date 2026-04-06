@@ -1,6 +1,6 @@
 package com.wellfitness.service;
-import com.wellfitness.exception.BadRequestException;
-import com.wellfitness.model.User;
+import com.wellfitness.common.exception.BadRequestException;
+import com.wellfitness.features.auth.entity.User;
 import com.wellfitness.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

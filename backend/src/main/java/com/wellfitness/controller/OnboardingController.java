@@ -1,10 +1,10 @@
 package com.wellfitness.controller;
 
-import com.wellfitness.dto.request.OnboardingRequest;
-import com.wellfitness.dto.response.ApiResponse;
-import com.wellfitness.model.User;
-import com.wellfitness.model.UserSplit;
-import com.wellfitness.model.UserStreak;
+import com.wellfitness.features.onboarding.dto.OnboardingRequest;
+import com.wellfitness.common.response.ApiResponse;
+import com.wellfitness.features.auth.entity.User;
+import com.wellfitness.features.split.entity.UserSplit;
+import com.wellfitness.features.streak.entity.UserStreak;
 import com.wellfitness.repository.UserRepository;
 import com.wellfitness.repository.UserStreakRepository;
 import com.wellfitness.service.SplitService;

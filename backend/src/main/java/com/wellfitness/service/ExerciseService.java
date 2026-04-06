@@ -1,7 +1,7 @@
 package com.wellfitness.service;
 
-import com.wellfitness.exception.ResourceNotFoundException;
-import com.wellfitness.model.Exercise;
+import com.wellfitness.common.exception.ResourceNotFoundException;
+import com.wellfitness.features.exercise.entity.Exercise;
 import com.wellfitness.repository.ExerciseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

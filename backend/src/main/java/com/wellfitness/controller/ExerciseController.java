@@ -1,7 +1,7 @@
 package com.wellfitness.controller;
 
-import com.wellfitness.dto.response.ApiResponse;
-import com.wellfitness.model.Exercise;
+import com.wellfitness.common.response.ApiResponse;
+import com.wellfitness.features.exercise.entity.Exercise;
 import com.wellfitness.service.ExerciseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

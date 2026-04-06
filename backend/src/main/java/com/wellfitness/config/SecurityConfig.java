@@ -1,6 +1,6 @@
 package com.wellfitness.config;
 
-import com.wellfitness.security.JwtAuthFilter;
+import com.wellfitness.common.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,0 +1,428 @@
+You are a senior Java + React.js engineer helping me restructure
+an existing codebase for a fitness app called WellFitness.
+
+## CONTEXT
+- Phase 1 is already COMPLETE and working
+- Backend: Spring Boot (Java) — package is com.wellfitness
+- Frontend: React.js + Vite
+- Do NOT change any logic, APIs, or functionality
+- ONLY restructure folders and fix imports
+- All existing code must work exactly the same after restructuring
+
+---
+
+## BACKEND — CURRENT STRUCTURE (what exists now)
+
+com.wellfitness/
+├── config/
+│   ├── CorsConfig.java
+│   ├── ExerciseDataSeeder.java
+│   ├── FirebaseConfig.java
+│   ├── SecurityConfig.java
+│   └── SplitTemplateDataSeeder.java
+├── controller/
+│   ├── AuthController.java
+│   ├── DashboardController.java
+│   ├── ExerciseController.java
+│   ├── OnboardingController.java
+│   ├── PRController.java
+│   ├── ProfileController.java
+│   ├── SplitController.java
+│   ├── SplitTemplateController.java
+│   ├── StreakController.java
+│   └── WorkoutController.java
+├── core/
+│   ├── config/
+│   ├── exception/
+│   └── security/
+├── dto/
+│   ├── request/
+│   │   ├── LoginRequest.java
+│   │   ├── LogSetRequest.java
+│   │   ├── OnboardingRequest.java
+│   │   └── RegisterRequest.java
+│   └── response/
+│       ├── ApiResponse.java
+│       ├── AuthResponse.java
+│       ├── PagedResponse.java
+│       └── SetLogResponse.java
+├── exception/
+│   ├── BadRequestException.java
+│   ├── GlobalExceptionHandler.java
+│   └── ResourceNotFoundException.java
+├── model/
+│   ├── Exercise.java
+│   ├── PersonalRecord.java
+│   ├── SplitDay.java
+│   ├── SplitDayExercise.java
+│   ├── SplitTemplate.java
+│   ├── SplitTemplateDay.java
+│   ├── User.java
+│   ├── UserSplit.java
+│   ├── UserStreak.java
+│   ├── WorkoutSession.java
+│   └── WorkoutSet.java
+├── modules.user/
+│   ├── controller/
+│   ├── dto/
+│   ├── model/
+│   ├── repository/
+│   └── service/
+├── repository/
+│   ├── ExerciseRepository.java
+│   ├── PersonalRecordRepository.java
+│   ├── SplitDayExerciseRepository.java
+│   ├── SplitDayRepository.java
+│   ├── SplitTemplateDayRepository.java
+│   ├── SplitTemplateRepository.java
+│   ├── UserRepository.java
+│   ├── UserSplitRepository.java
+│   ├── UserStreakRepository.java
+│   ├── WorkoutSessionRepository.java
+│   └── WorkoutSetRepository.java
+├── security/
+│   ├── JwtAuthFilter.java
+│   └── JwtUtil.java
+├── service/
+│   ├── AuthService.java
+│   ├── EmailOtpService.java
+│   ├── EmailService.java
+│   ├── ExerciseService.java
+│   ├── FirebaseTokenVerifierService.java
+│   ├── GoogleTokenVerifierService.java
+│   ├── OtpService.java
+│   ├── PRDetectionService.java
+│   ├── ProgressiveOverloadService.java
+│   ├── SplitService.java
+│   ├── SplitTemplateService.java
+│   ├── StreakService.java
+│   └── WorkoutService.java
+└── utils/
+└── WellfitnessApplication.java
+
+---
+
+## BACKEND — TARGET STRUCTURE
+
+com.wellfitness/
+├── WellfitnessApplication.java
+│
+├── config/                          ← App-wide config only
+│   ├── CorsConfig.java
+│   ├── FirebaseConfig.java
+│   └── SecurityConfig.java
+│
+├── common/                          ← Shared by ALL features
+│   ├── exception/
+│   │   ├── BadRequestException.java
+│   │   ├── GlobalExceptionHandler.java
+│   │   └── ResourceNotFoundException.java
+│   ├── response/
+│   │   ├── ApiResponse.java
+│   │   ├── AuthResponse.java
+│   │   ├── PagedResponse.java
+│   │   └── SetLogResponse.java
+│   ├── security/
+│   │   ├── JwtAuthFilter.java
+│   │   └── JwtUtil.java
+│   └── utils/
+│
+└── features/
+    │
+    ├── auth/
+    │   ├── AuthController.java
+    │   ├── AuthService.java
+    │   ├── EmailOtpService.java
+    │   ├── EmailService.java
+    │   ├── OtpService.java
+    │   ├── FirebaseTokenVerifierService.java
+    │   ├── GoogleTokenVerifierService.java
+    │   ├── dto/
+    │   │   ├── request/
+    │   │   │   ├── LoginRequest.java
+    │   │   │   └── RegisterRequest.java
+    │   │   └── response/
+    │   │       └── AuthResponse.java
+    │   └── entity/
+    │       └── User.java
+    │
+    ├── workout/
+    │   ├── WorkoutController.java
+    │   ├── WorkoutService.java
+    │   ├── ProgressiveOverloadService.java
+    │   ├── WorkoutSessionRepository.java
+    │   ├── WorkoutSetRepository.java
+    │   ├── dto/
+    │   │   ├── request/
+    │   │   │   └── LogSetRequest.java
+    │   │   └── response/
+    │   │       └── SetLogResponse.java
+    │   └── entity/
+    │       ├── WorkoutSession.java
+    │       └── WorkoutSet.java
+    │
+    ├── exercise/
+    │   ├── ExerciseController.java
+    │   ├── ExerciseService.java
+    │   ├── ExerciseRepository.java
+    │   ├── ExerciseDataSeeder.java
+    │   ├── dto/
+    │   └── entity/
+    │       └── Exercise.java
+    │
+    ├── split/
+    │   ├── SplitController.java
+    │   ├── SplitService.java
+    │   ├── SplitTemplateController.java
+    │   ├── SplitTemplateService.java
+    │   ├── SplitTemplateDataSeeder.java
+    │   ├── SplitDayRepository.java
+    │   ├── SplitDayExerciseRepository.java
+    │   ├── SplitTemplateRepository.java
+    │   ├── SplitTemplateDayRepository.java
+    │   ├── UserSplitRepository.java
+    │   ├── dto/
+    │   └── entity/
+    │       ├── SplitDay.java
+    │       ├── SplitDayExercise.java
+    │       ├── SplitTemplate.java
+    │       ├── SplitTemplateDay.java
+    │       └── UserSplit.java
+    │
+    ├── streak/
+    │   ├── StreakController.java
+    │   ├── StreakService.java
+    │   ├── UserStreakRepository.java
+    │   └── entity/
+    │       └── UserStreak.java
+    │
+    ├── pr/
+    │   ├── PRController.java
+    │   ├── PRDetectionService.java
+    │   ├── PersonalRecordRepository.java
+    │   └── entity/
+    │       └── PersonalRecord.java
+    │
+    ├── profile/
+    │   ├── ProfileController.java
+    │   ├── dto/
+    │   │   └── request/
+    │   │       └── OnboardingRequest.java
+    │   └── entity/ (references User.java from auth)
+    │
+    ├── dashboard/
+    │   └── DashboardController.java
+    │
+    └── onboarding/
+        ├── OnboardingController.java
+        └── dto/
+            └── OnboardingRequest.java
+
+---
+
+## FRONTEND — CURRENT STRUCTURE (what exists now)
+
+src/
+├── assets/
+│   ├── images/
+│   └── styles/
+├── components/
+│   ├── common/
+│   ├── layout/
+│   ├── ui/
+│   ├── workout/
+│   ├── AppButton.jsx
+│   ├── AppCard.jsx
+│   ├── Badge.jsx
+│   ├── BottomNav.jsx
+│   ├── Divider.jsx
+│   ├── PageHeader.jsx
+│   ├── PRBanner.jsx
+│   ├── RestTimer.jsx
+│   ├── SectionLabel.jsx
+│   ├── SetRow.jsx
+│   └── VolumeBar.jsx
+├── config/
+├── context/
+│   └── AuthContext.jsx
+├── features/
+│   └── auth/
+│       ├── components/
+│       ├── hooks/
+│       ├── pages/
+│       │   ├── LoginPage.jsx
+│       │   └── RegisterPage.jsx
+│       └── services/
+├── hooks/
+├── pages/
+├── screens/
+│   ├── AiCoachScreen.jsx
+│   ├── CommunityScreen.jsx
+│   ├── DashboardScreen.jsx
+│   ├── DietScreen.jsx
+│   ├── ExercisesScreen.jsx
+│   ├── HistoryScreen.jsx
+│   ├── LandingScreen.jsx
+│   ├── OnboardingScreen.jsx
+│   ├── PhaseDetailScreen.jsx
+│   ├── ProfileScreen.jsx
+│   ├── ProgressScreen.jsx
+│   ├── RewardsScreen.jsx
+│   ├── SplitScreen.jsx
+│   └── WorkoutScreen.jsx
+├── services/
+│   ├── api.js
+│   ├── apiClient.js
+│   ├── firebase.js
+│   └── index.js
+├── theme/
+│   ├── colors.js
+│   ├── index.js
+│   ├── spacing.js
+│   └── typography.js
+├── utils/
+├── App.jsx
+├── firebase.js
+├── index.css
+└── main.jsx
+
+---
+
+## FRONTEND — TARGET STRUCTURE
+
+src/
+├── main.jsx
+├── App.jsx
+├── index.css
+├── firebase.js
+│
+├── assets/
+│   ├── images/
+│   └── styles/
+│
+├── theme/
+│   ├── colors.js
+│   ├── spacing.js
+│   ├── typography.js
+│   └── index.js
+│
+├── config/                          ← Keep existing config files
+│
+├── common/                          ← Shared across ALL features
+│   ├── components/
+│   │   ├── AppButton.jsx
+│   │   ├── AppCard.jsx
+│   │   ├── Badge.jsx
+│   │   ├── BottomNav.jsx
+│   │   ├── Divider.jsx
+│   │   ├── PageHeader.jsx
+│   │   ├── PRBanner.jsx
+│   │   ├── RestTimer.jsx
+│   │   ├── SectionLabel.jsx
+│   │   ├── SetRow.jsx
+│   │   └── VolumeBar.jsx
+│   ├── context/
+│   │   └── AuthContext.jsx
+│   ├── hooks/
+│   └── utils/
+│
+├── services/                        ← Global API client only
+│   ├── apiClient.js
+│   ├── firebase.js
+│   └── index.js
+│
+└── features/
+    │
+    ├── auth/                        ← Already exists — keep it
+    │   ├── components/
+    │   ├── hooks/
+    │   ├── pages/
+    │   │   ├── LoginPage.jsx
+    │   │   └── RegisterPage.jsx
+    │   └── services/
+    │
+    ├── dashboard/
+    │   └── pages/
+    │       └── DashboardScreen.jsx
+    │
+    ├── workout/
+    │   ├── components/              ← Move workout components here
+    │   ├── pages/
+    │   │   ├── WorkoutScreen.jsx
+    │   │   └── HistoryScreen.jsx
+    │   └── services/
+    │       └── workoutService.js
+    │
+    ├── exercise/
+    │   ├── pages/
+    │   │   └── ExercisesScreen.jsx
+    │   └── services/
+    │
+    ├── split/
+    │   ├── pages/
+    │   │   └── SplitScreen.jsx
+    │   └── services/
+    │
+    ├── streak/
+    │   └── components/
+    │
+    ├── profile/
+    │   ├── pages/
+    │   │   └── ProfileScreen.jsx
+    │   └── services/
+    │
+    ├── onboarding/
+    │   └── pages/
+    │       └── OnboardingScreen.jsx
+    │
+    ├── progress/                    ← Phase 5 (screen exists early)
+    │   └── pages/
+    │       └── ProgressScreen.jsx
+    │
+    ├── ai/                          ← Phase 4 (screen exists early)
+    │   └── pages/
+    │       └── AiCoachScreen.jsx
+    │
+    ├── diet/                        ← Phase 3 (screen exists early)
+    │   └── pages/
+    │       └── DietScreen.jsx
+    │
+    ├── community/                   ← Phase 8 (screen exists early)
+    │   └── pages/
+    │       └── CommunityScreen.jsx
+    │
+    └── rewards/                     ← Phase 9
+        └── pages/
+            └── RewardsScreen.jsx
+
+---
+
+## STRICT RULES
+
+1. DO NOT change any logic, business rules, or API endpoints
+2. DO NOT rename any methods, variables, or class names
+3. Update all Java package declarations to match new folder path
+4. Update all React import paths after moving files
+5. DELETE the old empty modules.user folder after migration
+6. Move components that are workout-specific into features/workout/components
+7. Keep shared components (BottomNav, AppButton etc) in common/components
+8. api.js stays in services/ — it is the global API base config
+
+---
+
+## STEP BY STEP
+
+Step 1: Scan entire existing codebase fully
+Step 2: Map every file to its new location using target structure above
+Step 3: Move backend files + update all Java package declarations
+Step 4: Move frontend files + update all import paths in every file
+Step 5: Update App.jsx routes to point to new page locations
+Step 6: Verify zero broken imports remain
+Step 7: Show complete before → after file mapping table
+
+## OUTPUT FORMAT
+Show me:
+- Table: old path → new path for every file moved
+- List of all import paths updated
+- Decisions made using your own judgment
+- Any files that need manual review

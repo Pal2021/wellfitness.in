@@ -1,0 +1,70 @@
+I am adding Phase 2 features to my WellFitness app.
+
+## EXISTING STRUCTURE
+- Backend: com.wellfitness/features/ (feature-based)
+- Frontend: src/features/ (feature-based)
+- Phase 1 is complete — DO NOT touch any existing files
+
+## PHASE 2 FEATURES TO ADD
+1. Workout Templates
+   - Pre-built programs users can clone
+   - API: GET /api/templates, POST /api/templates
+
+2. Advanced Analytics
+   - Weight progress graph per lift
+   - Volume chart
+   - 1RM estimator
+   - API: GET /api/analytics/volume,
+          GET /api/analytics/strength/{exerciseId}
+
+## TASK
+Create new feature folders for Phase 2 only.
+Do NOT modify any Phase 1 files.
+
+## BACKEND — Create these new folders:
+features/
+├── analytics/
+│   ├── AnalyticsController.java
+│   ├── AnalyticsService.java
+│   ├── AnalyticsRepository.java
+│   ├── dto/
+│   └── entity/
+│       └── AnalyticsCache.java
+└── templates/
+    ├── TemplateController.java
+    ├── TemplateService.java
+    ├── TemplateRepository.java
+    ├── dto/
+    └── entity/
+        ├── WorkoutTemplate.java
+        └── TemplateExercise.java
+
+## FRONTEND — Create these new folders:
+features/
+├── analytics/
+│   ├── pages/
+│   │   └── AnalyticsPage.jsx
+│   ├── components/
+│   │   ├── VolumeChart.jsx
+│   │   └── StrengthGraph.jsx
+│   ├── hooks/
+│   │   └── useAnalytics.js
+│   └── services/
+│       └── analyticsService.js
+└── templates/
+    ├── pages/
+    │   └── TemplatesPage.jsx
+    ├── components/
+    └── services/
+        └── templateService.js
+
+## RULES
+1. Only create new files — never modify existing Phase 1 files
+2. New backend package: com.wellfitness.features.analytics
+3. New API calls go in their own service file
+4. If new feature needs data from Phase 1 (e.g. workout history)
+   — import the existing service, do not duplicate code
+5. Add new routes in App.jsx for new pages
+
+## OUTPUT
+Show me every new file created with its full path.

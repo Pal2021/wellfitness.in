@@ -1,6 +1,6 @@
 package com.wellfitness.repository;
 
-import com.wellfitness.model.Exercise;
+import com.wellfitness.features.exercise.entity.Exercise;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

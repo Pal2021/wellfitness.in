@@ -1,6 +1,6 @@
 package com.wellfitness.repository;
 
-import com.wellfitness.model.PersonalRecord;
+import com.wellfitness.features.pr.entity.PersonalRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

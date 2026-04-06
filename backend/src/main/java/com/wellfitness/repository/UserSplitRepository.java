@@ -1,6 +1,6 @@
 package com.wellfitness.repository;
 
-import com.wellfitness.model.UserSplit;
+import com.wellfitness.features.split.entity.UserSplit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,7 +1,11 @@
 package com.wellfitness.controller;
 
-import com.wellfitness.dto.response.ApiResponse;
-import com.wellfitness.model.*;
+import com.wellfitness.common.response.ApiResponse;
+import com.wellfitness.features.auth.entity.User;
+import com.wellfitness.features.streak.entity.UserStreak;
+import com.wellfitness.features.split.entity.UserSplit;
+import com.wellfitness.features.workout.entity.WorkoutSession;
+import com.wellfitness.features.pr.entity.PersonalRecord;
 import com.wellfitness.repository.PersonalRecordRepository;
 import com.wellfitness.service.*;
 import lombok.RequiredArgsConstructor;

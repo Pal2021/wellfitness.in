@@ -1,6 +1,6 @@
 package com.wellfitness.repository;
 
-import com.wellfitness.model.UserStreak;
+import com.wellfitness.features.streak.entity.UserStreak;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

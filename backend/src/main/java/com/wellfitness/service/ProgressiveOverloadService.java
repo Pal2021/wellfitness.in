@@ -1,6 +1,6 @@
 package com.wellfitness.service;
 
-import com.wellfitness.model.WorkoutSet;
+import com.wellfitness.features.workout.entity.WorkoutSet;
 import com.wellfitness.repository.WorkoutSetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

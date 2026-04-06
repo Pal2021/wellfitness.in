@@ -1,7 +1,7 @@
 package com.wellfitness.config;
 
-import com.wellfitness.model.SplitTemplate;
-import com.wellfitness.model.SplitTemplateDay;
+import com.wellfitness.features.split.entity.SplitTemplate;
+import com.wellfitness.features.split.entity.SplitTemplateDay;
 import com.wellfitness.repository.SplitTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

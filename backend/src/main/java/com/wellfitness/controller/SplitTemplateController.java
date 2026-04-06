@@ -1,8 +1,8 @@
 package com.wellfitness.controller;
 
-import com.wellfitness.dto.response.ApiResponse;
-import com.wellfitness.model.SplitTemplate;
-import com.wellfitness.model.SplitTemplateDay;
+import com.wellfitness.common.response.ApiResponse;
+import com.wellfitness.features.split.entity.SplitTemplate;
+import com.wellfitness.features.split.entity.SplitTemplateDay;
 import com.wellfitness.service.SplitTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

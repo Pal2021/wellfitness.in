@@ -1,6 +1,6 @@
 package com.wellfitness.service;
 
-import com.wellfitness.model.UserStreak;
+import com.wellfitness.features.streak.entity.UserStreak;
 import com.wellfitness.repository.UserStreakRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

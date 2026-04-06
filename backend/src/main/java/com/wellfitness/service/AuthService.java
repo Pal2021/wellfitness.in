@@ -1,13 +1,13 @@
 package com.wellfitness.service;
 
-import com.wellfitness.dto.request.LoginRequest;
-import com.wellfitness.dto.request.RegisterRequest;
-import com.wellfitness.dto.response.AuthResponse;
-import com.wellfitness.exception.BadRequestException;
-import com.wellfitness.exception.ResourceNotFoundException;
-import com.wellfitness.model.User;
+import com.wellfitness.features.auth.dto.request.LoginRequest;
+import com.wellfitness.features.auth.dto.request.RegisterRequest;
+import com.wellfitness.features.auth.dto.response.AuthResponse;
+import com.wellfitness.common.exception.BadRequestException;
+import com.wellfitness.common.exception.ResourceNotFoundException;
+import com.wellfitness.features.auth.entity.User;
 import com.wellfitness.repository.UserRepository;
-import com.wellfitness.security.JwtUtil;
+import com.wellfitness.common.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;

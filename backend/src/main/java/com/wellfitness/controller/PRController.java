@@ -1,8 +1,8 @@
 package com.wellfitness.controller;
 
-import com.wellfitness.dto.response.ApiResponse;
-import com.wellfitness.model.PersonalRecord;
-import com.wellfitness.model.User;
+import com.wellfitness.common.response.ApiResponse;
+import com.wellfitness.features.pr.entity.PersonalRecord;
+import com.wellfitness.features.auth.entity.User;
 import com.wellfitness.repository.PersonalRecordRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

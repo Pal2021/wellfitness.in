@@ -1,8 +1,8 @@
 package com.wellfitness.service;
 
-import com.wellfitness.exception.ResourceNotFoundException;
-import com.wellfitness.model.SplitTemplate;
-import com.wellfitness.model.SplitTemplateDay;
+import com.wellfitness.common.exception.ResourceNotFoundException;
+import com.wellfitness.features.split.entity.SplitTemplate;
+import com.wellfitness.features.split.entity.SplitTemplateDay;
 import com.wellfitness.repository.SplitTemplateDayRepository;
 import com.wellfitness.repository.SplitTemplateRepository;
 import lombok.RequiredArgsConstructor;

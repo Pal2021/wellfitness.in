@@ -2,9 +2,14 @@ package com.wellfitness.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wellfitness.exception.BadRequestException;
-import com.wellfitness.exception.ResourceNotFoundException;
-import com.wellfitness.model.*;
+import com.wellfitness.common.exception.BadRequestException;
+import com.wellfitness.common.exception.ResourceNotFoundException;
+import com.wellfitness.features.split.entity.UserSplit;
+import com.wellfitness.features.split.entity.SplitDay;
+import com.wellfitness.features.split.entity.SplitDayExercise;
+import com.wellfitness.features.split.entity.SplitTemplate;
+import com.wellfitness.features.split.entity.SplitTemplateDay;
+import com.wellfitness.features.exercise.entity.Exercise;
 import com.wellfitness.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

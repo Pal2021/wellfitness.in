@@ -1,9 +1,9 @@
 package com.wellfitness.controller;
 
-import com.wellfitness.dto.request.LoginRequest;
-import com.wellfitness.dto.request.RegisterRequest;
-import com.wellfitness.dto.response.ApiResponse;
-import com.wellfitness.dto.response.AuthResponse;
+import com.wellfitness.features.auth.dto.request.LoginRequest;
+import com.wellfitness.features.auth.dto.request.RegisterRequest;
+import com.wellfitness.common.response.ApiResponse;
+import com.wellfitness.features.auth.dto.response.AuthResponse;
 import com.wellfitness.service.AuthService;
 import com.wellfitness.service.EmailOtpService;
 import jakarta.validation.Valid;

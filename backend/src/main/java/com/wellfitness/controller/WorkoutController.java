@@ -1,12 +1,12 @@
 package com.wellfitness.controller;
 
-import com.wellfitness.dto.request.LogSetRequest;
-import com.wellfitness.dto.response.ApiResponse;
-import com.wellfitness.dto.response.PagedResponse;
-import com.wellfitness.dto.response.SetLogResponse;
-import com.wellfitness.model.User;
-import com.wellfitness.model.WorkoutSession;
-import com.wellfitness.model.WorkoutSet;
+import com.wellfitness.features.workout.dto.request.LogSetRequest;
+import com.wellfitness.common.response.ApiResponse;
+import com.wellfitness.common.response.PagedResponse;
+import com.wellfitness.features.workout.dto.response.SetLogResponse;
+import com.wellfitness.features.auth.entity.User;
+import com.wellfitness.features.workout.entity.WorkoutSession;
+import com.wellfitness.features.workout.entity.WorkoutSet;
 import com.wellfitness.service.WorkoutService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

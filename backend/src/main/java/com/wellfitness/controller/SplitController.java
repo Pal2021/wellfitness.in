@@ -1,10 +1,10 @@
 package com.wellfitness.controller;
 
-import com.wellfitness.dto.response.ApiResponse;
-import com.wellfitness.model.SplitDay;
-import com.wellfitness.model.SplitDayExercise;
-import com.wellfitness.model.User;
-import com.wellfitness.model.UserSplit;
+import com.wellfitness.common.response.ApiResponse;
+import com.wellfitness.features.split.entity.SplitDay;
+import com.wellfitness.features.split.entity.SplitDayExercise;
+import com.wellfitness.features.auth.entity.User;
+import com.wellfitness.features.split.entity.UserSplit;
 import com.wellfitness.service.SplitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
