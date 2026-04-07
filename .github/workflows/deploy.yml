@@ -2,7 +2,7 @@ name: Build & Validate Wellfitness
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev] # ← add dev
   pull_request:
     branches: [main]
 
@@ -35,7 +35,7 @@ jobs:
           chmod +x gradlew
           ./gradlew test --tests "com.wellfitness.SmokeTest" \
           --no-daemon \
-          -Dspring.profiles.active=test
+          "-Dspring.profiles.active=test"   # ← wrap in quotes
 
       - name: Upload Test Report
         if: always()
@@ -66,7 +66,7 @@ jobs:
 
   # ──── Backend: Build ─────────────────────────────
   build-backend:
-    needs: [smoke-test-backend] # ← only builds if tests pass
+    needs: [smoke-test-backend]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -98,7 +98,7 @@ jobs:
 
   # ──── Frontend: Build ────────────────────────────
   build-frontend:
-    needs: [smoke-test-frontend] # ← only builds if tests pass
+    needs: [smoke-test-frontend]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -117,4 +117,4 @@ jobs:
       - name: Build Frontend
         run: cd frontend && npm run build
         env:
-          VITE_API_URL: https://api.wellfitness.in/api
+          VITE_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://api.wellfitness.in/api' || 'https://staging-api.wellfitness.in/api' }}
