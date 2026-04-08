@@ -29,10 +29,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // Link to your CorsConfig bean
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // ✅ Fix COOP error — allows Google One Tap popup postMessage
                 .headers(headers -> headers
                         .addHeaderWriter(new StaticHeadersWriter(
                                 "Cross-Origin-Opener-Policy", "unsafe-none"
@@ -46,11 +46,15 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
+                        // Allow Preflight (OPTIONS) requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // Matches your actual login URL: /auth/login
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // Keep if some routes use /api/
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
+                // Filter order: CORS -> Security -> JWT
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -15,22 +15,21 @@ import java.util.stream.Stream;
 @Configuration
 public class CorsConfig {
 
-    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,https://wellfitness-gilt.vercel.app,https://www.wellfitness.in}")
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://wellfitness-gilt.vercel.app,https://www.wellfitness.in}")
     private String allowedOrigins;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Combine your specific properties URLs with your Vercel wildcard pattern into one list
+        // Merging your properties URLs with a wildcard for all Vercel branch deployments
         List<String> combinedOrigins = Stream.concat(
                 Arrays.stream(allowedOrigins.split(",")),
                 Stream.of("https://*.vercel.app")
         ).collect(Collectors.toList());
 
-        // ✅ Only use setAllowedOriginPatterns. Do NOT use setAllowedOrigins here.
+        // Use Patterns to support wildcards (*) while allowCredentials is true
         config.setAllowedOriginPatterns(combinedOrigins);
-
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
