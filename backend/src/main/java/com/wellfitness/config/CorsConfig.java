@@ -21,11 +21,9 @@ public class CorsConfig {
 
         // ✅ Keep this exactly as is — don't touch
         config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
-
-        // ✅ Add only this one new line
         config.setAllowedOriginPatterns(List.of("https://*.vercel.app"));
 
-        // ✅ Keep everything below exactly as is — don't touch
+
         config.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
