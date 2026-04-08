@@ -9,29 +9,28 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Configuration
 public class CorsConfig {
 
-    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://wellfitness-gilt.vercel.app,https://www.wellfitness.in}")
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://www.wellfitness.in}")
     private String allowedOrigins;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Merging your properties URLs with a wildcard for all Vercel branch deployments
-        List<String> combinedOrigins = Stream.concat(
-                Arrays.stream(allowedOrigins.split(",")),
-                Stream.of("https://*.vercel.app")
-        ).collect(Collectors.toList());
+        // ✅ Use AllowedOriginPatterns to support Vercel wildcards + Credentials
+        config.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://www.wellfitness.in",
+                "https://wellfitness-ten.vercel.app",
+                "https://*.vercel.app" // Supports all staging/preview branches
+        ));
 
-        // Use Patterns to support wildcards (*) while allowCredentials is true
-        config.setAllowedOriginPatterns(combinedOrigins);
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
