@@ -1,6 +1,10 @@
 package com.wellfitness;
 
+import com.wellfitness.features.auth.EmailOtpService;
 import com.wellfitness.features.auth.EmailService;
+import com.wellfitness.features.auth.OtpService;
+import com.wellfitness.features.auth.GoogleTokenVerifierService;
+import com.wellfitness.features.auth.FirebaseTokenVerifierService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,7 +15,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -20,13 +23,26 @@ class SmokeTest {
 
     @Autowired
     private MockMvc mockMvc;
-    @MockBean   // 👈 THIS FIXES YOUR ERROR
+
+    @MockBean
     private EmailService emailService;
+
+    @MockBean
+    private EmailOtpService emailOtpService;
+
+    @MockBean
+    private OtpService otpService;
+
+    @MockBean
+    private GoogleTokenVerifierService googleTokenVerifier;
+
+    @MockBean
+    private FirebaseTokenVerifierService firebaseTokenVerifier;
+
     // ─── AUTH ─────────────────────────────────────────
     @Test
     void authEndpoints_ShouldNotReturn500() throws Exception {
 
-        // Login endpoint — 400 is fine, 500 is NOT fine
         mockMvc.perform(post("/api/auth/login")
                         .contentType("application/json")
                         .content("{}"))
@@ -35,7 +51,6 @@ class SmokeTest {
                     assert status != 500 : "Auth login returned 500!";
                 });
 
-        // Register endpoint — 400 is fine, 500 is NOT fine
         mockMvc.perform(post("/api/auth/register")
                         .contentType("application/json")
                         .content("{}"))
@@ -48,7 +63,6 @@ class SmokeTest {
     // ─── EXERCISE ─────────────────────────────────────
     @Test
     void exerciseEndpoint_ShouldNotReturn500() throws Exception {
-        // 401 unauthorized is fine — 500 is NOT fine
         mockMvc.perform(get("/api/exercises"))
                 .andExpect(result -> {
                     int status = result.getResponse().getStatus();
