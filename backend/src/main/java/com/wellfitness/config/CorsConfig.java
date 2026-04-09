@@ -20,13 +20,12 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // ✅ Use AllowedOriginPatterns to support Vercel wildcards + Credentials
         config.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:5173",
                 "http://localhost:3000",
                 "https://www.wellfitness.in",
                 "https://wellfitness-ten.vercel.app",
-                "https://*.vercel.app" // Supports all staging/preview branches
+                "https://*.vercel.app"
         ));
 
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));

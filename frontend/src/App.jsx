@@ -1,21 +1,21 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./context/AuthContext";
-import LandingScreen from "./screens/LandingScreen";
+import { useAuth } from "./common/context/AuthContext";
+import LandingScreen from "./features/onboarding/pages/LandingScreen";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
-import OnboardingScreen from "./screens/OnboardingScreen";
-import DashboardScreen from "./screens/DashboardScreen";
-import WorkoutScreen from "./screens/WorkoutScreen";
-import ExercisesScreen from "./screens/ExercisesScreen";
-import SplitScreen from "./screens/SplitScreen";
-import ProfileScreen from "./screens/ProfileScreen";
-import DietScreen from "./screens/DietScreen";
-import AiCoachScreen from "./screens/AiCoachScreen";
-import RewardsScreen from "./screens/RewardsScreen";
-import CommunityScreen from "./screens/CommunityScreen";
-import ProgressScreen from "./screens/ProgressScreen";
-import HistoryScreen from "./screens/HistoryScreen";
-import PhaseDetailScreen from "./screens/PhaseDetailScreen";
+import OnboardingScreen from "./features/onboarding/pages/OnboardingScreen";
+import DashboardScreen from "./features/dashboard/pages/DashboardScreen";
+import WorkoutScreen from "./features/workout/pages/WorkoutScreen";
+import ExercisesScreen from "./features/exercise/pages/ExercisesScreen";
+import SplitScreen from "./features/split/pages/SplitScreen";
+import ProfileScreen from "./features/profile/pages/ProfileScreen";
+import DietScreen from "./features/diet/pages/DietScreen";
+import AiCoachScreen from "./features/ai/pages/AiCoachScreen";
+import RewardsScreen from "./features/rewards/pages/RewardsScreen";
+import CommunityScreen from "./features/community/pages/CommunityScreen";
+import ProgressScreen from "./features/progress/pages/ProgressScreen";
+import HistoryScreen from "./features/workout/pages/HistoryScreen";
+import PhaseDetailScreen from "./features/dashboard/pages/PhaseDetailScreen";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();

@@ -3,12 +3,12 @@ import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 // ─── FIXED: import AuthProvider not AuthContext ───
-import { AuthProvider } from "../context/AuthContext";
+import { AuthProvider } from "../common/context/AuthContext";
 
 import LoginPage from "../features/auth/pages/LoginPage";
 import RegisterPage from "../features/auth/pages/RegisterPage";
-import AppButton from "../components/AppButton";
-import BottomNav from "../components/BottomNav";
+import AppButton from "../common/components/AppButton";
+import BottomNav from "../common/components/BottomNav";
 
 // ─── Wrapper ──────────────────────────────────────
 const Wrapper = ({ children }) => (

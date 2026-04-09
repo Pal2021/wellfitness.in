@@ -1,6 +1,6 @@
 package com.wellfitness.common.security;
 
-import com.wellfitness.repository.UserRepository;
+import com.wellfitness.features.auth.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

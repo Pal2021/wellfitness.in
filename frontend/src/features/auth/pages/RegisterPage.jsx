@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../../context/AuthContext";
-import AppButton from "../../../components/AppButton";
+import { useAuth } from "../../../common/context/AuthContext";
+import AppButton from "../../../common/components/AppButton";
 import { colors } from "../../../theme";
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
