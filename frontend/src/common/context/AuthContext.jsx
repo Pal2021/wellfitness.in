@@ -29,6 +29,19 @@ export function AuthProvider({ children }) {
   const register = async (name, email, password) => {
     const res = await api.post("/auth/register", { name, email, password });
     const data = res.data.data;
+    // Backend doesn't return a token if OTP is required
+    if (!data.otpRequired && data.token) {
+      localStorage.setItem("wellfitness_token", data.token);
+      localStorage.setItem("wellfitness_user", JSON.stringify(data));
+      setToken(data.token);
+      setUser(data);
+    }
+    return data;
+  };
+
+  const verifyEmailOtp = async (email, otp) => {
+    const res = await api.post("/auth/otp/email/verify", { email, otp });
+    const data = res.data.data;
     localStorage.setItem("wellfitness_token", data.token);
     localStorage.setItem("wellfitness_user", JSON.stringify(data));
     setToken(data.token);
@@ -69,6 +82,7 @@ export function AuthProvider({ children }) {
         logout,
         updateUser,
         loginWithToken,
+        verifyEmailOtp,
       }}
     >
       {children}

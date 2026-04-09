@@ -79,11 +79,27 @@ public class EmailService {
         System.out.println("API Key: " + apiKey);
         Resend resend = new Resend(apiKey);
 
+        String htmlBody = "<!DOCTYPE html>" +
+                "<html><head><meta charset=\"utf-8\"></head>" +
+                "<body style=\"font-family: Arial, sans-serif; background-color: #ffffff; color: #333333; margin: 0; padding: 20px;\">" +
+                "  <h2>Wellfitness</h2>" +
+                "  <p><strong>Verify your email address</strong></p>" +
+                "  <p>Welcome to Wellfitness! Use the following One-Time Password (OTP) to complete your sign-up.</p>" +
+                "  <p style=\"font-size: 24px; font-weight: bold; color: #D97706; background-color: #f9f9f9; padding: 15px; border: 1px solid #e0e0e0; display: table;\">" +
+                "    " + otp +
+                "  </p>" +
+                "  <p style=\"font-size: 14px; color: #666666;\">This code expires securely in <strong>5 minutes</strong>.</p>" +
+                "  <hr style=\"border: 1px solid #eeeeee; margin-top: 30px;\" />" +
+                "  <p style=\"font-size: 12px; color: #999999;\">If you didn't request this email, please safely ignore it.<br>© 2026 Wellfitness</p>" +
+                "</body>" +
+                "</html>";
+
         CreateEmailOptions params = CreateEmailOptions.builder()
                 .from(fromEmail)
                 .to(toEmail)
-                .subject("Your OTP Code")
-                .html("<h2>Your OTP is: " + otp + "</h2>")
+                .subject("Wellfitness Verification Code")
+                .html(htmlBody)
+                .text("Welcome to Wellfitness!\n\nYour One-Time Password (OTP) is: " + otp + "\n\nThis code expires in 5 minutes.\n\nIf you didn't request this code, you can safely ignore this email.")
                 .build();
 
         try {

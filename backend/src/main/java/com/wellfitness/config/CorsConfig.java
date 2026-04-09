@@ -22,6 +22,7 @@ public class CorsConfig {
 
         config.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:5173",
+                "http://127.0.0.1:5173",
                 "http://localhost:3000",
                 "https://www.wellfitness.in",
                 "https://wellfitness-ten.vercel.app",

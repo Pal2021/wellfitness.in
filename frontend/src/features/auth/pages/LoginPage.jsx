@@ -158,7 +158,11 @@ export default function LoginPage() {
       const user = await login(email, password);
       handleComplete(user);
     } catch (e) {
-      setError(e.response?.data?.message || "Login failed");
+      if (e.response?.data?.message === "EMAIL_NOT_VERIFIED") {
+        setError("Email not verified. A new OTP has been sent to your email. Please check your inbox!");
+      } else {
+        setError(e.response?.data?.message || "Login failed");
+      }
     } finally {
       setLoading(false);
     }

@@ -21,9 +21,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("wellfitness_token");
-      localStorage.removeItem("wellfitness_user");
-      window.location.href = "/login";
+      const isAuthRoute = error.config && error.config.url && error.config.url.includes("/auth/");
+      if (!isAuthRoute) {
+        localStorage.removeItem("wellfitness_token");
+        localStorage.removeItem("wellfitness_user");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   },

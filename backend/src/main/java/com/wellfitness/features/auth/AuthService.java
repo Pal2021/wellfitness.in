@@ -140,6 +140,9 @@ public class AuthService {
 
         User user = userRepository.findByEmail(email.toLowerCase().trim())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                
+        user.setEmailVerified(true);
+        userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getId(), user.getEmail());
         log.info("Email OTP verified, JWT issued: {}", email);

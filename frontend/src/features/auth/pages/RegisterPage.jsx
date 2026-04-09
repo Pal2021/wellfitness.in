@@ -12,8 +12,11 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const { register, verifyEmailOtp } = useAuth();
   const navigate = useNavigate();
 
   const handleRegister = async () => {
@@ -65,10 +68,32 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(name.trim(), email.trim().toLowerCase(), password);
-      navigate("/onboarding");
+      const data = await register(name.trim(), email.trim().toLowerCase(), password);
+      if (data && data.otpRequired) {
+        setOtpSent(true);
+        setSuccess(`An OTP has been sent to ${email}`);
+      } else {
+        navigate("/onboarding");
+      }
     } catch (e) {
       setError(e.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length < 6) {
+      setError("Please enter the 6-digit OTP");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      await verifyEmailOtp(email.trim().toLowerCase(), otp);
+      navigate("/onboarding");
+    } catch (e) {
+      setError(e.response?.data?.message || "OTP verification failed");
     } finally {
       setLoading(false);
     }
@@ -147,8 +172,67 @@ export default function RegisterPage() {
             {error}
           </div>
         )}
+        {success && !error && (
+          <div
+            style={{
+              background: colors.GREEN_DIM,
+              border: `0.5px solid #34D39933`,
+              borderRadius: 12,
+              padding: "10px 14px",
+              fontSize: 12,
+              color: colors.GREEN,
+              marginBottom: 14,
+              fontWeight: 600,
+            }}
+          >
+            ✅ {success}
+          </div>
+        )}
 
-        <input
+        {otpSent ? (
+          <>
+            <input
+              type="text"
+              placeholder="Enter 6-digit OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              maxLength={6}
+              style={{
+                ...inputStyle,
+                textAlign: "center",
+                fontSize: 22,
+                fontWeight: 800,
+                letterSpacing: 8,
+              }}
+            />
+            <div style={{ marginTop: 8 }}>
+              <AppButton
+                label="Verify OTP"
+                onClick={handleVerifyOtp}
+                loading={loading}
+              />
+            </div>
+            <div style={{ textAlign: "center", marginTop: 12 }}>
+              <span
+                onClick={() => {
+                  setOtpSent(false);
+                  setOtp("");
+                  setSuccess("");
+                }}
+                style={{
+                  fontSize: 11,
+                  color: colors.TEXT_TERTIARY,
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                ← Back to registration
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <input
           placeholder="Full Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -297,6 +381,8 @@ export default function RegisterPage() {
             Sign In
           </Link>
         </div>
+        </>
+        )}
 
         <div style={{ textAlign: "center", marginTop: 12 }}>
           <span

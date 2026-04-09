@@ -1,9 +1,11 @@
 package com.wellfitness;
 
+import com.wellfitness.features.auth.EmailService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -13,12 +15,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test") // uses application-test.properties
+@ActiveProfiles("test")
 class SmokeTest {
 
     @Autowired
     private MockMvc mockMvc;
-
+    @MockBean   // 👈 THIS FIXES YOUR ERROR
+    private EmailService emailService;
     // ─── AUTH ─────────────────────────────────────────
     @Test
     void authEndpoints_ShouldNotReturn500() throws Exception {
