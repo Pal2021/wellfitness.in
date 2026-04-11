@@ -8,13 +8,22 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem("wellfitness_token"));
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem("wellfitness_user");
-    if (savedUser && token) {
-      setUser(JSON.parse(savedUser));
+  // ✅ REPLACE WITH THIS
+useEffect(() => {
+  const savedUser = localStorage.getItem("wellfitness_user");
+  const savedToken = localStorage.getItem("wellfitness_token");
+
+  if (savedUser && savedToken) {
+    const parsed = JSON.parse(savedUser);
+    if (parsed.token && parsed.token !== "null") {
+      setUser(parsed);
+    } else {
+      localStorage.removeItem("wellfitness_token");
+      localStorage.removeItem("wellfitness_user");
     }
-    setLoading(false);
-  }, [token]);
+  }
+  setLoading(false);
+}, []); // ← empty array, runs only once on mount
 
   const login = async (email, password) => {
     const res = await api.post("/auth/login", { email, password });
