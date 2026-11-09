@@ -1,12 +1,17 @@
-import { colors } from "../../theme";
-export default function Divider({ style }) {
+/**
+ * Divider — Horizontal divider line
+ *
+ * @param {Object} props
+ * @param {string} [props.className]
+ */
+export default function Divider({ className = '' }) {
   return (
-    <div
+    <hr
+      className={`divider ${className}`}
       style={{
-        height: 0.5,
-        background: colors.BORDER_DEFAULT,
-        margin: "9px 0",
-        ...style,
+        border: 'none',
+        borderTop: '1px solid var(--color-border)',
+        margin: 'var(--space-4) 0',
       }}
     />
   );

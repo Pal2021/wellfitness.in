@@ -49,6 +49,9 @@ public class Exercise {
     @Column(columnDefinition = "TEXT")
     private String instructions;
 
+    @Column(name = "user_id", columnDefinition = "VARCHAR(36)")
+    private UUID userId;
+
     @Column(name = "created_at", updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

@@ -1,0 +1,209 @@
+/* ============================================
+   Responsive Overrides for Tablet & Desktop
+   
+   Mobile-first: these rules only apply at md (768px+) and lg (1024px+).
+   All mobile styles remain untouched.
+   ============================================ */
+
+/* ────────────────────────────────────────────
+   LANDING PAGE
+   ──────────────────────────────────────────── */
+
+/* Hero section — widen on larger screens */
+@media (min-width: 768px) {
+  [data-page="landing"] [data-section="hero"] {
+    max-width: 720px !important;
+    min-height: 90vh !important;
+    padding: 0 40px 60px !important;
+  }
+
+  [data-page="landing"] [data-section="hero"] h1 {
+    font-size: clamp(3rem, 6vw, 4.5rem) !important;
+  }
+
+  [data-page="landing"] [data-subtitle="hero"] {
+    font-size: 15px !important;
+    max-width: 420px !important;
+  }
+
+  [data-page="landing"] [data-cta="hero"] {
+    max-width: 320px !important;
+    padding: 18px 40px !important;
+    font-size: 16px !important;
+  }
+
+  /* Sections — wider */
+  [data-page="landing"] [data-section="features"],
+  [data-page="landing"] [data-section="feature-list"] {
+    max-width: 720px !important;
+    padding: 64px 40px !important;
+  }
+
+  /* Carousel — taller */
+  [data-page="landing"] [data-carousel="frame"] {
+    height: 420px !important;
+  }
+
+  /* Features grid — 2 columns on tablet */
+  [data-page="landing"] [data-grid="features"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+
+  /* Footer — wider */
+  [data-page="landing"] footer {
+    max-width: 720px !important;
+    padding: 64px 40px 80px !important;
+  }
+
+  /* Section title & subtitle scale */
+  [data-page="landing"] [data-section-title] {
+    font-size: 26px !important;
+  }
+  [data-page="landing"] [data-section-subtitle] {
+    font-size: 14px !important;
+    max-width: 420px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-page="landing"] [data-section="hero"] {
+    max-width: 960px !important;
+    padding: 0 64px 80px !important;
+  }
+
+  [data-page="landing"] [data-section="hero"] h1 {
+    font-size: clamp(3.5rem, 5vw, 5rem) !important;
+  }
+
+  [data-page="landing"] [data-subtitle="hero"] {
+    font-size: 16px !important;
+    max-width: 480px !important;
+  }
+
+  [data-page="landing"] [data-section="features"],
+  [data-page="landing"] [data-section="feature-list"] {
+    max-width: 960px !important;
+    padding: 80px 64px !important;
+  }
+
+  [data-page="landing"] [data-carousel="frame"] {
+    height: 480px !important;
+  }
+
+  /* Features grid — 4 columns on desktop */
+  [data-page="landing"] [data-grid="features"] {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 20px !important;
+  }
+
+  /* Footer — wider */
+  [data-page="landing"] footer {
+    max-width: 960px !important;
+    padding: 80px 64px 96px !important;
+  }
+
+  [data-page="landing"] [data-section-title] {
+    font-size: 30px !important;
+  }
+  [data-page="landing"] [data-section-subtitle] {
+    font-size: 15px !important;
+    max-width: 500px !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  [data-page="landing"] [data-section="hero"],
+  [data-page="landing"] [data-section="features"],
+  [data-page="landing"] [data-section="feature-list"],
+  [data-page="landing"] footer {
+    max-width: 1120px !important;
+  }
+}
+
+
+/* ────────────────────────────────────────────
+   AUTH PAGES (Login, Register, Phone, OTP)
+   ──────────────────────────────────────────── */
+
+@media (min-width: 768px) {
+  [data-page="auth"] {
+    align-items: center !important;
+    padding: 48px 24px !important;
+  }
+
+  [data-page="auth"] [data-container="auth"] {
+    max-width: 480px !important;
+  }
+
+  [data-page="auth"] [data-card="auth"] {
+    padding: 36px 32px 32px !important;
+    border-radius: 24px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-page="auth"] {
+    padding: 64px 32px !important;
+  }
+
+  [data-page="auth"] [data-container="auth"] {
+    max-width: 520px !important;
+  }
+
+  [data-page="auth"] [data-card="auth"] {
+    padding: 44px 40px 36px !important;
+  }
+}
+
+/* ────────────────────────────────────────────
+   ONBOARDING
+   ──────────────────────────────────────────── */
+
+@media (min-width: 768px) {
+  [data-page="onboarding"] [data-container="onboarding"] {
+    max-width: 640px !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+  }
+
+  [data-page="onboarding"] [data-bottom-bar] {
+    padding: 24px 40px !important;
+  }
+
+  [data-page="onboarding"] [data-bottom-bar] > div {
+    max-width: 640px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-page="onboarding"] [data-container="onboarding"] {
+    max-width: 720px !important;
+    padding-left: 56px !important;
+    padding-right: 56px !important;
+  }
+
+  [data-page="onboarding"] [data-bottom-bar] > div {
+    max-width: 720px !important;
+  }
+}
+
+
+/* ────────────────────────────────────────────
+   BOTTOM NAV
+   ──────────────────────────────────────────── */
+
+@media (min-width: 768px) {
+  [data-nav="bottom"] [data-nav-inner] {
+    max-width: 600px !important;
+    padding: 10px 24px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-nav="bottom"] [data-nav-inner] {
+    max-width: 720px !important;
+    padding: 12px 32px !important;
+  }
+}

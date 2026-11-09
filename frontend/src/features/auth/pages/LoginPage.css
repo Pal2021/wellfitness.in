@@ -1,0 +1,83 @@
+.wf-login {
+  --login-muted: #aaa9a4;
+  min-height: 100svh;
+  padding: 28px clamp(20px, 5vw, 80px) 20px;
+  color: #f5f4ef;
+  background: radial-gradient(ellipse at 10% 45%, #f5a5240c, transparent 48%), #101110;
+  display: flex;
+  flex-direction: column;
+}
+.wf-login *, .wf-login *::before, .wf-login *::after { box-sizing: border-box; }
+.wf-login a { text-decoration: none; }
+.wf-login button, .wf-login input { font: inherit; }
+.wf-login button { cursor: pointer; }
+.wf-login a:focus-visible, .wf-login button:focus-visible { outline: 2px solid #ffbb43; outline-offset: 5px; }
+.wf-login__header { width: 100%; max-width: 1180px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.wf-login__brand { display: inline-flex; gap: 10px; align-items: center; font-size: 15px; font-weight: 850; letter-spacing: .07em; color: #f5f4ef; }
+.wf-login__brand > span { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: #f5a524; color: #111; }
+.wf-login__back { display: inline-flex; align-items: center; gap: 8px; color: #c5c4bd; font-size: 13px; }
+.wf-login__back:hover { color: #ffbb43; }
+.wf-login__layout { width: 100%; max-width: 1100px; margin: auto; padding: 64px 0; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: clamp(40px, 7vw, 110px); }
+.wf-login__eyebrow { color: #efb44b; font-size: 10px; font-weight: 750; letter-spacing: .16em; line-height: 1.7; }
+.wf-login__intro > .wf-login__eyebrow { display: flex; align-items: center; gap: 9px; }
+.wf-login__eyebrow > span { width: 6px; height: 6px; border-radius: 50%; background: #f5a524; }
+.wf-login__intro h1 { margin: 24px 0; font-size: clamp(44px, 5.5vw, 72px); font-weight: 850; line-height: 1.06; letter-spacing: -.055em; }
+.wf-login__intro h1 em { color: #f5b43d; font-style: normal; }
+.wf-login__description { max-width: 380px; color: var(--login-muted); font-size: 16px; line-height: 1.8; }
+.wf-login__benefits { list-style: none; display: grid; gap: 17px; padding: 0; margin: 32px 0 42px; }
+.wf-login__benefits li { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #deded5; }
+.wf-login__benefits svg { color: #f5b43d; flex-shrink: 0; }
+.wf-login__note { display: flex; align-items: center; gap: 16px; border-top: 1px solid #ffffff15; padding-top: 24px; }
+.wf-login__note > svg { color: #f5a524; flex-shrink: 0; }
+.wf-login__note strong { font-size: 13px; font-weight: 650; }
+.wf-login__note p { margin-top: 4px; color: var(--login-muted); font-size: 12px; }
+.wf-login__card { min-width: 0; width: 100%; max-width: 470px; justify-self: end; padding: clamp(24px, 3vw, 40px); background: linear-gradient(145deg, #20211e, #191a18); border: 1px solid #ffffff14; border-radius: 28px; box-shadow: 0 24px 70px #0003; }
+.wf-login__card-heading h2 { margin: 10px 0 8px; font-size: clamp(28px, 3vw, 34px); font-weight: 800; line-height: 1.2; letter-spacing: -.04em; }
+.wf-login__card-heading p { color: var(--login-muted); font-size: 13px; line-height: 1.6; }
+.wf-login__form { margin-top: 28px; display: grid; gap: 20px; }
+.wf-login__field { display: grid; gap: 9px; }
+.wf-login__field label { font-size: 12px; font-weight: 650; color: #dfdfd8; }
+.wf-login__field input { width: 100%; min-height: 52px; border-radius: 12px; border: 1px solid #ffffff1c; padding: 13px 15px; background: #111310; color: #f5f4ef; font-size: 16px; outline: none; transition: border-color .2s, box-shadow .2s; }
+.wf-login__field input::placeholder { color: #82867c; font-size: 14px; }
+.wf-login__field input:focus { border-color: #f5b43d; box-shadow: 0 0 0 3px #f5a52415; }
+.wf-login__password { position: relative; }
+.wf-login__password input { padding-right: 52px; }
+.wf-login__password button { position: absolute; right: 5px; top: 4px; width: 44px; height: 44px; display: grid; place-items: center; background: transparent; border: 0; border-radius: 9px; color: #aaa9a4; }
+.wf-login__password button:hover { color: #f5b43d; }
+.wf-login__submit { display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 52px; margin-top: 2px; border: 0; border-radius: 12px; background: #f5b43d; color: #141510; font-size: 14px; font-weight: 800; box-shadow: 0 4px 18px #f5a52412; transition: background .2s, transform .2s; }
+.wf-login__submit:hover:not(:disabled) { background: #ffc65f; transform: translateY(-1px); }
+.wf-login__submit:disabled { opacity: .65; cursor: wait; }
+.wf-login__error { padding: 12px; border: 1px solid #ef777740; border-radius: 10px; color: #ffb4b4; background: #f8717110; font-size: 13px; }
+.wf-login__divider { display: flex; align-items: center; gap: 14px; color: #969a90; font-size: 11px; margin: 24px 0; }
+.wf-login__divider span { flex: 1; height: 1px; background: #ffffff14; }
+.wf-login__alternatives { display: grid; gap: 12px; }
+.wf-login__google { width: 100%; min-width: 0; min-height: 44px; display: flex; justify-content: center; }
+.wf-login__phone { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; border: 1px solid #ffffff20; border-radius: 12px; background: #ffffff03; color: #e5e6df; font-size: 13px; font-weight: 600; }
+.wf-login__phone svg { color: #f5b43d; }
+.wf-login__phone:hover { background: #ffffff08; border-color: #ffffff40; }
+.wf-login__signup { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; font-size: 12px; color: var(--login-muted); margin-top: 24px; }
+.wf-login__signup a { display: inline-flex; align-items: center; gap: 3px; color: #f5b43d; font-weight: 650; }
+.wf-login__footer { text-align: center; color: #898e80; font-size: 9px; letter-spacing: .16em; padding-top: 12px; }
+.wf-login__spinner { animation: wf-login-spin 1s linear infinite; }
+@keyframes wf-login-spin { to { transform: rotate(360deg); } }
+@media (max-width: 760px) {
+  .wf-login { padding: 20px 20px 24px; }
+  .wf-login__layout { grid-template-columns: minmax(0, 1fr); max-width: 470px; gap: 28px; padding: 40px 0 28px; }
+  .wf-login__intro h1 { font-size: clamp(38px, 8vw, 52px); margin: 12px 0; }
+  .wf-login__intro h1 br { display: none; }
+  .wf-login__description { font-size: 14px; line-height: 1.65; max-width: none; }
+  .wf-login__benefits, .wf-login__note { display: none; }
+  .wf-login__intro > .wf-login__eyebrow { font-size: 9px; }
+  .wf-login__card { justify-self: center; border-radius: 22px; }
+  .wf-login__back { font-size: 12px; }
+  .wf-login__brand { font-size: 12px; gap: 7px; }
+  .wf-login__brand > span { width: 34px; height: 34px; border-radius: 10px; }
+}
+@media (max-width: 360px) {
+  .wf-login { padding-inline: 14px; }
+  .wf-login__card { padding: 20px; }
+  .wf-login__header { gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wf-login *, .wf-login *::before, .wf-login *::after { animation: none !important; transition: none !important; }
+}

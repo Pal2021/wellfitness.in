@@ -1,491 +1,729 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Flame, Dumbbell, HeartPulse, ChevronLeft, Sunrise, Sun, CloudRain, Sunset, Moon, Check, Loader2, AlertCircle } from 'lucide-react';
+import { getTemplates, completeOnboarding } from '../../../services/apiClient';
 
-/* ──── Color Tokens (Material Design 3 from Stitch) ──── */
-const C = {
-  surface: "#131316",
-  surfaceLow: "#1c1b1e",
-  surfaceLowest: "#0e0e10",
-  surfaceVariant: "#353437",
-  onSurface: "#e5e1e5",
-  onSurfaceVariant: "#d7c3ae",
-  primary: "#ffc880",
-  primaryContainer: "#f5a623",
-  onPrimaryContainer: "#644000",
-  amber500: "#f59e0b",
-  outlineVariant: "#524534",
-  zinc950: "#09090b",
-  zinc900: "#18181b",
-  zinc600: "#52525b",
-  zinc500: "#71717a",
+// Core Flow Options
+const GOAL_OPTIONS = [
+  { id: 'LOSE_WEIGHT', title: 'Lose Weight', desc: 'Burn fat and get lean', icon: Flame },
+  { id: 'BUILD_MUSCLE', title: 'Build Muscle', desc: 'Get stronger and bigger', icon: Dumbbell },
+  { id: 'STAY_FIT', title: 'Stay Fit', desc: 'Maintain and feel great', icon: HeartPulse },
+];
+
+const EXP_OPTIONS = [
+  { id: 'BEGINNER', title: 'Beginner', desc: 'Less than 1 year training' },
+  { id: 'INTERMEDIATE', title: 'Intermediate', desc: '1 to 3 years training' },
+  { id: 'ADVANCED', title: 'Advanced', desc: '3 plus years training' },
+];
+
+const FREQ_LABELS = {
+  2: 'Perfect for beginners',
+  3: 'The most popular choice',
+  4: 'Great for steady progress',
+  5: 'Serious commitment',
+  6: 'Elite level dedication',
 };
 
-const FONT_HEADLINE = "'Plus Jakarta Sans', sans-serif";
-const FONT_BODY = "'Manrope', sans-serif";
-
-/* ──── Feature cards data ──── */
-const FEATURES = [
-  {
-    title: "Smart Workout Tracking",
-    desc: "Precision logging with velocity tracking and RPE integration. Your digital journal for absolute gains.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCgoCNlJC-VNBgmvupF3RdnOx0JiuQ5cQXAN9lUtaz3RH_rdjJt4QbJsrdamDm69VKz9gApcFwCk1sljuE30lOSRZbo1kVhbuxPsexbN7MsayXLz79IfKG34WDG5Z1Ly8Zg1iqXHFpv2F0wAf_tVQSncIxg6MQyj8CULvbyBQ3zuepGnu2H5GHUUzuKaoUvcefyFXNvKaPEO4BDpW6UZKCpjClB8Hyi3Ro8rmMF0bhzQtw-yq7UJB_MO4mRP1aRnTUr90uQ1Tt2cv4",
-    icon: "edit_note",
-    iconPos: "corner",
-    imgOpacity: 0.3,
-  },
-  {
-    title: "Progress Analytics",
-    desc: "Visualize your volume, intensity, and frequency trends over time with high-fidelity data visualizations.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBUHatE2Z39TqgvdiZ03pn1CB3GKcAk9XGCpZkFNMD4njraJBCj4miV6cvwm7bBVJq3G0vSDSzaVvthBAeOnDtvn2CLZI6PmOXo27icc1Nczbj6SaLhnvXVoEFhpDMK89j-jm2luJpPyXzOG90SMVqH8SuYi63tU-hvmMZeORzFlI2Qoi1s9-nLD-daMHj0FR1Z17siKVLJWVw4bLsCL6KI9Nod93Sy0_Zz2Yp4A87isJmU2GndWjoTFl3_pvx7g6DCfx-dEzq7ZIw",
-    icon: "monitoring",
-    iconPos: "corner",
-    imgOpacity: 0.3,
-  },
-  {
-    title: "Custom Splits",
-    desc: "Dynamic routine management for hyper-personalized training cycles tailored to your morphology.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCmeY93rBilvuWH4SUmnMG25hoKeFYrPHLLNEy34kmJOqsRkNCzjNgdVhUJQJJcN4-kXovY46jBsu5T_pMVZ80ztJpxaUyPBO0-T-o_zllL4RUeTO6T81vJRluGncsJwCbvCfMI3v1MNUdVuHgud0SSjpbdwIhACaAjqmsqq5Beh_IG8KykX962W858R0atfcFi064fMaDWkQXWMQkrO8HdisJ1BxdVmrQvPR6wq3op_I3UUhU9_lA0Gf3D7yq5YGktP0G9yULntV8",
-    icon: "calendar_view_day",
-    iconPos: "top",
-    imgOpacity: 0.2,
-  },
-  {
-    title: "PR Detection",
-    desc: "Automated record tracking. Celebrate every milestone with verified data and milestone sharing.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCysMuQ9i7yJXx_CdLTHwvIj0yrFgGpI3vwlMWw8u-vu74JD8bPL9JattYx3QxRIEtXdG94HlfA-6PXpye0WJlxyJHL7L6BPs4wYOo5C2uC9VLVTj6R_0zOq3CjmI7uYKD9c4u_N8FphHOMLepsKB89eY_sGZ33PbNa_hIE4izF1Dg69fteWrOXar6AvyB9UYbHubd0E35gw0lXN0Yfobu8a6tvo4q-loe1EmKoOK-9AjpOjfnVvk659Xc54xDlWiJneMOx44qHMFs",
-    icon: "trophy",
-    iconPos: "top",
-    imgOpacity: 0.3,
-  },
-  {
-    title: "AI Coach",
-    desc: "Real-time feedback on your training load and recovery metrics powered by neural networks.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCK56ZpdgXji8YwadYhgq4oFaQwZQ5NQGYb8UTlZw8XN1DXQAJfP1gh-FbfwQRmKFDddV4OiYnLS0KPqeF36WVlX1AvHtIiXH8zZMStCwGEzmMsBeTRxiCYuh2QbPM5D3FAaC1c6QTVWMb2x9rEQvf2zGG4qxp0wnstK_NODu2m77zMzee1tZ8yE0dR2R-nec6yFN7A0W_jYm87HV6p39qwi-m7_eJKJB1H0kwpUa2jpePcE4oiX5HWodKpEizTOELLcNGhiVKW4Fw",
-    icon: "neurology",
-    iconPos: "top",
-    imgOpacity: 0.2,
-  },
-  {
-    title: "Diet & Nutrition",
-    desc: "Precision macro tracking integrated directly with your training intensity for optimal fueling.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDeJfWqSwHDRpdG28d0-81BPMUVvQokaflU54CXXkNafhUHca-545O9kt2eJl4h-6nin7NtUUExL0HKoYX_CDwHjkzueDACnaAe8PxLUg8ZFn4Xp_6xRzehNlfG7FDk1URBDPIVF67lv3oVf5UcMgUrmhl516lK7c2OxDjeH90aGUoBKOWWs63qVW1CbG5UBTnLiteuef_0nHzfJ2pZSLN5zwfG9DQ18Ic8D01DqpYWwhB7XnmxBwF5CFAp1kvR2fo5z_RPlLp7T5E",
-    icon: "restaurant",
-    iconPos: "top",
-    imgOpacity: 0.2,
-  },
+const TIME_BLOCKS = [
+  { id: 'EARLY', title: 'Early Bird', desc: '5 AM to 8 AM', icon: Sunrise, defaultTime: '06:00' },
+  { id: 'MORNING', title: 'Morning', desc: '8 AM to 12 PM', icon: Sun, defaultTime: '09:00' },
+  { id: 'AFTERNOON', title: 'Afternoon', desc: '12 PM to 5 PM', icon: CloudRain, defaultTime: '13:00' },
+  { id: 'EVENING', title: 'Evening', desc: '5 PM to 9 PM', icon: Sunset, defaultTime: '18:00' },
+  { id: 'NIGHT', title: 'Night Owl', desc: '9 PM onwards', icon: Moon, defaultTime: '21:00' },
 ];
-
-const BENEFITS = [
-  { icon: "timer", title: "Log sets in seconds", desc: "Minimal friction, maximum focus. Back to the iron faster." },
-  { icon: "trending_up", title: "See strength progress", desc: "Clear trendlines showing your upward trajectory." },
-  { icon: "history", title: "Never forget last session", desc: "Instant access to previous numbers for progressive overload." },
-  { icon: "all_inclusive", title: "Build consistency", desc: "Visualizing streaks that keep you accountable daily." },
-];
-
-/* ──── Inline-style component CSS (embedded <style>) ──── */
-const PAGE_CSS = `
-  .ob-cta-btn {
-    transition: transform 0.2s ease;
-    cursor: pointer;
-  }
-  .ob-cta-btn:hover {
-    transform: scale(1.05);
-  }
-  .ob-feature-card:hover .ob-card-img {
-    transform: scale(1.1);
-  }
-  .ob-feature-card:hover .ob-corner-icon {
-    opacity: 0.4;
-  }
-  .ob-footer-link {
-    transition: color 0.3s ease;
-  }
-  .ob-footer-link:hover {
-    color: #fff !important;
-  }
-`;
 
 export default function OnboardingScreen() {
   const navigate = useNavigate();
 
+  // Wizard state
+  const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState('right');
+  const [isSubmitLoading, setIsSubmitLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  // Form payload
+  const [formData, setFormData] = useState({
+    goal: '',
+    experience: '',
+    daysPerWeek: null,
+    templateId: '',
+    notificationTime: '',
+  });
+
+  const [templates, setTemplates] = useState([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [templateError, setTemplateError] = useState(false);
+
+  useEffect(() => {
+    if (step === 3 && templates.length === 0 && !templateError) {
+      fetchTemplates();
+    }
+  }, [step]);
+
+  const fetchTemplates = async () => {
+    setIsLoadingTemplates(true);
+    setTemplateError(false);
+    try {
+      const res = await getTemplates();
+      const data = res.data?.data || res.data;
+      setTemplates(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load templates:', err);
+      setTemplateError(true);
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (step < 6) {
+      setDirection('right');
+      setStep((s) => s + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 1) {
+      setDirection('left');
+      setStep((s) => s - 1);
+    }
+  };
+
+  const submitOnboarding = async () => {
+    setIsSubmitLoading(true);
+    setSubmitError('');
+    try {
+      await completeOnboarding({
+        goal: formData.goal,
+        experience: formData.experience,
+        daysPerWeek: formData.daysPerWeek,
+        templateId: formData.templateId,
+        notificationTime: formData.notificationTime || '09:00',
+      });
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      console.error(err);
+      setSubmitError('Failed to save your plan. Please try again.');
+      setIsSubmitLoading(false);
+    }
+  };
+
+  const canProceed = () => {
+    if (step === 1) return formData.goal !== '';
+    if (step === 2) return formData.experience !== '';
+    if (step === 3) return formData.daysPerWeek !== null;
+    if (step === 4) return formData.templateId !== '';
+    if (step === 5) return true;
+    return false;
+  };
+
+  useEffect(() => {
+    if (step === 6) {
+      setTimeout(() => {
+        submitOnboarding();
+      }, 1500);
+    }
+  }, [step]);
+
+  const getTransClass = () => {
+    return `absolute inset-0 flex flex-col pt-8 pb-32 animate-in duration-300 slide-in-from-${
+      direction === 'right' ? 'right' : 'left'
+    }-8 fade-in-0`;
+  };
+
+  const progressPct = ((step - 1) / 5) * 100;
+
   return (
-    <>
-      <style>{PAGE_CSS}</style>
-      <div style={{
-        background: C.surface,
-        color: C.onSurface,
-        fontFamily: FONT_BODY,
-        minHeight: "100vh",
-        overflowX: "hidden",
-      }}>
+    <div style={S.page} data-page="onboarding">
+      
+      {/* ── Progress Bar ── */}
+      {step < 6 && (
+        <div style={S.progressBarContainer}>
+          <div
+            style={{ ...S.progressBarFill, width: `${progressPct}%` }}
+          />
+        </div>
+      )}
 
-        {/* ═══ TopAppBar ═══ */}
-        <header style={{
-          position: "fixed",
-          top: 0,
-          width: "100%",
-          zIndex: 100,
-          background: "rgba(9,9,11,0.4)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          boxShadow: "0 12px 32px -4px rgba(19,19,22,0.4)",
-        }}>
-          <nav style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "16px 24px",
-            maxWidth: 1280,
-            margin: "0 auto",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span className="material-symbols-outlined" style={{ color: C.amber500, fontSize: 24 }}>
-                fitness_center
-              </span>
-              <span style={{
-                fontSize: 24,
-                fontWeight: 900,
-                fontStyle: "italic",
-                letterSpacing: "0.1em",
-                color: C.amber500,
-                fontFamily: FONT_HEADLINE,
-              }}>
-                WELLFITNESS
-              </span>
-            </div>
-          </nav>
-        </header>
+      {/* ── Top Nav ── */}
+      {step > 1 && step < 6 && (
+        <button
+          onClick={handleBack}
+          style={S.backButton}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-primary)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+        >
+          <ChevronLeft size={28} strokeWidth={2.5} />
+        </button>
+      )}
 
-        {/* ═══ Hero Section ═══ */}
-        <section style={{
-          position: "relative",
-          minHeight: 884,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          paddingTop: 80,
-          overflow: "hidden",
-        }}>
-          {/* Background image */}
-          <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-            <img
-              alt="Cinematic dark gym athlete barbell squat"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBx4mE6ECeR6hz_7UgRXV26K_wd_NC_5FqZtr_qNlLah1jg605lc2ZKA8J5KBohiswJ-dEhcUxL2jMFGAgboFBHnlIW0KNJvb6dIEXhDnpX4W2iCUHJEddm5eV2B1-Q5YZGLLhYmuDXTXvHl8OWz8qltEqOmMC2IsYB82PdDW8O-fLdqPkIuxF-mhB0DHc39yplFpiBuI2DRxhpejvF2WhPTweJseIAVsvy3_9wDLmYautV-KeQFr1qDiT1IkhJhRhAGZ2ikpEGCO8"
-              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.4, display: "block" }}
-            />
-            <div style={{
-              position: "absolute",
-              inset: 0,
-              background: `linear-gradient(to bottom, rgba(19,19,22,0.2) 0%, rgba(19,19,22,0.6) 50%, ${C.surface} 100%)`,
-            }} />
-          </div>
+      {/* ── Scrollable Content Area ── */}
+      <div style={S.container} data-container="onboarding">
+        
+        {/* STEP 1 */}
+        {step === 1 && (
+          <div className={getTransClass()}>
+            <h1 style={S.title}>What's your goal?</h1>
+            <p style={S.subtitle}>We'll build your plan around this</p>
 
-          {/* Hero content */}
-          <div style={{
-            position: "relative",
-            zIndex: 10,
-            maxWidth: 1280,
-            margin: "0 auto",
-            padding: "0 24px",
-            textAlign: "center",
-          }}>
-            <h1 style={{
-              fontSize: "clamp(3rem, 8vw, 6rem)",
-              fontFamily: FONT_HEADLINE,
-              fontWeight: 800,
-              letterSpacing: "-0.05em",
-              lineHeight: 1.1,
-              marginBottom: 24,
-            }}>
-              Never Forget What<br />
-              <span className="titanium-gradient" style={{
-                backgroundImage: "linear-gradient(135deg, #ffc880 0%, #f5a623 100%)",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
-              }}>
-                You Lifted
-              </span>
-            </h1>
-            <p style={{
-              maxWidth: 672,
-              margin: "0 auto 48px",
-              color: C.onSurfaceVariant,
-              fontSize: "clamp(1rem, 2vw, 1.25rem)",
-              fontFamily: FONT_BODY,
-              lineHeight: 1.7,
-            }}>
-              WellFitness remembers every rep, set, and session. Elite performance
-              requires meticulous data. Log your journey, crush your plateaus.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
-              <button
-                className="ob-cta-btn"
-                onClick={() => navigate("/login")}
-                style={{
-                  background: "linear-gradient(135deg, #ffc880 0%, #f5a623 100%)",
-                  color: C.onPrimaryContainer,
-                  padding: "20px 40px",
-                  borderRadius: 12,
-                  fontFamily: FONT_HEADLINE,
-                  fontWeight: 800,
-                  fontSize: 18,
-                  letterSpacing: "-0.025em",
-                  border: "none",
-                  boxShadow: "0 0 30px rgba(245,166,35,0.3)",
-                }}
-              >
-                Sign Up For Free
-              </button>
+            <div style={S.listGroup}>
+              {GOAL_OPTIONS.map((opt) => {
+                const isSel = formData.goal === opt.id;
+                const Icon = opt.icon;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => setFormData({ ...formData, goal: opt.id })}
+                    style={{ ...S.optionCard, ...(isSel ? S.optionCardSelected : {}) }}
+                  >
+                    <Icon
+                      size={28}
+                      color={isSel ? 'var(--color-primary)' : 'var(--color-text-muted)'}
+                      style={{ marginBottom: '16px' }}
+                    />
+                    <h3 style={{ ...S.cardTitle, ...(isSel ? S.cardTitleSelected : {}) }}>{opt.title}</h3>
+                    <p style={isSel ? S.cardDescSelected : S.cardDesc}>{opt.desc}</p>
+                    
+                    {isSel && (
+                      <div style={S.checkmarkPos}>
+                        <Check size={20} strokeWidth={3} color="var(--color-primary)" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </section>
+        )}
 
-        {/* ═══ Features Slider ═══ */}
-        <section style={{ padding: "96px 0", overflow: "hidden" }}>
-          {/* Section header */}
-          <div style={{ padding: "0 24px", maxWidth: 1280, margin: "0 auto 48px", textAlign: "center" }}>
-            <h2 style={{
-              fontSize: "clamp(3rem, 7vw, 4.5rem)",
-              fontFamily: FONT_HEADLINE,
-              fontWeight: 900,
-              letterSpacing: "-0.05em",
-              textTransform: "uppercase",
-              marginBottom: 8,
-            }}>
-              FEATURES
-            </h2>
-            <p style={{ color: C.onSurfaceVariant, fontSize: 14, fontWeight: 500, letterSpacing: "0.025em", maxWidth: 448, margin: "0 auto" }}>
-              Professional grade tools for the dedicated athlete.
-            </p>
+        {/* STEP 2 */}
+        {step === 2 && (
+          <div className={getTransClass()}>
+            <h1 style={S.title}>Your experience level?</h1>
+            <p style={S.subtitle}>Be honest — we'll match your intensity</p>
+
+            <div style={S.listGroup}>
+              {EXP_OPTIONS.map((opt) => {
+                const isSel = formData.experience === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => setFormData({ ...formData, experience: opt.id })}
+                    style={{ ...S.optionCard, ...(isSel ? S.optionCardSelected : {}) }}
+                  >
+                    <h3 style={{ ...S.cardTitle, ...(isSel ? S.cardTitleSelected : {}) }}>{opt.title}</h3>
+                    <p style={isSel ? S.cardDescSelected : S.cardDesc}>{opt.desc}</p>
+                    {isSel && (
+                      <div style={S.checkmarkPos}>
+                        <Check size={20} strokeWidth={3} color="var(--color-primary)" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+        )}
 
-          {/* Horizontal scroll cards */}
-          <div className="hide-scrollbar" style={{
-            display: "flex",
-            overflowX: "auto",
-            scrollSnapType: "x mandatory",
-            padding: "0 24px",
-            gap: 24,
-            paddingBottom: 32,
-          }}>
-            {FEATURES.map((f, i) => (
-              <div
-                key={i}
-                className="ob-feature-card"
-                style={{
-                  flexShrink: 0,
-                  width: "85%",
-                  maxWidth: 400,
-                  scrollSnapAlign: "center",
-                  borderRadius: 16,
-                  padding: 32,
-                  height: 400,
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: f.iconPos === "corner" ? "flex-end" : "space-between",
-                  position: "relative",
-                  overflow: "hidden",
-                  background: "rgba(53,52,55,0.4)",
-                  backdropFilter: "blur(20px)",
-                }}
-              >
-                {/* Card background image */}
-                <img
-                  alt={f.title}
-                  className="ob-card-img"
-                  src={f.img}
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    opacity: f.imgOpacity,
-                    transition: "transform 0.5s ease",
-                    display: "block",
-                  }}
-                />
-                {/* Gradient overlay */}
-                <div style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
-                }} />
+        {/* STEP 3 */}
+        {step === 3 && (
+          <div className={getTransClass()}>
+            <h1 style={S.title}>How many days can you train?</h1>
+            <p style={S.subtitle}>Pick what's realistic for your schedule</p>
 
-                {/* Corner icon (for first two cards) */}
-                {f.iconPos === "corner" && (
-                  <div className="ob-corner-icon" style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    padding: 32,
-                    opacity: 0.2,
-                    transition: "opacity 0.3s ease",
-                  }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 128 }}>
-                      {f.icon}
-                    </span>
-                  </div>
-                )}
+            <div style={S.daysContainer}>
+              {[2, 3, 4, 5, 6].map((num) => {
+                const isSel = formData.daysPerWeek === num;
+                return (
+                  <button
+                    key={num}
+                    onClick={() => setFormData({ ...formData, daysPerWeek: num })}
+                    style={{ ...S.bubbleButton, ...(isSel ? S.bubbleButtonSelected : {}) }}
+                  >
+                    {num}
+                  </button>
+                );
+              })}
+            </div>
 
-                {/* Top icon (for remaining cards) */}
-                {f.iconPos === "top" && (
-                  <div style={{ position: "relative", zIndex: 10 }}>
-                    <span className="material-symbols-outlined" style={{ color: C.primary, fontSize: 36, display: "block", marginBottom: 16 }}>
-                      {f.icon}
-                    </span>
-                  </div>
-                )}
+            <div style={{ textAlign: 'center', height: '32px' }}>
+              {formData.daysPerWeek && (
+                <p style={S.daysLabel} className="animate-fade-in-up">
+                  {FREQ_LABELS[formData.daysPerWeek]}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
-                {/* Card text content */}
-                <div style={{ position: "relative", zIndex: 10 }}>
-                  <h3 style={{
-                    fontSize: 24,
-                    fontFamily: FONT_HEADLINE,
-                    fontWeight: 800,
-                    marginBottom: 12,
-                    color: "#fff",
-                  }}>
-                    {f.title}
-                  </h3>
-                  <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, lineHeight: 1.7 }}>
-                    {f.desc}
-                  </p>
-                </div>
+        {/* STEP 4 */}
+        {step === 4 && (
+          <div className={getTransClass()}>
+            <h1 style={S.title}>Choose your split</h1>
+            <p style={S.subtitle}>Based on your goal and schedule ({formData.daysPerWeek} days)</p>
+
+            {templateError ? (
+              <div style={S.errorBanner}>
+                <AlertCircle color="var(--color-error)" style={{ margin: '0 auto 12px' }} />
+                <p style={{ color: 'var(--color-error)', fontWeight: 'var(--font-medium)', marginBottom: '16px' }}>
+                  Couldn't load suggestions.
+                </p>
+                <button onClick={fetchTemplates} style={S.retryBtn}>
+                  Retry
+                </button>
               </div>
-            ))}
-            {/* End spacer */}
-            <div style={{ flexShrink: 0, width: 48 }} />
-          </div>
-
-          {/* Scroll indicators */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 32 }}>
-            <div style={{ width: 32, height: 4, borderRadius: 999, background: "linear-gradient(135deg, #ffc880, #f5a623)" }} />
-            <div style={{ width: 8, height: 4, borderRadius: 999, background: C.surfaceVariant }} />
-            <div style={{ width: 8, height: 4, borderRadius: 999, background: C.surfaceVariant }} />
-            <div style={{ width: 8, height: 4, borderRadius: 999, background: C.surfaceVariant }} />
-          </div>
-        </section>
-
-        {/* ═══ Why / Benefits Section ═══ */}
-        <section style={{
-          background: C.surfaceLow,
-          padding: "96px 24px",
-          overflow: "hidden",
-        }}>
-          <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-            <div style={{ maxWidth: 896, margin: "0 auto" }}>
-              <h2 style={{
-                fontSize: "clamp(2.25rem, 7vw, 4.5rem)",
-                fontFamily: FONT_HEADLINE,
-                fontWeight: 800,
-                letterSpacing: "-0.05em",
-                marginBottom: 32,
-              }}>
-                FEATURES
-              </h2>
-              <p style={{ color: C.onSurfaceVariant, fontSize: 18, lineHeight: 1.7, marginBottom: 48 }}>
-                We don't just log workouts; we architect strength. Built for
-                those who demand the highest standards from their digital tools.
-              </p>
-
-              {/* Benefits grid */}
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                gap: 16,
-                maxWidth: 896,
-                margin: "0 auto",
-              }}>
-                {BENEFITS.map((b, i) => (
-                  <div key={i} style={{
-                    padding: 24,
-                    borderRadius: 16,
-                    background: C.surfaceLowest,
-                    boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                    border: `1px solid rgba(82,69,52,0.1)`,
-                  }}>
-                    <span className="material-symbols-outlined" style={{ color: C.primary, marginBottom: 16, display: "block", fontSize: 24 }}>
-                      {b.icon}
-                    </span>
-                    <h4 style={{ fontFamily: FONT_HEADLINE, fontWeight: 800, marginBottom: 8, color: "#fff" }}>
-                      {b.title}
-                    </h4>
-                    <p style={{ color: C.onSurfaceVariant, fontSize: 12, lineHeight: 1.6 }}>
-                      {b.desc}
-                    </p>
-                  </div>
+            ) : isLoadingTemplates ? (
+              <div style={S.listGroup}>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} style={S.skeletonLoader} className="animate-pulse" />
                 ))}
               </div>
+            ) : (
+              <div style={S.listGroup}>
+                {templates.map((tpl) => {
+                  const isSel = formData.templateId === tpl.id;
+                  return (
+                    <button
+                      key={tpl.id}
+                      onClick={() => setFormData({ ...formData, templateId: tpl.id })}
+                      style={{ ...S.optionCard, ...(isSel ? S.optionCardSelected : {}) }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                        <h3 style={{ ...S.cardTitle, ...(isSel ? S.cardTitleSelected : {}) }}>{tpl.name}</h3>
+                        <span style={S.badge}>
+                          {tpl.daysPerWeek} Days
+                        </span>
+                      </div>
+                      <p style={isSel ? S.cardDescSelected : S.cardDesc}>
+                        {tpl.description || 'Complete muscle development protocol'}
+                      </p>
+                      
+                      {isSel && (
+                        <div style={S.checkmarkPosCenter}>
+                          <Check size={20} strokeWidth={3} color="var(--color-primary)" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STEP 5 */}
+        {step === 5 && (
+          <div className={getTransClass()}>
+            <h1 style={S.title}>When do you train?</h1>
+            <p style={S.subtitle}>We'll remind you at this time every day</p>
+
+            <div style={S.listGroup}>
+              {TIME_BLOCKS.map((opt) => {
+                const isSel = formData.notificationTime === opt.defaultTime || (!formData.notificationTime && opt.id === 'MORNING');
+                const Icon = opt.icon;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => setFormData({ ...formData, notificationTime: opt.defaultTime })}
+                    style={{ ...S.timeBlockRow, ...(isSel ? S.optionCardSelected : {}) }}
+                  >
+                    <div style={{
+                      ...S.timeBlockIconWrap,
+                      background: isSel ? 'var(--color-primary)' : 'var(--color-bg-tertiary)',
+                      color: isSel ? 'var(--color-text-inverse)' : 'var(--color-text-muted)'
+                    }}>
+                      <Icon size={20} />
+                    </div>
+                    <div style={{ flex: 1, textAlign: 'left' }}>
+                      <h3 style={{ ...S.cardTitle, ...(isSel ? S.cardTitleSelected : {}), fontSize: 'var(--text-base)' }}>{opt.title}</h3>
+                      <p style={{ ...S.cardDesc, marginTop: '2px', ...(isSel ? S.cardDescSelected : {}) }}>{opt.desc}</p>
+                    </div>
+                    {isSel && <Check size={18} color="var(--color-primary)" strokeWidth={3} />}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={S.timeInputWrapper}>
+              <label style={S.timeInputLabel}>Or pick an exact time</label>
+              <input
+                type="time"
+                value={formData.notificationTime || '09:00'}
+                onChange={(e) => setFormData({ ...formData, notificationTime: e.target.value })}
+                style={S.timeInput}
+              />
             </div>
           </div>
-        </section>
+        )}
 
-        {/* ═══ Footer ═══ */}
-        <footer style={{
-          width: "100%",
-          background: C.zinc950,
-          borderTop: `1px solid ${C.zinc900}`,
-          padding: "64px 24px",
-        }}>
-          <div style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 48,
-          }}>
-            {/* Logo */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span className="material-symbols-outlined" style={{ color: C.amber500, fontSize: 30 }}>
-                fitness_center
-              </span>
-              <span style={{
-                fontSize: 30,
-                fontWeight: 900,
-                fontStyle: "italic",
-                letterSpacing: "0.1em",
-                color: C.amber500,
-                fontFamily: FONT_HEADLINE,
-              }}>
-                WELLFITNESS
-              </span>
+        {/* STEP 6 (FINAL) */}
+        {step === 6 && (
+          <div style={S.finalWrapper} className="animate-in fade-in-0 duration-1000">
+            <div style={{ position: 'relative', marginBottom: '32px' }}>
+              <div style={S.finalIconOuter} className="animate-ping" />
+              <div style={S.finalIconInner}>
+                {isSubmitLoading ? (
+                  <Loader2 className="animate-spin" color="var(--color-text-inverse)" size={32} />
+                ) : (
+                  <Check color="var(--color-text-inverse)" size={40} strokeWidth={3} />
+                )}
+              </div>
             </div>
 
-            {/* Links */}
-            <div style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              gap: 40,
-              fontFamily: FONT_BODY,
-              fontSize: 12,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              fontWeight: 700,
-              color: C.zinc500,
-            }}>
-              {["Manifesto", "Protocol", "Access", "Privacy"].map((link) => (
-                <a key={link} className="ob-footer-link" href="#" style={{ color: C.zinc500 }}>
-                  {link}
-                </a>
-              ))}
-            </div>
-
-            {/* Copyright */}
-            <p style={{
-              fontFamily: FONT_BODY,
-              fontSize: 10,
-              letterSpacing: "0.2em",
-              color: C.zinc600,
-            }}>
-              © 2024 WELLFITNESS KINETIC LABORATORY
+            <h1 style={{ ...S.title, marginBottom: '12px' }}>You're all set!</h1>
+            <p style={{ ...S.subtitle, maxWidth: '280px', margin: '0 auto 40px' }}>
+              Your personalized fitness plan is ready. Let's get to work.
             </p>
+
+            {submitError && (
+              <div style={S.errorBanner} className="animate-shake">
+                {submitError}
+              </div>
+            )}
+            
+            <div style={S.tagsWrapper}>
+              <span style={S.badgeOutline}>{formData.goal.replace('_', ' ')}</span>
+              <span style={S.badgeOutline}>{formData.experience}</span>
+              <span style={S.badgeOutline}>{formData.daysPerWeek} DAYS</span>
+            </div>
+            
+            {submitError && !isSubmitLoading && (
+              <button onClick={submitOnboarding} style={S.actionBtn}>
+                Retry Setup
+              </button>
+            )}
           </div>
-        </footer>
+        )}
       </div>
-    </>
+
+      {/* ── Fixed Bottom Actions ── */}
+      {step < 6 && (
+        <div style={S.bottomBar} data-bottom-bar>
+          <div style={{ width: '100%', maxWidth: '430px', margin: '0 auto' }}>
+            <button
+              onClick={handleNext}
+              disabled={!canProceed()}
+              style={{
+                ...S.actionBtn,
+                ...( !canProceed() ? S.actionBtnDisabled : {} ),
+              }}
+            >
+              {step === 5 ? 'Create Plan' : 'Continue'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
+
+/* ══════════════════════════════════════════════
+   MATCHING THEME STYLES
+   ══════════════════════════════════════════════ */
+const S = {
+  page: {
+    position: 'relative',
+    minHeight: '100vh',
+    background: 'var(--color-bg-primary)',
+    color: 'var(--color-text-primary)',
+    fontFamily: 'var(--font-sans)',
+    overflow: 'hidden',
+  },
+  progressBarContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '6px',
+    background: 'var(--color-bg-tertiary)',
+    zIndex: 50,
+  },
+  progressBarFill: {
+    height: '100%',
+    background: 'var(--color-primary)',
+    boxShadow: 'var(--shadow-glow)',
+    transition: 'all 500ms ease-out',
+  },
+  backButton: {
+    position: 'absolute',
+    top: '32px',
+    left: '24px',
+    zIndex: 40,
+    background: 'none',
+    border: 'none',
+    color: 'var(--color-text-muted)',
+    cursor: 'pointer',
+    padding: '8px',
+    transition: 'color 200ms ease',
+  },
+  container: {
+    position: 'relative',
+    height: '100vh',
+    width: '100%',
+    maxWidth: '430px',
+    margin: '0 auto',
+    paddingTop: '96px',
+    paddingLeft: '24px',
+    paddingRight: '24px',
+    paddingBottom: '160px',
+    overflowY: 'auto',
+  },
+  title: {
+    fontFamily: 'var(--font-display)',
+    fontSize: 'clamp(2rem, 8vw, 2.5rem)',
+    fontWeight: 'var(--font-extrabold)',
+    letterSpacing: '-0.02em',
+    color: 'var(--color-text-primary)',
+    marginBottom: '8px',
+  },
+  subtitle: {
+    fontSize: 'var(--text-base)',
+    color: 'var(--color-text-muted)',
+    marginBottom: '40px',
+  },
+  listGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  optionCard: {
+    position: 'relative',
+    width: '100%',
+    padding: '24px',
+    paddingRight: '48px',
+    borderRadius: 'var(--radius-2xl)',
+    background: 'var(--color-bg-card)',
+    border: '1px solid var(--color-border)',
+    textAlign: 'left',
+    transition: 'all 200ms ease',
+    cursor: 'pointer',
+  },
+  optionCardSelected: {
+    background: 'var(--color-bg-elevated)', // typically subtly lighter to match active states
+    borderColor: 'var(--color-primary)',
+    boxShadow: '0 0 0 1px var(--color-primary)',
+  },
+  cardTitle: {
+    fontSize: 'var(--text-xl)',
+    fontWeight: 'var(--font-bold)',
+    color: 'var(--color-text-primary)',
+    marginBottom: '4px',
+  },
+  cardTitleSelected: {
+    color: 'var(--color-primary)',
+  },
+  cardDesc: {
+    fontSize: 'var(--text-sm)',
+    color: 'var(--color-text-secondary)',
+  },
+  cardDescSelected: {
+    color: 'var(--color-text-primary)',
+    opacity: 0.8,
+  },
+  checkmarkPos: {
+    position: 'absolute',
+    top: '24px',
+    right: '24px',
+  },
+  checkmarkPosCenter: {
+    position: 'absolute',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    right: '20px',
+  },
+  daysContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: '40px',
+  },
+  bubbleButton: {
+    position: 'relative',
+    width: '56px',
+    height: '56px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 'var(--text-xl)',
+    fontWeight: 'var(--font-bold)',
+    background: 'var(--color-bg-card)',
+    color: 'var(--color-text-secondary)',
+    border: '1px solid var(--color-border)',
+    cursor: 'pointer',
+    transition: 'all 300ms ease',
+  },
+  bubbleButtonSelected: {
+    background: 'var(--gradient-button)',
+    color: 'var(--color-text-inverse)',
+    borderColor: 'transparent',
+    boxShadow: 'var(--shadow-glow)',
+  },
+  daysLabel: {
+    color: 'var(--color-primary)',
+    fontWeight: 'var(--font-medium)',
+    fontSize: 'var(--text-lg)',
+  },
+  badge: {
+    padding: '4px 8px',
+    borderRadius: '4px',
+    background: 'var(--color-bg-tertiary)',
+    fontSize: '10px',
+    fontWeight: 'var(--font-bold)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: 'var(--color-text-secondary)',
+  },
+  timeBlockRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    width: '100%',
+    padding: '16px',
+    borderRadius: 'var(--radius-xl)',
+    background: 'var(--color-bg-card)',
+    border: '1px solid var(--color-border)',
+    transition: 'all 200ms ease',
+    cursor: 'pointer',
+  },
+  timeBlockIconWrap: {
+    padding: '12px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 200ms ease',
+  },
+  timeInputWrapper: {
+    marginTop: '32px',
+    paddingTop: '32px',
+    borderTop: '1px solid var(--color-border)',
+  },
+  timeInputLabel: {
+    display: 'block',
+    fontSize: '11px',
+    fontWeight: 'var(--font-bold)',
+    color: 'var(--color-text-muted)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+    marginBottom: '16px',
+  },
+  timeInput: {
+    width: '100%',
+    textAlign: 'center',
+    fontSize: '36px',
+    fontWeight: 'var(--font-extrabold)',
+    background: 'transparent',
+    border: 'none',
+    color: 'var(--color-text-primary)',
+    outline: 'none',
+    fontFamily: 'var(--font-sans)',
+  },
+  errorBanner: {
+    padding: '24px',
+    borderRadius: 'var(--radius-2xl)',
+    background: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid rgba(239, 68, 68, 0.2)',
+    textAlign: 'center',
+  },
+  retryBtn: {
+    padding: '8px 24px',
+    background: 'rgba(239, 68, 68, 0.2)',
+    color: 'var(--color-error)',
+    borderRadius: 'var(--radius-full)',
+    fontWeight: 'var(--font-bold)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    fontSize: '12px',
+    border: 'none',
+    cursor: 'pointer',
+  },
+  skeletonLoader: {
+    height: '104px',
+    borderRadius: 'var(--radius-2xl)',
+    background: 'var(--color-bg-tertiary)',
+  },
+  finalWrapper: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '24px',
+    textAlign: 'center',
+    zIndex: 50,
+  },
+  finalIconOuter: {
+    position: 'absolute',
+    inset: '-10px',
+    borderRadius: '50%',
+    background: 'var(--color-primary)',
+    opacity: 0.1,
+  },
+  finalIconInner: {
+    width: '80px',
+    height: '80px',
+    borderRadius: '50%',
+    background: 'var(--gradient-button)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: 'var(--shadow-glow)',
+  },
+  tagsWrapper: {
+    width: '100%',
+    maxWidth: '320px',
+    display: 'flex',
+    gap: '8px',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    marginBottom: '48px',
+  },
+  badgeOutline: {
+    padding: '6px 12px',
+    background: 'var(--color-bg-card)',
+    border: '1px solid var(--color-border)',
+    borderRadius: '8px',
+    fontWeight: 'var(--font-semibold)',
+    fontSize: '11px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: 'var(--color-text-secondary)',
+  },
+  bottomBar: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: '24px',
+    backgroundImage: 'linear-gradient(to top, var(--color-bg-primary) 50%, transparent 100%)',
+    zIndex: 50,
+  },
+  actionBtn: {
+    width: '100%',
+    padding: '20px',
+    fontSize: 'var(--text-lg)',
+    fontWeight: 'var(--font-bold)',
+    fontFamily: 'var(--font-sans)',
+    color: 'var(--color-text-inverse)',
+    background: 'var(--gradient-button)',
+    border: 'none',
+    borderRadius: 'var(--radius-xl)',
+    boxShadow: 'var(--shadow-glow)',
+    transition: 'all 300ms ease',
+    cursor: 'pointer',
+    transform: 'translateY(0)',
+    opacity: 1,
+  },
+  actionBtnDisabled: {
+    background: 'var(--color-bg-card)',
+    color: 'var(--color-text-muted)',
+    border: '1px solid var(--color-border)',
+    boxShadow: 'none',
+    cursor: 'not-allowed',
+    transform: 'translateY(4px)',
+    opacity: 0.7,
+  },
+};

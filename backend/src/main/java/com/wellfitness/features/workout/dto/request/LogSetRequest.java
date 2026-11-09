@@ -1,6 +1,8 @@
 package com.wellfitness.features.workout.dto.request;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,12 +26,14 @@ public class LogSetRequest {
     private Integer setNumber;
 
     @NotNull(message = "Weight is required")
-    @Min(value = 0, message = "Weight cannot be negative")
+    @DecimalMin(value = "0.0", message = "Weight cannot be negative")
     private BigDecimal weightKg;
 
     @NotNull(message = "Reps is required")
     @Min(value = 1, message = "Reps must be at least 1")
     private Integer reps;
 
+    @Min(value = 1, message = "RPE must be between 1 and 10")
+    @Max(value = 10, message = "RPE must be between 1 and 10")
     private Integer rpe;
 }

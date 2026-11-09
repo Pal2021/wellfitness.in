@@ -1,0 +1,292 @@
+/* Styles for LandingScreen.jsx - responsive, uses CSS variables passed from component */
+.landing-root {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 28px 20px;
+  box-sizing: border-box;
+}
+
+.hero {
+  padding: 40px 0 10px;
+}
+.hero-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  justify-content: space-between;
+}
+.hero-left {
+  flex: 1;
+}
+.kicker {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--amber);
+  letter-spacing: 1.6px;
+  margin-bottom: 8px;
+}
+.title {
+  font-size: 56px;
+  margin: 0 0 6px 0;
+  font-weight: 900;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, var(--amber), #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.subtitle {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+.description {
+  color: var(--text-secondary);
+  max-width: 560px;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.cta-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--amber), #ffd700);
+  color: #000;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.btn-primary:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--amber);
+  border: 1.5px solid rgba(245, 166, 35, 0.22);
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mini-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.hero-right {
+  width: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.phone-mock {
+  width: 260px;
+  border-radius: 28px;
+  background: linear-gradient(
+    180deg,
+    rgba(245, 166, 35, 0.06),
+    rgba(255, 255, 255, 0.02)
+  );
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+}
+.phone-topbar {
+  height: 6px;
+  width: 40%;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  margin: 8px auto;
+}
+.phone-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+.chart-rect {
+  height: 88px;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(96, 165, 250, 0.12),
+    rgba(147, 197, 253, 0.06)
+  );
+}
+.card-row {
+  display: flex;
+  gap: 8px;
+}
+.stat-card {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px;
+  border-radius: 8px;
+  text-align: center;
+}
+.stat-num {
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.button-placeholder {
+  background: var(--amber);
+  color: #000;
+  padding: 8px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.features {
+  padding: 36px 0;
+}
+.section-head {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.tag {
+  font-size: 10px;
+  color: var(--amber);
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  margin-bottom: 6px;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.feature-card {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 22px 40px rgba(0, 0, 0, 0.7);
+}
+.feature-card .emoji {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+.feature-card h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.feature-card p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.benefits {
+  background: linear-gradient(135deg, rgba(245, 166, 35, 0.04), transparent);
+  padding: 20px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+.benefits-list {
+  max-width: 920px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  justify-content: center;
+}
+.benefits-list li {
+  background: var(--bg-secondary);
+  padding: 10px 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  min-width: 220px;
+}
+.icon {
+  font-size: 18px;
+  width: 28px;
+  text-align: center;
+}
+.text {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.bottom-cta {
+  padding: 20px 0 40px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .title {
+    font-size: 44px;
+  }
+  .hero-right {
+    width: 320px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-inner {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .hero-right {
+    width: 100%;
+    order: 2;
+  }
+  .hero-left {
+    order: 1;
+  }
+  .title {
+    font-size: 34px;
+  }
+  .cta-row {
+    flex-direction: column;
+  }
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  .phone-mock {
+    width: 220px;
+    margin: 0 auto;
+  }
+}

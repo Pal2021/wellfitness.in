@@ -1,0 +1,28 @@
+/* App-wide utility classes (Tailwind @layer utilities) */
+@layer utilities {
+  .titanium-gradient {
+    background: linear-gradient(135deg, #ffc880 0%, #f5a623 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .titanium-gradient-bg {
+    background: linear-gradient(135deg, #ffc880 0%, #f5a623 100%);
+  }
+
+  .glass-card {
+    background: rgba(53, 52, 55, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

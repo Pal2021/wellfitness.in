@@ -1,11 +1,13 @@
 package com.wellfitness.features.exercise;
 
 import com.wellfitness.common.response.ApiResponse;
+import com.wellfitness.features.auth.entity.User;
 import com.wellfitness.features.exercise.entity.Exercise;
 import com.wellfitness.features.exercise.ExerciseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,10 +22,11 @@ public class ExerciseController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Exercise>>> getExercises(
+            @AuthenticationPrincipal User user,
             @RequestParam(required = false) String muscle_group,
             @RequestParam(required = false) String equipment,
             @RequestParam(required = false) String search) {
-        List<Exercise> exercises = exerciseService.getAllExercises(muscle_group, equipment, search);
+        List<Exercise> exercises = exerciseService.getAllExercises(user != null ? user.getId() : null, muscle_group, equipment, search);
         return ResponseEntity.ok(ApiResponse.success(exercises));
     }
 
@@ -34,8 +37,10 @@ public class ExerciseController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Exercise>> createExercise(@RequestBody Exercise exercise) {
-        Exercise saved = exerciseService.saveExercise(exercise);
+    public ResponseEntity<ApiResponse<Exercise>> createExercise(
+            @AuthenticationPrincipal User user,
+            @RequestBody Exercise exercise) {
+        Exercise saved = exerciseService.saveExercise(exercise, user.getId());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(saved, "Exercise created"));
     }

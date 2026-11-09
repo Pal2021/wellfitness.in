@@ -17,8 +17,8 @@ public class ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
 
-    public List<Exercise> getAllExercises(String muscleGroup, String equipment, String search) {
-        return exerciseRepository.findFiltered(muscleGroup, equipment, search);
+    public List<Exercise> getAllExercises(UUID userId, String muscleGroup, String equipment, String search) {
+        return exerciseRepository.findFiltered(userId, muscleGroup, equipment, search);
     }
 
     public Exercise getExerciseById(UUID id) {
@@ -31,8 +31,9 @@ public class ExerciseService {
                 .orElseThrow(() -> new ResourceNotFoundException("Exercise", "name", name));
     }
 
-    public Exercise saveExercise(Exercise exercise) {
-        log.info("Creating custom exercise: {}", exercise.getName());
+    public Exercise saveExercise(Exercise exercise, UUID userId) {
+        log.info("Creating custom exercise: {} for user: {}", exercise.getName(), userId);
+        exercise.setUserId(userId);
         return exerciseRepository.save(exercise);
     }
 }
