@@ -27,7 +27,7 @@ public class SplitDayExercise {
     @JsonIgnore
     private SplitDay splitDay;
 
-    @Column(name = "exercise_id", nullable = false)
+    @Column(name = "exercise_id", nullable = false, columnDefinition = "VARCHAR(36)")
     private UUID exerciseId;
 
     @ManyToOne(fetch = FetchType.EAGER)
