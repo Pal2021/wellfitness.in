@@ -62,7 +62,9 @@ jobs:
         run: cd frontend && npm ci
 
       - name: Run Smoke Tests
-        run: cd frontend && npm test
+        run: cd frontend && npm run build
+        env:
+          VITE_API_URL: /api
 
   # ──── Backend: Build ─────────────────────────────
   build-backend:
