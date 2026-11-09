@@ -4,6 +4,8 @@ import com.wellfitness.features.workout.dto.request.LogSetRequest;
 import com.wellfitness.common.response.ApiResponse;
 import com.wellfitness.common.response.PagedResponse;
 import com.wellfitness.features.workout.dto.response.SetLogResponse;
+import com.wellfitness.features.workout.dto.response.ExerciseProgressSummary;
+import com.wellfitness.features.workout.dto.response.ExerciseSessionProgress;
 import com.wellfitness.features.auth.entity.User;
 import com.wellfitness.features.workout.entity.WorkoutSession;
 import com.wellfitness.features.workout.entity.WorkoutSet;
@@ -77,15 +79,17 @@ public class WorkoutController {
 
     @GetMapping("/{sessionId}")
     public ResponseEntity<ApiResponse<WorkoutSession>> getSession(
+            @AuthenticationPrincipal User user,
             @PathVariable UUID sessionId) {
-        WorkoutSession session = workoutService.getSessionById(sessionId);
+        WorkoutSession session = workoutService.getSessionById(user.getId(), sessionId);
         return ResponseEntity.ok(ApiResponse.success(session));
     }
 
     @GetMapping("/{sessionId}/sets")
     public ResponseEntity<ApiResponse<List<WorkoutSet>>> getSessionSets(
+            @AuthenticationPrincipal User user,
             @PathVariable UUID sessionId) {
-        List<WorkoutSet> sets = workoutService.getSessionSets(sessionId);
+        List<WorkoutSet> sets = workoutService.getSessionSets(user.getId(), sessionId);
         return ResponseEntity.ok(ApiResponse.success(sets));
     }
 
@@ -95,5 +99,20 @@ public class WorkoutController {
             @PathVariable UUID exerciseId) {
         List<WorkoutSet> sets = workoutService.getExerciseHistory(user.getId(), exerciseId);
         return ResponseEntity.ok(ApiResponse.success(sets));
+    }
+
+    @GetMapping("/exercise-progress")
+    public ResponseEntity<ApiResponse<List<ExerciseProgressSummary>>> getExerciseProgress(
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workoutService.getExerciseProgressSummaries(user.getId())));
+    }
+
+    @GetMapping("/exercise-progress/{exerciseId}")
+    public ResponseEntity<ApiResponse<List<ExerciseSessionProgress>>> getExerciseSessionHistory(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID exerciseId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workoutService.getExerciseSessionHistory(user.getId(), exerciseId)));
     }
 }

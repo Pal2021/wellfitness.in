@@ -1,0 +1,22 @@
+/* Design tokens — consumed by Tailwind @theme */
+@theme {
+  --color-primary: #ffc880;
+  --color-primary-container: #f5a623;
+  --color-surface: #131316;
+  --color-surface-container-low: #1c1b1e;
+  --color-surface-container-lowest: #0e0e10;
+  --color-surface-variant: #353437;
+  --color-on-surface: #e5e1e5;
+  --color-on-surface-variant: #d7c3ae;
+  --color-on-primary: #452b00;
+  --color-on-primary-container: #644000;
+  --color-background: #131316;
+  --color-outline-variant: #524534;
+  --color-footer-bg: #09090b;
+  --color-footer-border: #18181b;
+  --color-footer-muted: #71717a;
+  --color-footer-copy: #52525b;
+  --font-headline: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-mono: "DM Mono", monospace;
+}

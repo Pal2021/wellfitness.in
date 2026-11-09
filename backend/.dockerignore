@@ -1,0 +1,9 @@
+.gradle
+build
+bin
+.idea
+.git
+.env
+.env.*
+src/main/resources/application-dev.properties
+**/firebase-service-account*.json

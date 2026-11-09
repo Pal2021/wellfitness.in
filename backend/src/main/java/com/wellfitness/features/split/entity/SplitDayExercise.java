@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
+import com.wellfitness.features.exercise.entity.Exercise;
 
 @Entity
 @Table(name = "split_day_exercises")
@@ -28,6 +29,10 @@ public class SplitDayExercise {
 
     @Column(name = "exercise_id", nullable = false)
     private UUID exerciseId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "exercise_id", insertable = false, updatable = false)
+    private Exercise exercise;
 
     @Column(name = "exercise_name", length = 100)
     private String exerciseName;

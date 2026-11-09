@@ -1,73 +1,163 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AppCard from '../../../common/components/AppCard';
-import Badge from '../../../common/components/Badge';
-import { colors, typography } from '../../../theme';
+import { Activity, ArrowRight, Dumbbell, Flame, RefreshCw, Trophy } from 'lucide-react';
+import WeeklyProgressChart from '../components/WeeklyProgressChart';
+import ExerciseProgress from '../components/ExerciseProgress';
+import { getProgressData } from '../services/progressService';
+import { buildWeeklyProgress } from '../utils/progressMetrics';
 
-const UPCOMING = [
-  { emoji: '⚖️', label: 'Body Weight Log', desc: 'Daily weight with 7-day moving average trend' },
-  { emoji: '📐', label: 'Body Fat Estimator', desc: 'Navy formula — no equipment needed' },
-  { emoji: '📷', label: 'Progress Photos', desc: 'Before/after comparison with timeline' },
-  { emoji: '📏', label: 'Measurements', desc: 'Chest, waist, arms, thighs — trend arrows' },
-  { emoji: '📊', label: 'Strength Graphs', desc: 'Per-lift 1RM history and volume charts' },
-  { emoji: '📋', label: 'Monthly Report', desc: 'Auto-generated PDF with all stats' },
-];
+const cardClass = 'rounded-2xl border border-white/10 bg-white/[0.04]';
+const numberFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+
+function formatDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? 'Date unavailable'
+    : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function StatCard({ icon, label, value, unit }) {
+  return (
+    <div className={`${cardClass} p-4 md:p-5`}>
+      <span className="mb-4 block text-amber-400" aria-hidden="true">{icon}</span>
+      <p className="text-2xl font-extrabold tabular-nums text-white md:text-3xl">
+        {numberFormatter.format(value)}{unit && <span className="ml-1 text-sm font-medium text-white/50">{unit}</span>}
+      </p>
+      <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-white/50">{label}</p>
+    </div>
+  );
+}
 
 export default function ProgressScreen() {
   const navigate = useNavigate();
+  const [reloadKey, setReloadKey] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [data, setData] = useState(null);
+  const [chartMetric, setChartMetric] = useState('volumeKg');
+
+  useEffect(() => {
+    let cancelled = false;
+    getProgressData()
+      .then((result) => {
+        if (!cancelled) setData(result);
+      })
+      .catch((requestError) => {
+        if (!cancelled) setError(requestError?.response?.data?.message || 'Could not load progress. Please try again.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [reloadKey]);
+
+  const refresh = () => {
+    setLoading(true);
+    setError('');
+    setReloadKey((value) => value + 1);
+  };
+
+  const weeks = data ? buildWeeklyProgress(data.sessions) : [];
+  const recentWorkouts = weeks.reduce((sum, week) => sum + week.workouts, 0);
+  const recentVolume = weeks.reduce((sum, week) => sum + week.volumeKg, 0);
+
   return (
-    <div style={{ paddingBottom: 20 }}>
-      <div style={{ padding: '14px 16px 6px' }}>
-        <div onClick={() => navigate(-1)} style={{ fontSize: 12, color: colors.AMBER, cursor: 'pointer', fontWeight: 700, marginBottom: 4 }}>← Back</div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: 22, fontWeight: 800 }}>Progress 📈</div>
-          <Badge label="PHASE 5" variant="blue" />
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-[#17130b] via-[#101010] to-black pb-32 text-white md:pb-12">
+      <main className="mx-auto max-w-5xl px-5 py-8 md:px-8 md:py-12">
+        <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-amber-400">Your training</p>
+            <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Progress</h1>
+            <p className="mt-2 text-sm text-white/50">Review each exercise's past sessions and your weekly training trend.</p>
+          </div>
+          <button onClick={refresh} disabled={loading} className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white/70 hover:bg-white/5 disabled:opacity-50">
+            <RefreshCw size={16} aria-hidden="true" /> Refresh
+          </button>
+        </header>
 
-      <div style={{ padding: '20px 14px', textAlign: 'center', animation: 'fadeIn 0.4s ease' }}>
-        <div style={{ fontSize: 56, marginBottom: 12 }}>📈</div>
-        <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Progress Tracking</div>
-        <div style={{ fontSize: 13, color: colors.TEXT_TERTIARY, lineHeight: 1.6, marginBottom: 20 }}>
-          Weight, body fat, measurements, progress photos,<br />
-          and strength curves — all in one place.
-        </div>
-        <Badge label="COMING IN PHASE 5" variant="blue" />
-        {/* Membership tier hidden for Phase 1 launch: <Badge label="COMING IN PHASE 5 — PRO PLAN" variant="blue" /> */}
-      </div>
+        <ExerciseProgress />
 
-      {/* Stats preview */}
-      <div style={{ padding: '0 14px', marginBottom: 10 }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: colors.TEXT_TERTIARY, letterSpacing: 1, marginBottom: 8 }}>PREVIEW</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
-          {[
-            { val: '78.4 kg', label: 'Body Weight', trend: '▼ 0.3kg/wk', color: colors.GREEN },
-            { val: '17%', label: 'Body Fat', trend: '▼ 0.8%/mo', color: colors.GREEN },
-            { val: '112 kg', label: 'Bench 1RM', trend: '▲ 5kg/3mo', color: colors.AMBER },
-            { val: '7.2 hrs', label: 'Avg Sleep', trend: 'Good', color: colors.GREEN },
-          ].map((s, i) => (
-            <AppCard key={i} style={{ padding: 12, textAlign: 'center' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, fontFamily: typography.FONT_MONO, color: s.color }}>{s.val}</div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: colors.TEXT_TERTIARY, letterSpacing: 0.5, marginTop: 4 }}>{s.label}</div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: s.color, marginTop: 5 }}>{s.trend}</div>
-            </AppCard>
-          ))}
-        </div>
-      </div>
+        {loading && <div role="status" className={`${cardClass} p-12 text-center text-white/60`}>Loading progress…</div>}
 
-      <div style={{ padding: '0 14px' }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: colors.TEXT_TERTIARY, letterSpacing: 1, marginBottom: 8 }}>UPCOMING FEATURES</div>
-        {UPCOMING.map((f, i) => (
-          <AppCard key={i} style={{ padding: '12px 14px', animation: `fadeIn ${0.2 + i * 0.05}s ease` }}>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span style={{ fontSize: 22 }}>{f.emoji}</span>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>{f.label}</div>
-                <div style={{ fontSize: 11, color: colors.TEXT_TERTIARY, marginTop: 2 }}>{f.desc}</div>
-              </div>
+        {!loading && error && (
+          <div role="alert" className={`${cardClass} p-8 text-center`}>
+            <p className="mb-5 text-white/70">{error}</p>
+            <button onClick={refresh} className="rounded-xl bg-amber-500 px-5 py-3 font-bold text-black hover:bg-amber-400">Try again</button>
+          </div>
+        )}
+
+        {!loading && !error && data && (
+          <>
+            <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <StatCard icon={<Dumbbell size={20} />} label="All-time workouts" value={data.dashboard.totalWorkouts || 0} />
+              <StatCard icon={<Activity size={20} />} label="Last 4 weeks volume" value={recentVolume} unit="kg" />
+              <StatCard icon={<Flame size={20} />} label="Current streak" value={data.dashboard.streak?.current || 0} unit="days" />
+              <StatCard icon={<Trophy size={20} />} label="Personal records" value={data.records.length} />
             </div>
-          </AppCard>
-        ))}
-      </div>
+
+            <section className={`${cardClass} mb-6 p-5 md:p-7`}>
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-bold">Weekly trend</h2>
+                  <p className="mt-1 text-sm text-white/50">{recentWorkouts} workouts in the last four weeks</p>
+                </div>
+                <div className="flex rounded-xl bg-black/40 p-1" aria-label="Chart metric">
+                  <button onClick={() => setChartMetric('volumeKg')} aria-pressed={chartMetric === 'volumeKg'} className={`rounded-lg px-3 py-2 text-xs font-bold ${chartMetric === 'volumeKg' ? 'bg-amber-500 text-black' : 'text-white/60'}`}>Volume</button>
+                  <button onClick={() => setChartMetric('workouts')} aria-pressed={chartMetric === 'workouts'} className={`rounded-lg px-3 py-2 text-xs font-bold ${chartMetric === 'workouts' ? 'bg-amber-500 text-black' : 'text-white/60'}`}>Workouts</button>
+                </div>
+              </div>
+              <WeeklyProgressChart weeks={weeks} metric={chartMetric} />
+            </section>
+
+            {recentWorkouts === 0 && (
+              <div className={`${cardClass} mb-6 flex flex-wrap items-center justify-between gap-4 p-5`}>
+                <p className="text-sm text-white/70">Complete a workout to start building your trend.</p>
+                <button onClick={() => navigate('/workout/log')} className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 font-bold text-black hover:bg-amber-400">Start workout <ArrowRight size={16} /></button>
+              </div>
+            )}
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <section className={`${cardClass} p-5 md:p-7`}>
+                <h2 className="mb-5 text-xl font-bold">Recent workouts</h2>
+                {data.sessions.length === 0 ? (
+                  <p className="text-sm text-white/50">No completed workouts in the last four weeks.</p>
+                ) : (
+                  <div className="space-y-1">
+                    {data.sessions.slice(0, 5).map((session) => (
+                      <div key={session.id} className="flex items-center justify-between gap-3 border-b border-white/5 py-3 last:border-0">
+                        <div>
+                          <p className="font-semibold">{session.splitDayLabel || 'Freestyle Workout'}</p>
+                          <p className="mt-1 text-xs text-white/50">{formatDate(session.startTime)} · {session.sets?.length || 0} sets</p>
+                        </div>
+                        <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-amber-400">{numberFormatter.format(Number(session.totalVolumeKg) || 0)} kg</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section className={`${cardClass} p-5 md:p-7`}>
+                <h2 className="mb-5 text-xl font-bold">Personal records</h2>
+                {data.records.length === 0 ? (
+                  <p className="text-sm text-white/50">Log a set to begin tracking your personal records.</p>
+                ) : (
+                  <div className="space-y-1">
+                    {data.records.slice(0, 5).map((record) => (
+                      <div key={record.id} className="flex items-center justify-between gap-3 border-b border-white/5 py-3 last:border-0">
+                        <div>
+                          <p className="font-semibold">{record.exerciseName || 'Exercise'}</p>
+                          <p className="mt-1 text-xs text-white/50">{formatDate(record.achievedAt)} · Estimated 1RM</p>
+                        </div>
+                        <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-amber-400">{numberFormatter.format(Number(record.estimated1rm) || 0)} kg</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
+          </>
+        )}
+      </main>
     </div>
   );
 }

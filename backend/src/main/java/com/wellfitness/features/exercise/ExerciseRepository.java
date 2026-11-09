@@ -25,10 +25,12 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
     Optional<Exercise> findByNameIgnoreCase(String name);
 
     @Query("SELECT e FROM Exercise e WHERE " +
+           "(e.userId IS NULL OR e.userId = :userId) AND " +
            "(:muscleGroup IS NULL OR LOWER(e.muscleGroup) = LOWER(:muscleGroup)) AND " +
            "(:equipment IS NULL OR LOWER(e.equipment) = LOWER(:equipment)) AND " +
            "(:search IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%')))")
-    List<Exercise> findFiltered(@Param("muscleGroup") String muscleGroup,
+    List<Exercise> findFiltered(@Param("userId") UUID userId,
+                                @Param("muscleGroup") String muscleGroup,
                                 @Param("equipment") String equipment,
                                 @Param("search") String search);
 }

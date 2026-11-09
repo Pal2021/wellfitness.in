@@ -1,0 +1,154 @@
+/* ============================================
+   CSS Custom Properties — Design Tokens
+   ============================================ */
+
+:root {
+  /* ---- Brand Colors (Golden Amber) ---- */
+  --color-primary: #F5A524;
+  --color-primary-light: #FBC02D;
+  --color-primary-dark: #E09000;
+  --color-secondary: #FBBF24;
+  --color-secondary-light: #FCD34D;
+  --color-secondary-dark: #D97706;
+  --color-accent: #F43F5E;
+  --color-accent-light: #FB7185;
+  --color-accent-dark: #E11D48;
+
+  /* ---- Neutral Palette (Light Mode Base) ---- */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8F9FA;
+  --color-bg-tertiary: #F1F3F5;
+  --color-bg-card: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-input: #F8F9FA;
+  --color-surface: #FFFFFF;
+  --color-border: #E9ECEF;
+  --color-border-light: #F1F3F5;
+
+  /* ---- Text Colors (Light Mode Base) ---- */
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #495057;
+  --color-text-muted: #ADB5BD;
+  --color-text-inverse: #FFFFFF;
+
+  /* ---- Semantic Colors ---- */
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  /* ---- Shadows (Light Mode Base) ---- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 0 30px rgba(245, 165, 36, 0.15);
+  --shadow-glow-sm: 0 0 15px rgba(245, 165, 36, 0.1);
+  --shadow-glow-accent: 0 0 20px rgba(244, 63, 94, 0.1);
+
+  /* ---- Gradient Tokens (Light Mode Base) ---- */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  --gradient-accent: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+  --gradient-dark: linear-gradient(180deg, var(--color-bg-primary), var(--color-bg-secondary));
+  --gradient-button: linear-gradient(180deg, #FBC02D 0%, #E09000 100%);
+
+  /* ---- Font Families ---- */
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ---- Font Sizes ---- */
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+  --text-5xl: 3rem;       /* 48px */
+
+  /* ---- Font Weights ---- */
+  --font-light: 300;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+
+  /* ---- Line Heights ---- */
+  --leading-tight: 1.2;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* ---- Spacing Scale ---- */
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+
+  /* ---- Border Radii ---- */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 30px rgba(245, 165, 36, 0.35);
+  --shadow-glow-sm: 0 0 15px rgba(245, 165, 36, 0.2);
+  --shadow-glow-accent: 0 0 20px rgba(244, 63, 94, 0.3);
+
+  /* ---- Transitions ---- */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+  --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dark-theme {
+  /* ---- Neutral Palette (Dark Mode Base) ---- */
+  --color-bg-primary: #121212;
+  --color-bg-secondary: #1E1E1E;
+  --color-bg-tertiary: #252525;
+  --color-bg-card: #1E1E1E;
+  --color-bg-elevated: #2C2C2C;
+  --color-bg-input: #1E1E1E;
+  --color-surface: #121212;
+  --color-border: #2C2C2C;
+  --color-border-light: #333333;
+
+  /* ---- Text Colors (Dark Mode Base) ---- */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #9BA1A6;
+  --color-text-muted: #6C757D;
+  --color-text-inverse: #1A1A1A;
+
+  /* ---- Shadows (Dark Mode Override) ---- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 30px rgba(245, 165, 36, 0.1);
+  --shadow-glow-sm: 0 0 15px rgba(245, 165, 36, 0.05);
+
+  /* ---- Specific Overrides for Dark Mode ---- */
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+

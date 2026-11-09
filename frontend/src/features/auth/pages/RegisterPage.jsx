@@ -1,403 +1,455 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../../common/context/AuthContext";
-import AppButton from "../../../common/components/AppButton";
-import { colors } from "../../../theme";
-
-const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { register as apiRegister, googleAuth } from '../../../services/apiClient';
+import { GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../../../common/context/AuthContext';
 
 export default function RegisterPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
-  const { register, verifyEmailOtp } = useAuth();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleRegister = async () => {
-    setError("");
+  /* ── Form state ──────────────────────────── */
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  /* ── UI state ────────────────────────────── */
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState('');
 
-    // Name validation
-    if (!name.trim()) {
-      setError("Please enter your full name");
-      return;
-    }
-    if (name.trim().length < 2) {
-      setError("Name must be at least 2 characters");
-      return;
-    }
-
-    // Email validation
+  /* ── Validation ──────────────────────────── */
+  const validate = () => {
+    const errs = {};
+    if (!name.trim()) errs.name = 'Name is required';
     if (!email.trim()) {
-      setError("Please enter your email address");
-      return;
+      errs.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errs.email = 'Enter a valid email';
     }
-    if (!EMAIL_REGEX.test(email.trim())) {
-      setError("Please enter a valid email address (e.g. name@gmail.com)");
-      return;
-    }
-
-    // Password validation
     if (!password) {
-      setError("Please enter a password");
-      return;
+      errs.password = 'Password is required';
+    } else if (password.length < 8) {
+      errs.password = 'Minimum 8 characters';
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-    if (!/[A-Z]/.test(password)) {
-      setError("Password must contain at least one uppercase letter");
-      return;
-    }
-    if (!/[0-9]/.test(password)) {
-      setError("Password must contain at least one number");
-      return;
-    }
-
-    // Confirm password
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
+      errs.confirmPassword = 'Passwords do not match';
     }
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  /* ── Submit ──────────────────────────────── */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    if (!validate()) return;
 
     setLoading(true);
     try {
-      const data = await register(name.trim(), email.trim().toLowerCase(), password);
-      if (data && data.otpRequired) {
-        setOtpSent(true);
-        setSuccess(`An OTP has been sent to ${email}`);
+      // Step 1: Register via Spring Boot (sends verification email behind the scenes)
+      const res = await apiRegister({ name, email, password });
+      const payloadData = res.data?.data || res.data;
+      const { token, ...user } = payloadData;
+      
+      // Step 2: Store pending details and navigate to OTP Verification
+      sessionStorage.setItem('pendingToken', token);
+      localStorage.setItem('pendingEmail', email);
+
+      navigate('/verify-otp?type=email');
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Registration failed. Please try again.';
+      setFormError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ── Google (OAuth2.0) ───────────────────── */
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setFormError('');
+    document.body.style.cursor = 'wait';
+    try {
+      const res = await googleAuth(credentialResponse.credential);
+      const payloadData = res.data?.data || res.data;
+      const { token, ...user } = payloadData;
+      login(token, user);
+      
+      if (user.onboardingComplete === false) {
+        navigate('/onboarding', { replace: true });
       } else {
-        navigate("/onboarding");
+        navigate('/dashboard', { replace: true });
       }
-    } catch (e) {
-      setError(e.response?.data?.message || "Registration failed");
+    } catch (err) {
+      console.error(err);
+      setFormError('Google sign-in failed. Try again.');
     } finally {
-      setLoading(false);
+      document.body.style.cursor = 'default';
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (!otp || otp.length < 6) {
-      setError("Please enter the 6-digit OTP");
-      return;
-    }
-    setError("");
-    setLoading(true);
-    try {
-      await verifyEmailOtp(email.trim().toLowerCase(), otp);
-      navigate("/onboarding");
-    } catch (e) {
-      setError(e.response?.data?.message || "OTP verification failed");
-    } finally {
-      setLoading(false);
-    }
+  const handleGoogleError = () => {
+    setFormError('Google Sign-In cancelled.');
   };
 
+  /* ── Shared input style ──────────────────── */
   const inputStyle = {
-    width: "100%",
-    background: colors.BG_SECONDARY,
-    border: `0.5px solid ${colors.BORDER_DEFAULT}`,
-    borderRadius: 14,
-    padding: "14px 16px",
-    fontSize: 14,
-    color: colors.TEXT_PRIMARY,
-    outline: "none",
-    marginBottom: 10,
-    fontWeight: 600,
+    width: '100%',
+    padding: '14px 16px',
+    fontSize: 'var(--text-base)',
+    fontFamily: 'var(--font-sans)',
+    color: 'var(--color-text-primary)',
+    backgroundColor: 'var(--color-bg-input)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-xl)',
+    outline: 'none',
+    transition: 'all 200ms ease',
   };
 
-  const isEmailValid = email && EMAIL_REGEX.test(email.trim());
+  const inputErrorStyle = (field) =>
+    errors[field] ? { borderColor: 'var(--color-error)' } : {};
+
+  const focusHandlers = (field) => ({
+    onFocus: (e) => {
+      if (!errors[field]) {
+        e.target.style.borderColor = 'var(--color-primary)';
+        e.target.style.boxShadow = '0 0 0 2px rgba(245,165,36,0.12)';
+      }
+    },
+    onBlur: (e) => {
+      e.target.style.borderColor = errors[field] ? 'var(--color-error)' : 'var(--color-border)';
+      e.target.style.boxShadow = 'none';
+    },
+  });
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        padding: 24,
-      }}
-    >
-      <div
-        style={{
-          textAlign: "center",
-          marginBottom: 40,
-          animation: "fadeIn 0.5s ease",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 42,
-            fontWeight: 900,
-            letterSpacing: -2,
-            background: `linear-gradient(135deg, ${colors.AMBER} 0%, #FFD700 50%, ${colors.AMBER} 100%)`,
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}
-        >
-          Wellfitness
-        </div>
-        <div
-          style={{
-            fontSize: 12,
-            color: colors.TEXT_TERTIARY,
-            letterSpacing: 1,
-            fontWeight: 600,
-          }}
-        >
-          CREATE YOUR ACCOUNT
-        </div>
-      </div>
+    <div style={S.page} data-page="auth">
+      <div style={S.container} className="animate-fade-in-up" data-container="auth">
+        {/* ── Brand Header ─────────────────── */}
+        <header style={S.header}>
+          <h1 style={S.brand}>Wellfitness</h1>
+          <p style={S.subtitle}>CREATE YOUR ACCOUNT</p>
+        </header>
 
-      <div style={{ animation: "fadeIn 0.6s ease" }}>
-        {error && (
-          <div
-            style={{
-              background: colors.RED_DIM,
-              border: `0.5px solid #F8717133`,
-              borderRadius: 12,
-              padding: "10px 14px",
-              fontSize: 12,
-              color: colors.RED,
-              marginBottom: 14,
-              fontWeight: 600,
-            }}
-          >
-            {error}
-          </div>
-        )}
-        {success && !error && (
-          <div
-            style={{
-              background: colors.GREEN_DIM,
-              border: `0.5px solid #34D39933`,
-              borderRadius: 12,
-              padding: "10px 14px",
-              fontSize: 12,
-              color: colors.GREEN,
-              marginBottom: 14,
-              fontWeight: 600,
-            }}
-          >
-            ✅ {success}
-          </div>
-        )}
+        {/* ── Card ─────────────────────────── */}
+        <div style={S.card} data-card="auth">
+          <form onSubmit={handleSubmit}>
 
-        {otpSent ? (
-          <>
-            <input
-              type="text"
-              placeholder="Enter 6-digit OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              maxLength={6}
-              style={{
-                ...inputStyle,
-                textAlign: "center",
-                fontSize: 22,
-                fontWeight: 800,
-                letterSpacing: 8,
-              }}
-            />
-            <div style={{ marginTop: 8 }}>
-              <AppButton
-                label="Verify OTP"
-                onClick={handleVerifyOtp}
-                loading={loading}
+            {/* ── Full Name ────────────────── */}
+            <div style={S.fieldGroup}>
+              <label htmlFor="reg-name" style={S.label}>FULL NAME</label>
+              <input
+                id="reg-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Doe"
+                autoComplete="name"
+                style={{ ...inputStyle, ...inputErrorStyle('name') }}
+                {...focusHandlers('name')}
               />
+              {errors.name && <p style={S.fieldError}>{errors.name}</p>}
             </div>
-            <div style={{ textAlign: "center", marginTop: 12 }}>
-              <span
-                onClick={() => {
-                  setOtpSent(false);
-                  setOtp("");
-                  setSuccess("");
-                }}
-                style={{
-                  fontSize: 11,
-                  color: colors.TEXT_TERTIARY,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-              >
-                ← Back to registration
-              </span>
+
+            {/* ── Email ────────────────────── */}
+            <div style={S.fieldGroup}>
+              <label htmlFor="reg-email" style={S.label}>EMAIL ADDRESS</label>
+              <input
+                id="reg-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@company.com"
+                autoComplete="email"
+                style={{ ...inputStyle, ...inputErrorStyle('email') }}
+                {...focusHandlers('email')}
+              />
+              {errors.email && <p style={S.fieldError}>{errors.email}</p>}
             </div>
-          </>
-        ) : (
-          <>
-            <input
-          placeholder="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={inputStyle}
-        />
 
-        {/* Email with validation indicator */}
-        <div style={{ position: "relative" }}>
-          <input
-            type="email"
-            placeholder="Email (e.g. name@gmail.com)"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={inputStyle}
-          />
-          {email.length > 0 && (
-            <span
+            {/* ── Password ─────────────────── */}
+            <div style={S.fieldGroup}>
+              <label htmlFor="reg-password" style={S.label}>PASSWORD</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="reg-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 8 characters"
+                  autoComplete="new-password"
+                  style={{ ...inputStyle, ...inputErrorStyle('password'), paddingRight: '48px' }}
+                  {...focusHandlers('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  style={S.eyeBtn}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && <p style={S.fieldError}>{errors.password}</p>}
+            </div>
+
+            {/* ── Confirm Password ─────────── */}
+            <div style={S.fieldGroup}>
+              <label htmlFor="reg-confirm" style={S.label}>CONFIRM PASSWORD</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="reg-confirm"
+                  type={showConfirm ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                  autoComplete="new-password"
+                  style={{ ...inputStyle, ...inputErrorStyle('confirmPassword'), paddingRight: '48px' }}
+                  {...focusHandlers('confirmPassword')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                  style={S.eyeBtn}
+                >
+                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.confirmPassword && <p style={S.fieldError}>{errors.confirmPassword}</p>}
+            </div>
+
+            {/* ── Form Error ───────────────── */}
+            {formError && (
+              <div style={S.errorBanner} className="animate-shake">
+                {formError}
+              </div>
+            )}
+
+            {/* ── Create Account Button ────── */}
+            <button
+              type="submit"
+              disabled={loading}
               style={{
-                position: "absolute",
-                right: 14,
-                top: 14,
-                fontSize: 14,
+                ...S.submitBtn,
+                opacity: loading ? 0.65 : 1,
+                cursor: loading ? 'not-allowed' : 'pointer',
               }}
             >
-              {isEmailValid ? "✅" : "❌"}
-            </span>
-          )}
-        </div>
-        {email && !isEmailValid && (
-          <div
-            style={{
-              fontSize: 10,
-              color: colors.RED,
-              marginTop: -6,
-              marginBottom: 8,
-              fontWeight: 600,
-              paddingLeft: 4,
-            }}
-          >
-            Enter a valid email (e.g. yourname@gmail.com)
+              {loading ? <span style={S.spinner} /> : 'Create Account'}
+            </button>
+          </form>
+
+          {/* ── Login link ─────────────────── */}
+          <p style={S.switchText}>
+            Already have an account?{' '}
+            <Link to="/login" style={S.switchLink}>Login</Link>
+          </p>
+
+          {/* ── Divider ────────────────────── */}
+          <div style={S.divider}>
+            <div style={S.dividerLine} />
+            <span style={S.dividerText}>ALTERNATIVE</span>
+            <div style={S.dividerLine} />
           </div>
-        )}
 
-        <input
-          type="password"
-          placeholder="Password (min. 6 chars, 1 uppercase, 1 number)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
-        />
-
-        {/* Password strength indicator */}
-        {password && (
-          <div
-            style={{
-              display: "flex",
-              gap: 6,
-              marginTop: -6,
-              marginBottom: 8,
-              paddingLeft: 4,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 700,
-                color:
-                  password.length >= 6 ? colors.GREEN : colors.TEXT_TERTIARY,
-              }}
-            >
-              {password.length >= 6 ? "✓" : "○"} 6+ chars
-            </span>
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 700,
-                color: /[A-Z]/.test(password)
-                  ? colors.GREEN
-                  : colors.TEXT_TERTIARY,
-              }}
-            >
-              {/[A-Z]/.test(password) ? "✓" : "○"} Uppercase
-            </span>
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 700,
-                color: /[0-9]/.test(password)
-                  ? colors.GREEN
-                  : colors.TEXT_TERTIARY,
-              }}
-            >
-              {/[0-9]/.test(password) ? "✓" : "○"} Number
-            </span>
+          {/* ── Google Component ──────────────── */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              useOneTap
+              theme="outline"
+              size="large"
+              width="398"
+              shape="pill"
+              text="signup_with"
+            />
           </div>
-        )}
 
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleRegister()}
-          style={inputStyle}
-        />
-        {confirmPassword && password !== confirmPassword && (
-          <div
-            style={{
-              fontSize: 10,
-              color: colors.RED,
-              marginTop: -6,
-              marginBottom: 8,
-              fontWeight: 600,
-              paddingLeft: 4,
-            }}
-          >
-            Passwords do not match
-          </div>
-        )}
-
-        <div style={{ marginTop: 8 }}>
-          <AppButton
-            label="Create Account"
-            onClick={handleRegister}
-            loading={loading}
-          />
-        </div>
-
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: 18,
-            fontSize: 13,
-            color: colors.TEXT_SECONDARY,
-          }}
-        >
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            style={{
-              color: colors.AMBER,
-              fontWeight: 700,
-              textDecoration: "none",
-            }}
-          >
-            Sign In
+          {/* ── Back to Home ───────────────── */}
+          <Link to="/" style={S.backLink}>
+            <ArrowLeft size={14} />
+            BACK TO HOME
           </Link>
-        </div>
-        </>
-        )}
-
-        <div style={{ textAlign: "center", marginTop: 12 }}>
-          <span
-            onClick={() => navigate("/welcome")}
-            style={{
-              fontSize: 11,
-              color: colors.TEXT_TERTIARY,
-              cursor: "pointer",
-              fontWeight: 600,
-            }}
-          >
-            ← Back to home
-          </span>
         </div>
       </div>
     </div>
   );
 }
+
+/* ══════════════════════════════════════════════
+   Styles Object 
+   ══════════════════════════════════════════════ */
+const S = {
+  page: {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    background: 'var(--color-bg-primary)',
+    padding: '40px 16px',
+  },
+  container: {
+    width: '100%',
+    maxWidth: '430px',
+  },
+  header: {
+    marginBottom: '28px',
+    paddingLeft: '4px',
+  },
+  brand: {
+    fontFamily: 'var(--font-display)',
+    fontSize: 'clamp(2.5rem, 8vw, 3.5rem)',
+    fontWeight: 'var(--font-extrabold)',
+    color: 'var(--color-primary)',
+    lineHeight: 'var(--leading-tight)',
+    letterSpacing: '-0.02em',
+    margin: 0,
+  },
+  subtitle: {
+    fontFamily: 'var(--font-sans)',
+    fontSize: 'var(--text-base)',
+    fontWeight: 'var(--font-medium)',
+    color: 'var(--color-primary)',
+    opacity: 0.6,
+    letterSpacing: '0.15em',
+    marginTop: '4px',
+  },
+  card: {
+    background: 'var(--color-bg-card)',
+    border: '1px solid var(--color-border)',
+    borderRadius: '20px',
+    padding: '28px 24px 24px',
+  },
+  fieldGroup: {
+    marginBottom: '18px',
+  },
+  label: {
+    display: 'block',
+    fontSize: '11px',
+    fontWeight: 'var(--font-semibold)',
+    fontFamily: 'var(--font-sans)',
+    color: 'var(--color-text-secondary)',
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    marginBottom: '8px',
+  },
+  fieldError: {
+    fontSize: 'var(--text-xs)',
+    color: 'var(--color-error)',
+    marginTop: '4px',
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: '14px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: 'var(--color-text-muted)',
+    display: 'flex',
+    padding: 0,
+  },
+  errorBanner: {
+    padding: '10px 14px',
+    borderRadius: 'var(--radius-lg)',
+    background: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid rgba(239, 68, 68, 0.2)',
+    color: 'var(--color-error)',
+    fontSize: 'var(--text-sm)',
+    marginBottom: '18px',
+  },
+  submitBtn: {
+    width: '100%',
+    padding: '16px',
+    fontSize: 'var(--text-lg)',
+    fontWeight: 'var(--font-bold)',
+    fontFamily: 'var(--font-sans)',
+    color: 'var(--color-text-inverse)',
+    background: 'var(--gradient-button)',
+    border: 'none',
+    borderRadius: 'var(--radius-xl)',
+    boxShadow: 'var(--shadow-glow)',
+    transition: 'all 200ms ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: '4px',
+  },
+  spinner: {
+    width: '20px',
+    height: '20px',
+    border: '2.5px solid rgba(10,10,10,0.3)',
+    borderTopColor: 'var(--color-text-inverse)',
+    borderRadius: '50%',
+    display: 'inline-block',
+    animation: 'spin 0.6s linear infinite',
+  },
+  switchText: {
+    textAlign: 'center',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--color-text-muted)',
+    marginTop: '20px',
+  },
+  switchLink: {
+    color: 'var(--color-primary)',
+    fontWeight: 'var(--font-semibold)',
+    textDecoration: 'none',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    margin: '24px 0',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    background: 'var(--color-border)',
+  },
+  dividerText: {
+    fontSize: '10px',
+    fontWeight: 'var(--font-medium)',
+    letterSpacing: '0.2em',
+    color: 'var(--color-text-muted)',
+  },
+  googleBtn: {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '10px',
+    padding: '13px 20px',
+    borderRadius: 'var(--radius-xl)',
+    border: '1px solid var(--color-border)',
+    background: 'var(--color-bg-tertiary)',
+    color: 'var(--color-text-primary)',
+    fontSize: 'var(--text-sm)',
+    fontWeight: 'var(--font-semibold)',
+    fontFamily: 'var(--font-sans)',
+    cursor: 'pointer',
+    transition: 'all 200ms ease',
+  },
+  backLink: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    marginTop: '20px',
+    fontSize: '11px',
+    fontWeight: 'var(--font-medium)',
+    letterSpacing: '0.15em',
+    color: 'var(--color-text-muted)',
+    textDecoration: 'none',
+    transition: 'color 200ms ease',
+  },
+};

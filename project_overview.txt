@@ -1,0 +1,67 @@
+BACKEND TECH STACK
+-------------------
+- Framework: Spring Boot 3.3.5 (Java 17)
+- Database: MySQL (with Spring Data JPA / Hibernate)
+- Security & Auth: Spring Security, JWT (JSON Web Tokens), Google API Client (OAuth), Firebase Admin SDK (Phone Auth)
+- Email Services: Spring Boot Starter Mail, Resend API
+- Utilities & Testing: Lombok, Spring Boot Starter Test
+
+FRONTEND TECH STACK
+--------------------
+- Core: React 18
+- Build Tool: Vite
+- Styling: Tailwind CSS 4
+- Routing: React Router DOM 6
+- State/API: Axios (HTTP client)
+- Auth/Services: Firebase
+- Icons: Lucide React
+- Testing: Vitest & React Testing Library
+
+BACKEND API ENDPOINTS
+----------------------
+
+Auth (/api/auth)
+- POST /register - Register with email/password
+- POST /login - Login with email/password
+- GET /verify-email - Verify email token
+- POST /otp/mobile/send - Send Mobile OTP
+- POST /otp/mobile/verify - Verify Mobile OTP
+- POST /otp/email/send - Send Email OTP
+- POST /otp/email/verify - Verify Email OTP
+- POST /google - Google OAuth login
+- POST /firebase/phone - Firebase phone auth
+
+Workouts (/api/workouts)
+- POST /start - Start active workout
+- POST /{sessionId}/end - End workout
+- GET /active - Get ongoing workout
+- GET /history - Get user workout history
+- GET /{sessionId} - Get specific workout details
+- GET /{sessionId}/sets - Get specific workout sets details
+- POST /{sessionId}/sets - Add sets
+- GET /exercise-history/{exerciseId} - History for specific exercise
+
+Splits & Templates (/api/splits & /api/split-templates)
+- POST /from-template - Copy split from template
+- GET /active - Get user's active split
+- PUT /{splitId}/days/{dayId} - Update a split day
+- POST /{splitId}/days/{dayId}/exercises/{exerciseId} - Add exercise to split
+- DELETE /{splitId}/days/{dayId}/exercises/{exerciseId} - Remove exercise from split
+- GET /api/split-templates - List templates
+- GET /api/split-templates/recommended - List recommended templates
+- GET /api/split-templates/{id}/days - List days for template
+
+Profile & Onboarding
+- GET /api/profile - Fetch user profile
+- PUT /api/profile - Update user profile
+- POST /api/onboarding/complete - Complete user onboarding
+
+Exercises (/api/exercises)
+- GET / - List all exercises
+- POST / - Add new exercise
+- GET /{id} - Get single exercise
+
+Tracking & Dashboard
+- GET /api/dashboard - Get dashboard statistics
+- GET /api/prs - Get Personal Records
+- GET /api/streaks - Get user streaks

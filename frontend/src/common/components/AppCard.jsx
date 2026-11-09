@@ -1,21 +1,25 @@
-import { colors } from "../../theme";
+/**
+ * AppCard — Reusable card container component
+ *
+ * @param {Object} props
+ * @param {React.ReactNode} props.children
+ * @param {'default'|'elevated'|'glass'} [props.variant='default']
+ * @param {string} [props.className]
+ */
+export default function AppCard({
+  children,
+  variant = 'default',
+  className = '',
+  ...rest
+}) {
+  const variantClass = {
+    default: 'card',
+    elevated: 'card-elevated',
+    glass: 'glass',
+  }[variant];
 
-export default function AppCard({ children, style, onClick }) {
-  const Wrapper = onClick ? "div" : "div";
   return (
-    <div
-      onClick={onClick}
-      style={{
-        background: colors.BG_SECONDARY,
-        border: `0.5px solid ${colors.BORDER_DEFAULT}`,
-        borderRadius: 16,
-        padding: 14,
-        marginBottom: 10,
-        cursor: onClick ? "pointer" : "default",
-        transition: "opacity 0.15s",
-        ...style,
-      }}
-    >
+    <div className={`${variantClass} ${className}`} {...rest}>
       {children}
     </div>
   );

@@ -22,7 +22,7 @@ public class ExerciseDataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (exerciseRepository.count() > 0) {
-            log.info("Exercises already seeded, skipping...");
+            log.info("Exercises already seeded; keeping existing exercise photos.");
             return;
         }
 
@@ -156,6 +156,38 @@ public class ExerciseDataSeeder implements CommandLineRunner {
         log.info("Seeded {} exercises successfully", exercises.size());
     }
 
+    private String getImageUrlForExercise(String name, String muscleGroup) {
+        if (name != null) {
+            String lowerName = name.toLowerCase();
+            // Specific overrides for major exercises
+            if (lowerName.contains("lat pulldown")) return "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?q=80&w=1000&auto=format&fit=crop";
+            if (lowerName.contains("deadlift")) return "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1000&auto=format&fit=crop";
+            if (lowerName.contains("squat")) return "https://images.unsplash.com/photo-1574681434199-251f28b78809?q=80&w=1000&auto=format&fit=crop";
+            if (lowerName.contains("bench press")) return "https://images.unsplash.com/photo-1591873133605-ff3b8f3af5cd?q=80&w=1000&auto=format&fit=crop";
+            if (lowerName.contains("curl")) return "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000&auto=format&fit=crop";
+            if (lowerName.contains("push-up") || lowerName.contains("push up")) return "https://images.unsplash.com/photo-1598266663412-7e28ec7eb9b7?q=80&w=1000&auto=format&fit=crop";
+        }
+
+        // Fallback to general muscle group images
+        if (muscleGroup == null) return "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1000&auto=format&fit=crop";
+        switch (muscleGroup.toUpperCase()) {
+            case "CHEST":
+                return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format&fit=crop";
+            case "BACK":
+                return "https://images.unsplash.com/photo-1603287681836-b174ce5074c2?q=80&w=1000&auto=format&fit=crop";
+            case "LEGS":
+                return "https://images.unsplash.com/photo-1434596922112-19c563067271?q=80&w=1000&auto=format&fit=crop";
+            case "SHOULDERS":
+                return "https://images.unsplash.com/photo-1532384748853-8f54a8f476e2?q=80&w=1000&auto=format&fit=crop";
+            case "BICEPS":
+            case "TRICEPS":
+                return "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=1000&auto=format&fit=crop";
+            case "CORE":
+            default:
+                return "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1000&auto=format&fit=crop";
+        }
+    }
+
     private Exercise exercise(String name, String muscleGroup, String secondaryMuscles,
                               String equipment, String difficulty, boolean isCompound,
                               String instructions) {
@@ -166,6 +198,7 @@ public class ExerciseDataSeeder implements CommandLineRunner {
                 .equipment(equipment)
                 .difficulty(difficulty)
                 .isCompound(isCompound)
+                .imageUrl(getImageUrlForExercise(name, muscleGroup))
                 .instructions(instructions)
                 .build();
     }

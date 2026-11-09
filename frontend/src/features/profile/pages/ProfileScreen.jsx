@@ -1,256 +1,185 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Bell, CalendarDays, Dumbbell, Flame, History, LayoutList, LogOut, Moon, Pencil, RefreshCw, Ruler, Settings2, Sun, Target, Trophy, UserRound, Weight } from 'lucide-react';
 import { useAuth } from '../../../common/context/AuthContext';
-import AppCard from '../../../common/components/AppCard';
-import AppButton from '../../../common/components/AppButton';
-import Badge from '../../../common/components/Badge';
-import { colors, typography } from '../../../theme';
-import api from '../../../services/api';
+import { useTheme } from '../../../common/context/ThemeContext';
+import { getDashboard, getPRs, getProfile, updateProfile } from '../../../services/apiClient';
+import { getActiveUserSplit } from '../../split/services/splitService';
+import ProfileEditor from '../components/ProfileEditor';
+import ProfileTag from '../components/ProfileTag';
+import QuickAction from '../components/QuickAction';
+import SettingsItem from '../components/SettingsItem';
+import StatCard from '../components/StatCard';
+
+const goals = [
+  { value: 'LOSE_WEIGHT', label: 'Lose weight', detail: 'Get leaner' },
+  { value: 'BUILD_MUSCLE', label: 'Build muscle', detail: 'Grow stronger' },
+  { value: 'STAY_FIT', label: 'Stay fit', detail: 'Feel your best' },
+];
+const panelStyle = { background: 'var(--color-bg-card)', borderColor: 'var(--color-border)' };
+
+function Avatar({ name, photoUrl }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const initials = name?.trim().split(/\s+/).slice(0, 2).map((word) => word[0]).join('').toUpperCase() || 'W';
+  return <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-amber-400/60 bg-amber-500 text-2xl font-black text-black shadow-lg shadow-amber-500/15 sm:h-24 sm:w-24 sm:text-3xl">{photoUrl && !imageFailed ? <img src={photoUrl} alt="Profile" onError={() => setImageFailed(true)} className="h-full w-full object-cover" /> : initials}</div>;
+}
+
+function formatWeight(user) {
+  const kg = Number(user?.bodyweightKg);
+  if (!kg) return 'Add your weight';
+  return user?.unitsWeight === 'LB' ? `${(kg * 2.20462).toFixed(1)} lb` : `${kg.toFixed(1)} kg`;
+}
+
+function formatHeight(user) {
+  const cm = Number(user?.heightCm);
+  if (!cm) return 'Add your height';
+  return user?.unitsHeight === 'IN' ? `${(cm / 2.54).toFixed(1)} in` : `${cm} cm`;
+}
+
+function requestMessage(error) {
+  return error?.response?.data?.message || error?.message || 'Could not save changes. Please try again.';
+}
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [prs, setPrs] = useState([]);
-  const [dash, setDash] = useState(null);
+  const { user, updateUser, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const [stats, setStats] = useState({ workouts: null, streak: null, prs: null });
   const [loading, setLoading] = useState(true);
-  const [editField, setEditField] = useState(null);
-  const [editValue, setEditValue] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [splitName, setSplitName] = useState(null);
+  const [activeEditor, setActiveEditor] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [feedback, setFeedback] = useState('');
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError('');
+    const [profileResult, dashboardResult, prsResult, splitResult] = await Promise.allSettled([
+      getProfile(), getDashboard(), getPRs(), getActiveUserSplit(),
+    ]);
+    if (profileResult.status === 'fulfilled') updateUser(profileResult.value.data?.data || {});
+    else setLoadError('Could not refresh your profile. Showing your last saved details.');
+    setStats({
+      workouts: dashboardResult.status === 'fulfilled' ? dashboardResult.value.data?.data?.totalWorkouts ?? 0 : null,
+      streak: dashboardResult.status === 'fulfilled' ? dashboardResult.value.data?.data?.streak?.current ?? 0 : null,
+      prs: prsResult.status === 'fulfilled' ? (prsResult.value.data?.data || []).length : null,
+    });
+    setSplitName(splitResult.status === 'fulfilled' ? splitResult.value?.name || null : null);
+    if (dashboardResult.status === 'rejected' || prsResult.status === 'rejected' || splitResult.status === 'rejected') {
+      setLoadError((current) => current || 'Some profile details could not load. Tap retry to refresh.');
+    }
+    setLoading(false);
+  }, [updateUser]);
 
-  useEffect(() => {
-    Promise.all([
-      api.get('/profile').then(r => setProfile(r.data.data)),
-      api.get('/prs').then(r => setPrs(r.data.data || [])).catch(() => {}),
-      api.get('/dashboard').then(r => setDash(r.data.data)).catch(() => {}),
-    ]).finally(() => setLoading(false));
-  }, []);
+  useEffect(() => { load(); }, [load]);
 
-  const saveField = async (field) => {
+  const saveChanges = async (changes) => {
+    setSaving(true);
+    setSaveError('');
+    setFeedback('');
     try {
-      await api.put('/profile', { [field]: editValue });
-      setProfile(prev => ({ ...prev, [field]: editValue }));
-      setEditField(null);
-    } catch (e) { alert('Failed to save'); }
+      const response = await updateProfile(changes);
+      const updated = response.data?.data;
+      if (updated && typeof updated === 'object') updateUser(updated);
+      else {
+        const fresh = await getProfile();
+        updateUser(fresh.data?.data || changes);
+      }
+      setActiveEditor(null);
+      setFeedback('Changes saved.');
+    } catch (error) {
+      setSaveError(requestMessage(error));
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const goals = [
-    { key: 'BUILD_MUSCLE', emoji: '💪', label: 'MUSCLE' },
-    { key: 'LOSE_FAT', emoji: '🔥', label: 'FAT LOSS' },
-    { key: 'GET_STRONG', emoji: '⚡', label: 'STRENGTH' },
-  ];
+  const openEditor = (type) => {
+    setSaveError('');
+    setFeedback('');
+    setActiveEditor(type);
+  };
 
-  const settings = [
-    { icon: '📅', label: 'Training Split', value: 'View your split', action: () => navigate('/split') },
-    { icon: '⚖️', label: 'Body Weight', value: profile?.bodyweightKg ? `${profile.bodyweightKg} kg` : 'Not set', field: 'bodyweightKg' },
-    { icon: '📏', label: 'Height', value: profile?.heightCm ? `${profile.heightCm} cm` : 'Not set', field: 'heightCm' },
-    { icon: '🔔', label: 'Reminders', value: profile?.notificationTime || 'Not set', field: 'notificationTime' },
-    { icon: '📐', label: 'Units', value: `${profile?.unitsWeight || 'KG'} · ${profile?.unitsHeight || 'CM'}` },
-  ];
-
-
-
-  const streak = dash?.streak?.current || 0;
-  const totalWorkouts = dash?.totalWorkouts || 0;
-  const totalPRs = prs.length;
-
-  if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: colors.TEXT_TERTIARY, animation: 'pulse 1.5s infinite' }}>Loading...</div>
-    </div>
-  );
+  const goalLabel = goals.find((goal) => goal.value === user?.goal)?.label || user?.goal?.replaceAll('_', ' ').toLowerCase();
 
   return (
-    <div style={{ paddingBottom: 20, animation: 'fadeIn 0.4s ease' }}>
-      {/* Header */}
-      <div style={{ padding: '14px 16px 6px' }}>
-        <div onClick={() => navigate(-1)} style={{ fontSize: 12, color: colors.AMBER, cursor: 'pointer', fontWeight: 700, marginBottom: 4 }}>← Back</div>
-        <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>My Profile</div>
-      </div>
+    <div className="min-h-screen pb-32 md:pb-12" style={{ background: 'var(--color-bg-primary)', color: 'var(--color-text-primary)' }}>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-10">
+        <header className="mb-6">
+          <p className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-amber-500"><UserRound size={16} aria-hidden="true" /> Your account</p>
+          <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Profile</h1>
+          <p className="mt-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Your training details and preferences, all in one place.</p>
+        </header>
 
-      {/* ─── User Hero Card ─── */}
-      <div style={{
-        margin: '8px 14px 12px', padding: '20px 18px', borderRadius: 16,
-        background: `linear-gradient(135deg, ${colors.AMBER_DIM} 0%, ${colors.BG_SECONDARY} 50%, ${colors.BG_TERTIARY} 100%)`,
-        border: `1px solid ${colors.AMBER_GLOW}`,
-      }}>
-        <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-          {/* Avatar */}
-          <div style={{
-            width: 68, height: 68, borderRadius: '50%',
-            background: `linear-gradient(135deg, ${colors.AMBER} 0%, ${colors.AMBER_GLOW} 100%)`,
-            border: `3px solid ${colors.AMBER}`, boxShadow: `0 0 20px ${colors.AMBER}33`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 28, fontWeight: 800, color: '#000',
-          }}>
-            {(profile?.name || user?.name || 'U').charAt(0).toUpperCase()}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: -0.3 }}>{profile?.name || user?.name}</div>
-            <div style={{ fontSize: 12, color: colors.TEXT_TERTIARY, marginTop: 2 }}>{profile?.email}</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-              <Badge label={`🔥 ${profile?.daysPerWeek || 0}d/week`} variant="amber" />
-              <Badge label={profile?.experience || 'Beginner'} variant="blue" />
-              <Badge label="Free Plan" variant="green" />
-            </div>
-          </div>
-        </div>
-      </div>
+        {loadError && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm"><span>{loadError}</span><button type="button" onClick={load} className="inline-flex items-center gap-1 font-bold text-amber-500"><RefreshCw size={15} /> Retry</button></div>}
+        {feedback && <p role="status" className="mb-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-500">{feedback}</p>}
+        {saveError && !activeEditor && <p role="alert" className="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{saveError}</p>}
 
-      {/* ─── Activity Stats ─── */}
-      <div style={{ padding: '0 14px' }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: colors.TEXT_TERTIARY, letterSpacing: 1, marginBottom: 8 }}>📊 ACTIVITY OVERVIEW</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 6, marginBottom: 14 }}>
-          {[
-            { val: totalWorkouts, label: 'Total Workouts', icon: '🏋️', color: colors.AMBER },
-            { val: streak, label: 'Current Streak', icon: '🔥', color: colors.AMBER },
-            { val: totalPRs, label: 'Total PRs', icon: '🏆', color: colors.GREEN },
-            { val: dash?.recentPRs?.length || 0, label: 'Recent PRs', icon: '⭐', color: colors.BLUE },
-          ].map((s, i) => (
-            <div key={i} style={{
-              padding: '12px 6px', textAlign: 'center', borderRadius: 12,
-              background: colors.BG_SECONDARY, border: `0.5px solid ${colors.BORDER_DEFAULT}`,
-            }}>
-              <div style={{ fontSize: 14, marginBottom: 4 }}>{s.icon}</div>
-              <div style={{ fontSize: 18, fontWeight: 800, fontFamily: typography.FONT_MONO, color: s.color }}>{s.val}</div>
-              <div style={{ fontSize: 8, fontWeight: 700, color: colors.TEXT_TERTIARY, marginTop: 2, letterSpacing: 0.2 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ─── Quick Actions ─── */}
-      <div style={{ padding: '0 14px' }}>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          <AppCard onClick={() => navigate('/workout')} style={{ flex: 1, padding: '14px 12px', cursor: 'pointer', background: colors.AMBER_DIM, border: `0.5px solid ${colors.AMBER_GLOW}` }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 22, marginBottom: 4 }}>💪</div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: colors.AMBER }}>Start Workout</div>
-            </div>
-          </AppCard>
-          <AppCard onClick={() => navigate('/history')} style={{ flex: 1, padding: '14px 12px', cursor: 'pointer' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 22, marginBottom: 4 }}>📖</div>
-              <div style={{ fontSize: 12, fontWeight: 800 }}>View History</div>
-            </div>
-          </AppCard>
-          <AppCard onClick={() => navigate('/split')} style={{ flex: 1, padding: '14px 12px', cursor: 'pointer' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 22, marginBottom: 4 }}>📋</div>
-              <div style={{ fontSize: 12, fontWeight: 800 }}>My Split</div>
-            </div>
-          </AppCard>
-        </div>
-      </div>
-
-      {/* ─── Goal Selector ─── */}
-      <div style={{ padding: '0 14px' }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: colors.TEXT_TERTIARY, letterSpacing: 1, marginBottom: 8 }}>🎯 FITNESS GOAL</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 7, marginBottom: 14 }}>
-          {goals.map(g => {
-            const active = profile?.goal === g.key;
-            return (
-              <AppCard key={g.key} onClick={async () => {
-                try {
-                  await api.put('/profile', { goal: g.key });
-                  setProfile(prev => ({ ...prev, goal: g.key }));
-                } catch (e) { alert('Failed to update goal'); }
-              }} style={{
-                padding: '12px 8px', textAlign: 'center', cursor: 'pointer',
-                border: active ? `1.5px solid ${colors.AMBER}` : undefined,
-                background: active ? colors.AMBER_DIM : colors.BG_SECONDARY,
-              }}>
-                <div style={{ fontSize: 22, marginBottom: 4 }}>{g.emoji}</div>
-                <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.3, color: active ? colors.AMBER : colors.TEXT_TERTIARY }}>{g.label}</div>
-              </AppCard>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ─── Personal Records ─── */}
-      {totalPRs > 0 && (
-        <div style={{ padding: '0 14px' }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: colors.TEXT_TERTIARY, letterSpacing: 1, marginBottom: 8 }}>🏆 PERSONAL RECORDS (Top {Math.min(totalPRs, 5)})</div>
-          {prs.slice(0, 5).map((pr, i) => (
-            <AppCard key={i} style={{ padding: '10px 14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: 7,
-                    background: colors.GREEN_DIM, border: `0.5px solid #34D39933`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 12, fontWeight: 800, color: colors.GREEN,
-                    fontFamily: typography.FONT_MONO,
-                  }}>{i + 1}</div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700 }}>{pr.exerciseName}</div>
-                    <div style={{ fontSize: 10, color: colors.TEXT_TERTIARY, marginTop: 1 }}>{pr.achievedAt?.split('T')[0]}</div>
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: colors.AMBER, fontFamily: typography.FONT_MONO }}>
-                    {pr.weightKg}kg × {pr.reps}
-                  </div>
-                  <div style={{ fontSize: 10, color: colors.TEXT_TERTIARY }}>1RM: {pr.estimated1rm}kg</div>
-                </div>
+        <section className="relative overflow-hidden rounded-3xl border border-amber-500/20 bg-[#17110b] p-5 text-white shadow-[0_20px_60px_rgba(0,0,0,0.18)] sm:p-8">
+          <div aria-hidden="true" className="absolute -right-14 -top-20 h-64 w-64 rounded-full bg-amber-500/15 blur-3xl" />
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
+            <Avatar key={user?.profilePhotoUrl || 'avatar'} name={user?.name} photoUrl={user?.profilePhotoUrl} />
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-extrabold uppercase tracking-widest text-amber-400">WellFitness member</p>
+              <h2 className="mt-1 truncate text-2xl font-black tracking-tight sm:text-3xl">{user?.name || 'Your profile'}</h2>
+              {user?.email && <p className="mt-1 truncate text-sm text-white/65">{user.email}</p>}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {user?.daysPerWeek > 0 && <ProfileTag label={`${user.daysPerWeek} days/week`} />}
+                {user?.experience && <ProfileTag label={user.experience.toLowerCase()} />}
+                {goalLabel && <ProfileTag label={goalLabel} />}
               </div>
-            </AppCard>
-          ))}
-        </div>
-      )}
+            </div>
+            <button type="button" onClick={() => openEditor('identity')} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-bold transition hover:bg-white/20 sm:w-auto sm:self-start"><Pencil size={16} aria-hidden="true" /> Edit profile</button>
+          </div>
+        </section>
 
-      {/* ─── Settings ─── */}
-      <div style={{ padding: '4px 14px 0' }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: colors.TEXT_TERTIARY, letterSpacing: 1, marginBottom: 8 }}>⚙️ SETTINGS</div>
-        {settings.map((s, i) => (
-          <AppCard key={i} onClick={() => {
-            if (s.action) { s.action(); return; }
-            if (s.field) { setEditField(s.field); setEditValue(profile?.[s.field] || ''); }
-          }} style={{ padding: '11px 14px', cursor: 'pointer' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ fontSize: 17, width: 24, textAlign: 'center' }}>{s.icon}</span>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>{s.label}</div>
-                  <div style={{ fontSize: 11, color: colors.TEXT_TERTIARY, marginTop: 1 }}>{s.value}</div>
-                </div>
+        <section aria-label="Training statistics" className="mt-4 grid grid-cols-3 gap-2 sm:gap-4">
+          <StatCard icon={Dumbbell} value={stats.workouts ?? '—'} label="Workouts" loading={loading} />
+          <StatCard icon={Flame} value={stats.streak ?? '—'} label="Day streak" loading={loading} />
+          <StatCard icon={Trophy} value={stats.prs ?? '—'} label="Records" loading={loading} />
+        </section>
+
+        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
+          <div className="space-y-8">
+            <section aria-labelledby="profile-shortcuts-title">
+              <h2 id="profile-shortcuts-title" className="mb-3 text-lg font-black">Your training</h2>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <QuickAction icon={History} label="Workout history" detail="Review completed sessions" onClick={() => navigate('/workout/history')} />
+                <QuickAction icon={LayoutList} label="My split" detail="Manage your training days" onClick={() => navigate('/splits')} />
               </div>
-              <span style={{ fontSize: 13, color: colors.TEXT_TERTIARY }}>›</span>
-            </div>
-          </AppCard>
-        ))}
-      </div>
+            </section>
 
+            <section aria-labelledby="profile-goal-title" className="rounded-2xl border p-5 sm:p-6" style={panelStyle}>
+              <div className="mb-4 flex items-start gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500"><Target size={20} /></span><div><h2 id="profile-goal-title" className="text-lg font-black">Fitness goal</h2><p className="mt-0.5 text-xs" style={{ color: 'var(--color-text-secondary)' }}>Choose what you are working toward.</p></div></div>
+              <div className="space-y-2">{goals.map((goal) => <button key={goal.value} type="button" disabled={saving} aria-pressed={user?.goal === goal.value} onClick={() => { if (user?.goal !== goal.value) saveChanges({ goal: goal.value }); }} className={`flex min-h-14 w-full items-center justify-between gap-3 rounded-xl border px-4 text-left transition disabled:opacity-60 ${user?.goal === goal.value ? 'border-amber-500 bg-amber-500/10' : 'hover:border-amber-500/40'}`} style={user?.goal === goal.value ? undefined : { borderColor: 'var(--color-border)' }}><span><span className="block text-sm font-bold">{goal.label}</span><span className="block text-xs" style={{ color: 'var(--color-text-secondary)' }}>{goal.detail}</span></span><span className={`h-4 w-4 shrink-0 rounded-full border-2 ${user?.goal === goal.value ? 'border-amber-500 bg-amber-500' : 'border-gray-500'}`} /></button>)}</div>
+            </section>
+          </div>
 
+          <div className="space-y-8">
+            <section aria-labelledby="profile-settings-title">
+              <h2 id="profile-settings-title" className="mb-3 text-lg font-black">Settings</h2>
+              <div className="overflow-hidden rounded-2xl border" style={panelStyle}>
+                <SettingsItem first icon={LayoutList} label="Training split" value={splitName || 'Choose a split'} onClick={() => navigate('/splits')} />
+                <SettingsItem icon={CalendarDays} label="Training preferences" value={`${user?.daysPerWeek || 'Set'} days/week · ${user?.experience?.toLowerCase() || 'set experience'}`} onClick={() => openEditor('training')} />
+                <SettingsItem icon={Weight} label="Body weight" value={formatWeight(user)} onClick={() => openEditor('weight')} />
+                <SettingsItem icon={Ruler} label="Height" value={formatHeight(user)} onClick={() => openEditor('height')} />
+                <SettingsItem icon={Bell} label="Preferred workout time" value={user?.notificationTime || 'Not set'} onClick={() => openEditor('reminder')} />
+                <button type="button" onClick={toggleTheme} aria-pressed={theme === 'dark'} className="flex min-h-18 w-full items-center gap-3 border-t px-4 py-4 text-left transition hover:bg-amber-500/5 focus-visible:outline-2 focus-visible:outline-amber-500 sm:px-5" style={{ borderColor: 'var(--color-border)' }}><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">{theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}</span><span className="min-w-0 flex-1"><span className="block text-sm font-bold">Appearance</span><span className="mt-0.5 block text-xs" style={{ color: 'var(--color-text-secondary)' }}>{theme === 'dark' ? 'Dark mode' : 'Light mode'}</span></span><span className={`flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition ${theme === 'dark' ? 'bg-amber-500' : 'bg-gray-500'}`}><span className={`h-5 w-5 rounded-full bg-white transition-transform ${theme === 'dark' ? 'translate-x-5' : ''}`} /></span></button>
+                <SettingsItem icon={Settings2} label="Units" value={`${user?.unitsWeight || 'KG'} · ${user?.unitsHeight || 'CM'}`} onClick={() => openEditor('units')} />
+              </div>
+            </section>
 
-      {/* Inline edit modal */}
-      {editField && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.7)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          animation: 'fadeIn 0.2s ease',
-        }}>
-          <div style={{ background: colors.BG_SECONDARY, borderRadius: 16, padding: 20, width: '85%', maxWidth: 350 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 12 }}>Edit {editField}</div>
-            <input value={editValue} onChange={e => setEditValue(e.target.value)} autoFocus
-              style={{
-                width: '100%', background: colors.BG_TERTIARY, border: `0.5px solid ${colors.BORDER_DEFAULT}`,
-                borderRadius: 10, padding: '10px 12px', fontSize: 14, color: colors.TEXT_PRIMARY, outline: 'none', marginBottom: 12,
-              }}
-            />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <AppButton label="Save" onClick={() => saveField(editField)} style={{ flex: 1 }} />
-              <AppButton label="Cancel" variant="ghost" onClick={() => setEditField(null)} style={{ flex: 1 }} />
-            </div>
+            <section className="rounded-2xl border p-5 sm:p-6" style={panelStyle}>
+              <h2 className="text-lg font-black">Account</h2>
+              <p className="mt-1 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Finished for now? You can sign back in anytime.</p>
+              <button type="button" onClick={logout} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 text-sm font-extrabold text-red-500 transition hover:bg-red-500/10"><LogOut size={18} aria-hidden="true" /> Log out</button>
+            </section>
           </div>
         </div>
-      )}
-
-      {/* Logout */}
-      <div style={{ padding: '10px 14px 0' }}>
-        <AppButton label="Logout" variant="danger" onClick={() => { logout(); navigate('/login'); }} />
-      </div>
+      </main>
+      {activeEditor && <ProfileEditor key={activeEditor} type={activeEditor} user={user} saving={saving} error={saveError} onSave={saveChanges} onClose={() => setActiveEditor(null)} />}
     </div>
   );
 }

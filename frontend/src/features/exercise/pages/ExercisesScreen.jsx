@@ -1,226 +1,124 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PageHeader from '../../../common/components/PageHeader';
-import AppCard from '../../../common/components/AppCard';
-import AppButton from '../../../common/components/AppButton';
-import Badge from '../../../common/components/Badge';
-import { colors } from '../../../theme';
-import api from '../../../services/api';
-
-const MUSCLE_GROUPS = ['ALL', 'CHEST', 'BACK', 'LEGS', 'SHOULDERS', 'BICEPS', 'TRICEPS', 'CORE'];
+import { Dumbbell, Plus, Search, X } from 'lucide-react';
+import ExerciseCard from '../components/ExerciseCard';
+import AddCustomExerciseModal from '../components/AddCustomExerciseModal';
+import * as exerciseService from '../services/exerciseService';
 
 export default function ExercisesScreen() {
   const navigate = useNavigate();
   const [exercises, setExercises] = useState([]);
-  const [filter, setFilter] = useState('ALL');
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [showDetail, setShowDetail] = useState(null);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newExercise, setNewExercise] = useState({
-    name: '', muscleGroup: 'CHEST', equipment: 'BARBELL',
-    difficulty: 'INTERMEDIATE', isCompound: false, instructions: '',
-    secondaryMuscles: '',
-  });
+  const [error, setError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
+  const [activeTab, setActiveTab] = useState('library');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const loadExercises = () => {
+  useEffect(() => {
+    let cancelled = false;
+    exerciseService.fetchAllExercises()
+      .then((data) => {
+        if (!cancelled) setExercises(data);
+      })
+      .catch((requestError) => {
+        if (!cancelled) setError(requestError.message || 'Failed to load exercises');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [reloadKey]);
+
+  const libraryExercises = useMemo(() => exercises.filter((exercise) => !exercise.userId), [exercises]);
+  const muscleGroups = useMemo(() => exerciseService.getMuscleGroups(libraryExercises), [libraryExercises]);
+  const filteredExercises = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return exercises.filter((exercise) => {
+      if (activeTab === 'library' && exercise.userId) return false;
+      if (activeTab === 'custom' && !exercise.userId) return false;
+      if (activeTab === 'library' && selectedMuscleGroup && exercise.muscleGroup !== selectedMuscleGroup) return false;
+      return !query || exercise.name?.toLowerCase().includes(query);
+    });
+  }, [exercises, activeTab, searchTerm, selectedMuscleGroup]);
+
+  const refresh = () => {
+    setError('');
     setLoading(true);
-    const params = {};
-    if (filter && filter !== 'ALL') params.muscle_group = filter;
-    if (search) params.search = search;
-    api.get('/exercises', { params }).then(r => {
-      setExercises(r.data.data || []);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    setReloadKey((value) => value + 1);
   };
 
-  useEffect(() => { loadExercises(); }, [filter, search]);
-
-  const badgeColor = (mg) => {
-    const map = { CHEST: 'amber', BACK: 'blue', LEGS: 'green', SHOULDERS: 'purple',
-                  BICEPS: 'gold', TRICEPS: 'red', CORE: 'amber' };
-    return map[mg] || 'amber';
+  const handleCreateCustomExercise = async (data) => {
+    await exerciseService.createCustomExercise(data);
+    refresh();
   };
 
-  const inputStyle = {
-    width: '100%', background: colors.BG_TERTIARY, border: `0.5px solid ${colors.BORDER_DEFAULT}`,
-    borderRadius: 10, padding: '10px 12px', fontSize: 13, color: colors.TEXT_PRIMARY,
-    outline: 'none', marginBottom: 8,
-  };
-
-  // ─── Exercise Detail View ───
-  if (showDetail) {
-    return (
-      <div style={{ paddingBottom: 20 }}>
-        <PageHeader title={showDetail.name} subtitle={showDetail.muscleGroup} />
-        <div style={{ padding: '0 14px', animation: 'fadeIn 0.3s ease' }}>
-          <AppCard style={{ padding: 16 }}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-              <Badge label={showDetail.muscleGroup} variant={badgeColor(showDetail.muscleGroup)} />
-              <Badge label={showDetail.equipment} variant="blue" />
-              <Badge label={showDetail.difficulty} variant="purple" />
-              {showDetail.isCompound && <Badge label="COMPOUND" variant="gold" />}
-            </div>
-            {showDetail.secondaryMuscles && (
-              <div style={{ fontSize: 12, color: colors.TEXT_SECONDARY, marginBottom: 8 }}>
-                <strong>Secondary:</strong> {showDetail.secondaryMuscles}
-              </div>
-            )}
-            {showDetail.instructions && (
-              <div style={{ fontSize: 12, color: colors.TEXT_SECONDARY, lineHeight: 1.6 }}>
-                <strong>Instructions:</strong><br />{showDetail.instructions}
-              </div>
-            )}
-          </AppCard>
-          <AppButton label="← Back" variant="ghost" onClick={() => setShowDetail(null)} />
-        </div>
-
-      </div>
-    );
-  }
-
-  // ─── Add Custom Exercise Form ───
-  if (showAddForm) {
-    return (
-      <div style={{ paddingBottom: 20 }}>
-        <PageHeader title="Add Exercise" subtitle="Create a custom exercise" />
-        <div style={{ padding: '0 14px', animation: 'fadeIn 0.3s ease' }}>
-          <AppCard style={{ padding: 16 }}>
-            <label style={{ fontSize: 10, color: colors.TEXT_TERTIARY, fontWeight: 700 }}>Exercise Name *</label>
-            <input value={newExercise.name} onChange={e => setNewExercise(p => ({ ...p, name: e.target.value }))}
-              placeholder="e.g. Cable Lateral Raise" style={inputStyle} />
-
-            <label style={{ fontSize: 10, color: colors.TEXT_TERTIARY, fontWeight: 700 }}>Muscle Group *</label>
-            <select value={newExercise.muscleGroup} onChange={e => setNewExercise(p => ({ ...p, muscleGroup: e.target.value }))}
-              style={{ ...inputStyle, appearance: 'none' }}>
-              {['CHEST', 'BACK', 'LEGS', 'SHOULDERS', 'BICEPS', 'TRICEPS', 'CORE'].map(mg =>
-                <option key={mg} value={mg}>{mg}</option>
-              )}
-            </select>
-
-            <label style={{ fontSize: 10, color: colors.TEXT_TERTIARY, fontWeight: 700 }}>Equipment *</label>
-            <select value={newExercise.equipment} onChange={e => setNewExercise(p => ({ ...p, equipment: e.target.value }))}
-              style={{ ...inputStyle, appearance: 'none' }}>
-              {['BARBELL', 'DUMBBELL', 'CABLE', 'MACHINE', 'BODYWEIGHT', 'KETTLEBELL', 'BAND', 'OTHER'].map(eq =>
-                <option key={eq} value={eq}>{eq}</option>
-              )}
-            </select>
-
-            <label style={{ fontSize: 10, color: colors.TEXT_TERTIARY, fontWeight: 700 }}>Difficulty</label>
-            <select value={newExercise.difficulty} onChange={e => setNewExercise(p => ({ ...p, difficulty: e.target.value }))}
-              style={{ ...inputStyle, appearance: 'none' }}>
-              {['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].map(d =>
-                <option key={d} value={d}>{d}</option>
-              )}
-            </select>
-
-            <label style={{ fontSize: 10, color: colors.TEXT_TERTIARY, fontWeight: 700 }}>Secondary Muscles</label>
-            <input value={newExercise.secondaryMuscles}
-              onChange={e => setNewExercise(p => ({ ...p, secondaryMuscles: e.target.value }))}
-              placeholder="e.g. Triceps, Shoulders" style={inputStyle} />
-
-            <label style={{ fontSize: 10, color: colors.TEXT_TERTIARY, fontWeight: 700 }}>Instructions</label>
-            <textarea value={newExercise.instructions}
-              onChange={e => setNewExercise(p => ({ ...p, instructions: e.target.value }))}
-              placeholder="How to perform this exercise..." rows={3}
-              style={{ ...inputStyle, resize: 'vertical' }} />
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <input type="checkbox" checked={newExercise.isCompound}
-                onChange={e => setNewExercise(p => ({ ...p, isCompound: e.target.checked }))} />
-              <span style={{ fontSize: 12, color: colors.TEXT_SECONDARY }}>Compound exercise</span>
-            </div>
-          </AppCard>
-
-          <div style={{ display: 'flex', gap: 8 }}>
-            <AppButton label="Save Exercise" onClick={async () => {
-              if (!newExercise.name) { alert('Name is required'); return; }
-              try {
-                await api.post('/exercises', newExercise);
-                setShowAddForm(false);
-                setNewExercise({ name: '', muscleGroup: 'CHEST', equipment: 'BARBELL',
-                  difficulty: 'INTERMEDIATE', isCompound: false, instructions: '', secondaryMuscles: '' });
-                loadExercises();
-              } catch (e) {
-                alert(e.response?.data?.message || 'Failed to save exercise');
-              }
-            }} style={{ flex: 1 }} />
-            <AppButton label="Cancel" variant="ghost" onClick={() => setShowAddForm(false)} style={{ flex: 1 }} />
-          </div>
-        </div>
-
-      </div>
-    );
-  }
-
-  // ─── Main Exercise List ───
   return (
-    <div style={{ paddingBottom: 20 }}>
-      <div style={{ padding: '14px 16px 6px' }}>
-        <div onClick={() => navigate(-1)} style={{ fontSize: 12, color: colors.AMBER, cursor: 'pointer', fontWeight: 700, marginBottom: 4 }}>← Back</div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>Exercises</div>
-            <div style={{ fontSize: 12, color: colors.TEXT_TERTIARY, marginTop: 2 }}>{exercises.length} exercises</div>
+    <div className="min-h-screen pb-28 md:pb-12" style={{ background: 'var(--color-bg-primary)', color: 'var(--color-text-primary)' }}>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-10">
+        <header className="relative mb-7 overflow-hidden rounded-3xl border border-amber-500/20 bg-[#17120b] px-6 py-8 text-white shadow-[0_24px_80px_rgba(0,0,0,0.15)] sm:px-9 sm:py-11">
+          <img src="/exercise-images/barbell-squat.jpg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-35" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#14100b] via-[#14100b]/95 to-[#14100b]/30" aria-hidden="true" />
+          <div className="relative max-w-xl">
+            <span className="mb-3 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.2em] text-amber-400"><Dumbbell size={16} aria-hidden="true" /> Train with purpose</span>
+            <h1 className="text-3xl font-black tracking-tight sm:text-4xl md:text-5xl">Exercise Library</h1>
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/70 sm:text-base">Explore movements, see how they look, and add the right exercise to your next workout.</p>
+            <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-amber-300">{libraryExercises.length} guided exercises</p>
           </div>
-          <div onClick={() => setShowAddForm(true)} style={{
-            padding: '6px 12px', borderRadius: 10, fontSize: 10, fontWeight: 800,
-            background: colors.AMBER_DIM, border: `0.5px solid ${colors.AMBER_GLOW}`,
-            color: colors.AMBER, cursor: 'pointer',
-          }}>+ Add</div>
+        </header>
+
+        <section className="mb-6 rounded-2xl border p-4 sm:p-5" style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }} aria-label="Exercise filters">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex rounded-xl p-1" style={{ background: 'var(--color-bg-tertiary)' }} aria-label="Exercise collection">
+              <button type="button" onClick={() => setActiveTab('library')} aria-pressed={activeTab === 'library'} className={`rounded-lg px-4 py-2 text-xs font-extrabold uppercase tracking-wider transition ${activeTab === 'library' ? 'bg-amber-500 text-black shadow-sm' : 'hover:text-amber-500'}`}>Library</button>
+              <button type="button" onClick={() => setActiveTab('custom')} aria-pressed={activeTab === 'custom'} className={`rounded-lg px-4 py-2 text-xs font-extrabold uppercase tracking-wider transition ${activeTab === 'custom' ? 'bg-amber-500 text-black shadow-sm' : 'hover:text-amber-500'}`}>My custom</button>
+            </div>
+            {activeTab === 'custom' && (
+              <button type="button" onClick={() => setIsAddModalOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wide text-black transition hover:bg-amber-400"><Plus size={16} aria-hidden="true" /> Add exercise</button>
+            )}
+          </div>
+
+          <div className="relative">
+            <Search size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-muted)' }} aria-hidden="true" />
+            <input aria-label="Search exercises" type="search" placeholder="Search exercises..." value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} className="h-12 w-full rounded-xl border pl-11 pr-10 text-sm outline-none transition focus:border-amber-500" style={{ background: 'var(--color-bg-tertiary)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }} />
+            {searchTerm && <button type="button" onClick={() => setSearchTerm('')} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-amber-500"><X size={17} /></button>}
+          </div>
+
+          {activeTab === 'library' && muscleGroups.length > 0 && (
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1" aria-label="Filter by muscle group">
+              {['', ...muscleGroups].map((group) => (
+                <button type="button" key={group || 'all'} onClick={() => setSelectedMuscleGroup(group)} aria-pressed={selectedMuscleGroup === group} className={`shrink-0 rounded-full border px-3.5 py-2 text-xs font-bold uppercase tracking-wide transition ${selectedMuscleGroup === group ? 'border-amber-500 bg-amber-500 text-black' : 'border-amber-500/15 hover:border-amber-500/50'}`}>
+                  {group || 'All'}
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div className="mb-4 flex items-baseline justify-between gap-3">
+          <h2 className="text-lg font-extrabold">{activeTab === 'library' ? 'Explore exercises' : 'Your exercises'}</h2>
+          {!loading && !error && <p className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>{filteredExercises.length} {filteredExercises.length === 1 ? 'exercise' : 'exercises'}</p>}
         </div>
-      </div>
 
-      <div style={{ padding: '0 14px' }}>
-        <input
-          placeholder="🔍 Search exercises..."
-          value={search} onChange={e => setSearch(e.target.value)}
-          style={{
-            width: '100%', background: colors.BG_SECONDARY, border: `0.5px solid ${colors.BORDER_DEFAULT}`,
-            borderRadius: 12, padding: '11px 14px', fontSize: 13, color: colors.TEXT_PRIMARY, outline: 'none',
-            marginBottom: 10,
-          }}
-        />
-
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 4, scrollbarWidth: 'none' }}>
-          {MUSCLE_GROUPS.map(mg => (
-            <div key={mg} onClick={() => setFilter(mg)} style={{
-              padding: '6px 14px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-              whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.2s',
-              background: filter === mg ? colors.AMBER_DIM : colors.BG_SECONDARY,
-              color: filter === mg ? colors.AMBER : colors.TEXT_SECONDARY,
-              border: filter === mg ? `1px solid ${colors.AMBER}` : `0.5px solid ${colors.BORDER_DEFAULT}`,
-            }}>{mg}</div>
-          ))}
-        </div>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 30, color: colors.TEXT_TERTIARY, animation: 'pulse 1.5s infinite' }}>Loading...</div>
-        ) : (
-          exercises.map(ex => (
-            <AppCard key={ex.id} onClick={() => setShowDetail(ex)}
-              style={{ padding: '10px 14px', animation: 'fadeIn 0.3s ease', cursor: 'pointer' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>{ex.name}</div>
-                  <div style={{ fontSize: 11, color: colors.TEXT_TERTIARY }}>
-                    {ex.equipment} · {ex.difficulty}
-                    {ex.isCompound && ' · Compound'}
-                  </div>
-                  {ex.secondaryMuscles && (
-                    <div style={{ fontSize: 10, color: colors.TEXT_TERTIARY, marginTop: 2 }}>
-                      Also: {ex.secondaryMuscles}
-                    </div>
-                  )}
-                </div>
-                <Badge label={ex.muscleGroup} variant={badgeColor(ex.muscleGroup)} />
-              </div>
-            </AppCard>
-          ))
+        {loading && <div role="status" className="rounded-2xl border p-12 text-center text-sm" style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}>Loading exercises…</div>}
+        {!loading && error && <div role="alert" className="rounded-2xl border p-8 text-center" style={{ borderColor: 'var(--color-border)' }}><p className="mb-4">{error}</p><button type="button" onClick={refresh} className="rounded-xl bg-amber-500 px-5 py-2.5 font-bold text-black">Try again</button></div>}
+        {!loading && !error && filteredExercises.length === 0 && (
+          <div className="rounded-2xl border px-6 py-14 text-center" style={{ borderColor: 'var(--color-border)', background: 'var(--color-bg-card)' }}>
+            <Dumbbell size={32} className="mx-auto mb-4 text-amber-500" aria-hidden="true" />
+            <h3 className="text-lg font-bold">No exercises found</h3>
+            <p className="mt-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>{activeTab === 'custom' && !searchTerm ? 'Create a custom exercise to start your collection.' : 'Try another search or muscle group.'}</p>
+            {activeTab === 'custom' && !searchTerm && <button type="button" onClick={() => setIsAddModalOpen(true)} className="mt-5 rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-black">Create exercise</button>}
+          </div>
         )}
-      </div>
+        {!loading && !error && filteredExercises.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {filteredExercises.map((exercise) => <ExerciseCard key={exercise.id} exercise={exercise} onSelect={(item) => navigate(`/exercises/${item.id}`, { state: { exercise: item } })} />)}
+          </div>
+        )}
+      </main>
 
-
+      <AddCustomExerciseModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onExerciseCreated={handleCreateCustomExercise} />
     </div>
   );
 }

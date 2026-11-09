@@ -2,6 +2,8 @@ package com.wellfitness.features.workout;
 
 import com.wellfitness.features.workout.dto.request.LogSetRequest;
 import com.wellfitness.features.workout.dto.response.SetLogResponse;
+import com.wellfitness.features.workout.dto.response.ExerciseProgressSummary;
+import com.wellfitness.features.workout.dto.response.ExerciseSessionProgress;
 import com.wellfitness.common.exception.BadRequestException;
 import com.wellfitness.common.exception.ResourceNotFoundException;
 import com.wellfitness.features.workout.entity.WorkoutSession;
@@ -32,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -58,9 +62,15 @@ public class WorkoutService {
 
         String dayLabel = null;
         if (splitDayId != null) {
-            dayLabel = splitDayRepository.findById(splitDayId)
-                    .map(SplitDay::getLabel)
-                    .orElse(null);
+            SplitDay day = splitDayRepository.findById(splitDayId)
+                    .orElseThrow(() -> new ResourceNotFoundException("SplitDay", "id", splitDayId));
+            if (!day.getSplit().getUserId().equals(userId) || !Boolean.TRUE.equals(day.getSplit().getIsActive())) {
+                throw new BadRequestException("Choose a day from your active split");
+            }
+            if (Boolean.TRUE.equals(day.getIsRestDay())) {
+                throw new BadRequestException("A rest day cannot start a workout");
+            }
+            dayLabel = day.getLabel();
         }
 
         WorkoutSession session = WorkoutSession.builder()
@@ -86,6 +96,10 @@ public class WorkoutService {
         }
         if (!"ACTIVE".equals(session.getStatus())) {
             throw new BadRequestException("Session is not active");
+        }
+        if (setRepository.existsBySessionIdAndExerciseIdAndSetNumber(
+                sessionId, request.getExerciseId(), request.getSetNumber())) {
+            throw new BadRequestException("This set has already been logged");
         }
 
         Exercise exercise = exerciseRepository.findById(request.getExerciseId())
@@ -118,7 +132,8 @@ public class WorkoutService {
 
         // F09: Get overload suggestion for next set
         Map<String, Object> overloadSuggestion = overloadService.getSuggestion(
-                userId, request.getExerciseId(), request.getSetNumber() + 1);
+                userId, request.getExerciseId(), request.getSetNumber(),
+                request.getWeightKg(), request.getReps());
 
         return SetLogResponse.builder()
                 .setId(workoutSet.getId())
@@ -146,6 +161,9 @@ public class WorkoutService {
         if (!session.getUserId().equals(userId)) {
             throw new BadRequestException("Session does not belong to you");
         }
+        if (!"ACTIVE".equals(session.getStatus())) {
+            throw new BadRequestException("Session is not active");
+        }
 
         // Calculate total volume (RULE 4)
         List<WorkoutSet> sets = setRepository.findBySessionIdOrderByLoggedAtAsc(sessionId);
@@ -171,9 +189,13 @@ public class WorkoutService {
         return sessionRepository.findByUserIdAndStatus(userId, "ACTIVE").orElse(null);
     }
 
-    public WorkoutSession getSessionById(UUID sessionId) {
-        return sessionRepository.findById(sessionId)
+    public WorkoutSession getSessionById(UUID userId, UUID sessionId) {
+        WorkoutSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("WorkoutSession", "id", sessionId));
+        if (!session.getUserId().equals(userId)) {
+            throw new BadRequestException("Session does not belong to you");
+        }
+        return session;
     }
 
     public Page<WorkoutSession> getHistory(UUID userId, int page, int size) {
@@ -182,7 +204,8 @@ public class WorkoutService {
                 userId, "COMPLETED", pageable);
     }
 
-    public List<WorkoutSet> getSessionSets(UUID sessionId) {
+    public List<WorkoutSet> getSessionSets(UUID userId, UUID sessionId) {
+        getSessionById(userId, sessionId);
         return setRepository.findBySessionIdOrderByLoggedAtAsc(sessionId);
     }
 
@@ -197,5 +220,35 @@ public class WorkoutService {
     public List<WorkoutSet> getExerciseHistory(UUID userId, UUID exerciseId) {
         List<WorkoutSet> sets = setRepository.findPreviousSetsForExercise(userId, exerciseId);
         return sets.size() > 30 ? sets.subList(0, 30) : sets;
+    }
+
+    public List<ExerciseProgressSummary> getExerciseProgressSummaries(UUID userId) {
+        return setRepository.findExerciseProgressSummaries(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ExerciseSessionProgress> getExerciseSessionHistory(UUID userId, UUID exerciseId) {
+        Map<UUID, List<WorkoutSet>> bySession = new LinkedHashMap<>();
+        for (WorkoutSet set : setRepository.findCompletedSessionHistoryForExercise(userId, exerciseId)) {
+            bySession.computeIfAbsent(set.getSession().getId(), ignored -> new ArrayList<>()).add(set);
+        }
+
+        return bySession.values().stream().map(sets -> {
+            WorkoutSession session = sets.get(0).getSession();
+            BigDecimal volume = sets.stream()
+                    .map(set -> set.getWeightKg().multiply(BigDecimal.valueOf(set.getReps())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal bestWeight = sets.stream()
+                    .map(WorkoutSet::getWeightKg)
+                    .max(BigDecimal::compareTo)
+                    .orElse(BigDecimal.ZERO);
+            List<ExerciseSessionProgress.ExerciseSetProgress> setDetails = sets.stream()
+                    .map(set -> new ExerciseSessionProgress.ExerciseSetProgress(
+                            set.getSetNumber(), set.getWeightKg(), set.getReps(),
+                            set.getRpe(), Boolean.TRUE.equals(set.getIsPr())))
+                    .toList();
+            return new ExerciseSessionProgress(session.getId(), session.getStartTime(),
+                    session.getSplitDayLabel(), volume, bestWeight, setDetails);
+        }).toList();
     }
 }

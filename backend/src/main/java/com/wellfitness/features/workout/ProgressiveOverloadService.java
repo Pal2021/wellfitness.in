@@ -13,10 +13,9 @@ import java.util.UUID;
 
 /**
  * RULE 1 — Progressive Overload Engine.
- * For each set logged, find the last completed session's same set number.
- * If current reps >= last reps → suggest +2.5kg.
- * If current reps < last reps → keep same weight.
- * If no previous → return null.
+ * Compare the logged set with the same set in the previous completed session.
+ * Matching or exceeding its weight and reps suggests +2.5 kg for the next set.
+ * Otherwise keep the weight just used. No previous set means no suggestion.
  */
 @Slf4j
 @Service
@@ -25,7 +24,8 @@ public class ProgressiveOverloadService {
 
     private final WorkoutSetRepository workoutSetRepository;
 
-    public Map<String, Object> getSuggestion(UUID userId, UUID exerciseId, int setNumber) {
+    public Map<String, Object> getSuggestion(UUID userId, UUID exerciseId, int setNumber,
+                                             BigDecimal currentWeightKg, int currentReps) {
         List<WorkoutSet> previousSets = workoutSetRepository
                 .findPreviousSetsForExercise(userId, exerciseId);
 
@@ -39,20 +39,16 @@ public class ProgressiveOverloadService {
             return null; // No previous session data
         }
 
-        BigDecimal suggestedWeight;
-        int suggestedReps = lastSet.getReps();
-
-        // Default suggestion: keep same weight (conservative default)
-        suggestedWeight = lastSet.getWeightKg();
-
-        // If they hit their rep target in the previous set, suggest +2.5kg
-        if (lastSet.getReps() >= suggestedReps) {
-            suggestedWeight = lastSet.getWeightKg().add(new BigDecimal("2.5"));
+        BigDecimal suggestedWeight = currentWeightKg;
+        if (currentWeightKg.compareTo(BigDecimal.ZERO) > 0
+                && currentWeightKg.compareTo(lastSet.getWeightKg()) >= 0
+                && currentReps >= lastSet.getReps()) {
+            suggestedWeight = currentWeightKg.add(new BigDecimal("2.5"));
         }
 
         return Map.of(
                 "suggestedWeight", suggestedWeight,
-                "suggestedReps", suggestedReps,
+                "suggestedReps", lastSet.getReps(),
                 "previousWeight", lastSet.getWeightKg(),
                 "previousReps", lastSet.getReps()
         );
