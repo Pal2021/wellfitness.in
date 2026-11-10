@@ -1,18 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../../common/context/AuthContext';
-import { verifyEmailOtp, sendEmailOtp, firebasePhone } from '../../../services/apiClient';
+import { verifyEmailOtp, sendEmailOtp } from '../../../services/apiClient';
 import OTPInput from '../../../common/components/OTPInput';
-import { auth } from '../../../firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 export default function VerifyOTPPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const type = searchParams.get('type') || 'email'; // 'email' | 'phone'
-  const phoneParam = searchParams.get('phone');
-  
   const { login } = useAuth();
   
   const [otp, setOtp] = useState('');
@@ -27,21 +21,13 @@ export default function VerifyOTPPage() {
   const [targetIdentifier, setTargetIdentifier] = useState('');
 
   useEffect(() => {
-    if (type === 'email') {
-      const pendingEmail = localStorage.getItem('pendingEmail');
-      if (!pendingEmail) {
-        navigate('/register', { replace: true });
-        return;
-      }
-      setTargetIdentifier(pendingEmail);
-    } else if (type === 'phone') {
-      if (!phoneParam || !window.confirmationResult) {
-        navigate('/phone-login', { replace: true });
-        return;
-      }
-      setTargetIdentifier(phoneParam);
+    const pendingEmail = localStorage.getItem('pendingEmail');
+    if (!pendingEmail) {
+      navigate('/register', { replace: true });
+      return;
     }
-  }, [type, phoneParam, navigate]);
+    setTargetIdentifier(pendingEmail);
+  }, [navigate]);
 
   // Countdown timer
   useEffect(() => {
@@ -63,49 +49,16 @@ export default function VerifyOTPPage() {
     setResendMsg('');
 
     try {
-      if (type === 'email') {
-        const res = await verifyEmailOtp({ email: targetIdentifier, otp });
-        const payloadData = res.data?.data || res.data; 
-        const { token, ...user } = payloadData;
-        
-        // Remove pending flags
-        localStorage.removeItem('pendingEmail');
-        sessionStorage.removeItem('pendingToken');
-
-        login(token, user);
-        
-        if (user.onboardingComplete === false) {
-          navigate('/onboarding', { replace: true });
-        } else {
-          navigate('/dashboard', { replace: true });
-        }
-      } else if (type === 'phone') {
-        // Firebase confirmation
-        const result = await window.confirmationResult.confirm(otp);
-        const idToken = await result.user.getIdToken();
-        
-        // Custom backend swap
-        const res = await firebasePhone({ idToken, phone: targetIdentifier });
-        const payloadData = res.data?.data || res.data;
-        const { token, ...user } = payloadData;
-        
-        window.confirmationResult = null; // clean up
-
-        login(token, user);
-        
-        if (user.onboardingComplete === false) {
-          navigate('/onboarding', { replace: true });
-        } else {
-          navigate('/dashboard', { replace: true });
-        }
-      }
+      const res = await verifyEmailOtp({ email: targetIdentifier, otp });
+      const payloadData = res.data?.data || res.data;
+      const { token, ...user } = payloadData;
+      localStorage.removeItem('pendingEmail');
+      sessionStorage.removeItem('pendingToken');
+      login(token, user);
+      navigate(user.onboardingComplete === false ? '/onboarding' : '/dashboard', { replace: true });
     } catch (err) {
       console.error(err);
-      if (type === 'email') {
-        setError(err.response?.data?.message || 'Invalid OTP. Try again.');
-      } else {
-        setError('Wrong OTP. Try again.');
-      }
+      setError(err.response?.data?.message || 'Invalid OTP. Try again.');
     } finally {
       setLoading(false);
     }
@@ -118,14 +71,10 @@ export default function VerifyOTPPage() {
     setResendMsg('');
 
     try {
-      if (type === 'email') {
-        await sendEmailOtp(targetIdentifier);
-        setResendMsg('Code resent!');
-        setCountdown(60);
-      } else if (type === 'phone') {
-        navigate('/phone-login', { replace: true });
-      }
-    } catch (err) {
+      await sendEmailOtp(targetIdentifier);
+      setResendMsg('Code resent!');
+      setCountdown(60);
+    } catch {
       setError('Failed to resend. Try again later.');
     }
   };
@@ -142,7 +91,7 @@ export default function VerifyOTPPage() {
         <div style={S.card} data-card="auth">
           <div style={{ marginBottom: '28px', textAlign: 'center' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 'var(--font-bold)', marginBottom: '8px' }}>
-              {type === 'email' ? 'Verify your email' : 'Enter the OTP'}
+              Verify your email
             </h2>
             <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
               We sent a 6-digit code to <br/>
@@ -209,7 +158,7 @@ export default function VerifyOTPPage() {
             </button>
           </div>
 
-          <Link to={type === 'phone' ? "/phone-login" : "/register"} style={S.backLink}>
+          <Link to="/register" style={S.backLink}>
             <ArrowLeft size={14} />
             BACK
           </Link>

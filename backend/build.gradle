@@ -42,9 +42,6 @@ dependencies {
     // Google OAuth - ID token verification
     implementation 'com.google.api-client:google-api-client:2.7.0'
 
-    // Firebase Admin - for verifying Firebase Phone Auth tokens
-    implementation 'com.google.firebase:firebase-admin:9.3.0'
-
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

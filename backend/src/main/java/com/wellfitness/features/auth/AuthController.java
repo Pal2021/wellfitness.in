@@ -45,28 +45,6 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Email verified", "Email verified successfully"));
     }
 
-    // ─── Mobile OTP: Send OTP ───
-    @PostMapping("/otp/mobile/send")
-    public ResponseEntity<ApiResponse<Map<String, String>>> sendMobileOtp(
-            @RequestBody Map<String, String> body) {
-        String phone = body.get("phone");
-        String otp = authService.sendMobileOtp(phone);
-        // In production: do NOT return the OTP — only send via SMS
-        return ResponseEntity.ok(ApiResponse.success(
-                Map.of("message", "OTP sent to +91" + phone.replaceAll("[^0-9]", ""), "otp", otp),
-                "OTP sent successfully"));
-    }
-
-    // ─── Mobile OTP: Verify OTP → JWT ───
-    @PostMapping("/otp/mobile/verify")
-    public ResponseEntity<ApiResponse<AuthResponse>> verifyMobileOtp(
-            @RequestBody Map<String, String> body) {
-        String phone = body.get("phone");
-        String otp = body.get("otp");
-        AuthResponse response = authService.verifyMobileOtp(phone, otp);
-        return ResponseEntity.ok(ApiResponse.success(response, "Mobile OTP verified — login successful"));
-    }
-
     // ─── Google OAuth: Accept Google ID Token → Verify → JWT ───
     @PostMapping("/google")
     public ResponseEntity<ApiResponse<AuthResponse>> googleAuth(
@@ -74,16 +52,6 @@ public class AuthController {
         String idToken = body.get("credential");
         AuthResponse response = authService.googleAuth(idToken);
         return ResponseEntity.ok(ApiResponse.success(response, "Google authentication successful"));
-    }
-
-    // ─── Firebase Phone Auth: Accept Firebase ID Token → Verify → JWT ───
-    @PostMapping("/firebase/phone")
-    public ResponseEntity<ApiResponse<AuthResponse>> firebasePhoneAuth(
-            @RequestBody Map<String, String> body) {
-        String idToken = body.get("idToken");
-        String phone = body.get("phone");
-        AuthResponse response = authService.firebasePhoneAuth(idToken, phone);
-        return ResponseEntity.ok(ApiResponse.success(response, "Phone authentication successful"));
     }
 
     // ─── Email OTP: Send OTP ───

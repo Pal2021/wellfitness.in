@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, ArrowLeft, ArrowUpRight, Dumbbell, Phone, Check, LoaderCircle } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, ArrowUpRight, Dumbbell, Check, LoaderCircle } from 'lucide-react';
 import { login as apiLogin, googleAuth } from '../../../services/apiClient';
 import { useAuth } from '../../../common/context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
@@ -77,11 +77,6 @@ export default function LoginPage() {
     setError('Google Sign-In cancelled.');
   };
 
-  /* ── Phone Navigation ────────────────────── */
-  const handlePhoneSignIn = () => {
-    navigate('/phone-login');
-  };
-
   const googleContainer = useRef(null);
   const [googleWidth, setGoogleWidth] = useState(280);
   useEffect(() => {
@@ -119,7 +114,6 @@ export default function LoginPage() {
           <div className="wf-login__divider"><span />or continue with<span /></div>
           <div className="wf-login__alternatives">
             <div className="wf-login__google" ref={googleContainer}><GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} useOneTap theme="outline" size="large" width={googleWidth} shape="rectangular" text="continue_with_google" /></div>
-            <button type="button" onClick={handlePhoneSignIn} className="wf-login__phone"><Phone size={17} aria-hidden="true" /> Continue with phone</button>
           </div>
           <p className="wf-login__signup">New to Wellfitness? <Link to="/register">Create an account <ArrowUpRight size={14} aria-hidden="true" /></Link></p>
         </section>

@@ -19,7 +19,7 @@ npm ci
 npm.cmd run dev -- --host localhost --port 5173 --strictPort
 ```
 
-Open http://localhost:5173. The frontend calls http://localhost:8080/api. Stop each server with Ctrl+C in its own terminal. To check the frontend build, run `npm run build`. If Firebase reports missing exports after dependency changes, stop the frontend and run `npm ci` to restore the lockfile's package versions.
+Open http://localhost:5173. The frontend calls http://localhost:8080/api. Stop each server with Ctrl+C in its own terminal. To check the frontend build, run `npm run build`.
 
 ## Run the full project with Docker
 
@@ -37,7 +37,7 @@ docker compose logs --tail 50 backend
 docker compose down
 ```
 
-Stopping with `down` preserves database data; do not add `-v` unless you intend to delete it. Local development credentials and dependency/build directories are excluded from Docker build contexts. Email delivery requires `RESEND_API_KEY` and `APP_EMAIL_FROM` in the launching environment; Google login uses the same public OAuth client ID for the frontend build and backend verification. Compose defaults to the app's existing client; set `GOOGLE_CLIENT_ID` to override both and run `docker compose up -d --build` again. In that client's Google Cloud Console settings, authorize the exact JavaScript origin `http://localhost` (and `http://localhost:5173` for Vite). A backend audience mismatch returns 401 even after Google sign-in succeeds. Azure configuration is optional and passed through from the launching environment. Firebase phone login requires separately configured container credentials. Missing provider credentials leave those features unavailable.
+Stopping with `down` preserves database data; do not add `-v` unless you intend to delete it. Local development credentials and dependency/build directories are excluded from Docker build contexts. Email delivery requires `RESEND_API_KEY` and `APP_EMAIL_FROM` in the launching environment; Google login uses the same public OAuth client ID for the frontend build and backend verification. Compose defaults to the app's existing client; set `GOOGLE_CLIENT_ID` to override both and run `docker compose up -d --build` again. In that client's Google Cloud Console settings, authorize the exact JavaScript origin `http://localhost` (and `http://localhost:5173` for Vite). A backend audience mismatch returns 401 even after Google sign-in succeeds. Azure configuration is optional and passed through from the launching environment. Missing provider credentials leave those features unavailable.
 
 ## Public pages
 

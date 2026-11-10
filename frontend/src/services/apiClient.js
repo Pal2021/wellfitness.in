@@ -26,20 +26,6 @@ export const login = (data) => api.post('/auth/login', data);
 export const verifyEmail = (token) => api.get(`/auth/verify-email?token=${token}`);
 
 /**
- * Send an OTP to a mobile number.
- * @param {string} phone - Mobile phone number
- * @returns {Promise<import('axios').AxiosResponse>} Send result
- */
-export const sendMobileOtp = (phone) => api.post('/auth/otp/mobile/send', { phone });
-
-/**
- * Verify an OTP sent to a mobile number.
- * @param {Object} data - Verification payload (phone, otp)
- * @returns {Promise<import('axios').AxiosResponse>} Verification result
- */
-export const verifyMobileOtp = (data) => api.post('/auth/otp/mobile/verify', data);
-
-/**
  * Send an OTP to an email address.
  * @param {string} email - Email address to send OTP to
  * @returns {Promise<import('axios').AxiosResponse>} Send result
@@ -59,13 +45,6 @@ export const verifyEmailOtp = (data) => api.post('/auth/otp/email/verify', data)
  * @returns {Promise<import('axios').AxiosResponse>} Response containing JWT token
  */
 export const googleAuth = (credential) => api.post('/auth/google', { credential });
-
-/**
- * Authenticate via Firebase Phone Auth.
- * @param {Object} data - Firebase phone auth payload
- * @returns {Promise<import('axios').AxiosResponse>} Response containing JWT token
- */
-export const firebasePhone = (data) => api.post('/auth/firebase/phone', data);
 
 // ══════════════════════════════════════════════
 //  WORKOUTS  (/workouts)

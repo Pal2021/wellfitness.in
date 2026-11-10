@@ -2,9 +2,7 @@ package com.wellfitness;
 
 import com.wellfitness.features.auth.EmailOtpService;
 import com.wellfitness.features.auth.EmailService;
-import com.wellfitness.features.auth.OtpService;
 import com.wellfitness.features.auth.GoogleTokenVerifierService;
-import com.wellfitness.features.auth.FirebaseTokenVerifierService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,15 +29,22 @@ class SmokeTest {
     private EmailOtpService emailOtpService;
 
     @MockBean
-    private OtpService otpService;
-
-    @MockBean
     private GoogleTokenVerifierService googleTokenVerifier;
 
-    @MockBean
-    private FirebaseTokenVerifierService firebaseTokenVerifier;
-
     // ─── AUTH ─────────────────────────────────────────
+    @Test
+    void removedPhoneAuthenticationEndpointsReturnNotFound() throws Exception {
+        for (String path : new String[] {
+                "/api/auth/otp/mobile/send",
+                "/api/auth/otp/mobile/verify",
+                "/api/auth/firebase/phone"
+        }) {
+            mockMvc.perform(post(path).contentType("application/json").content("{}"))
+                    .andExpect(result -> org.junit.jupiter.api.Assertions.assertEquals(
+                            404, result.getResponse().getStatus(), path));
+        }
+    }
+
     @Test
     void authEndpoints_ShouldNotReturn500() throws Exception {
 

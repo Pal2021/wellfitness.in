@@ -10,7 +10,6 @@ import SideNav from "./common/components/SideNav";
 import LandingPage from "./features/landing/pages/LandingPage";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
-import PhoneLoginPage from "./features/auth/pages/PhoneLoginPage";
 import VerifyOTPPage from "./features/auth/pages/VerifyOTPPage";
 import OnboardingScreen from "./features/onboarding/pages/OnboardingScreen";
 import DashboardScreen from "./features/dashboard/pages/DashboardScreen";
@@ -188,7 +187,6 @@ function AppRoutes() {
       <Route path="/" element={<RootRoute />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/phone-login" element={<PhoneLoginPage />} />
       <Route path="/verify-otp" element={<VerifyOTPPage />} />
 
       {/* Onboarding — no bottom nav */}

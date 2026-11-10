@@ -26,9 +26,7 @@ service/AuthService.java,features/auth/AuthService.java
 service/EmailOtpService.java,features/auth/EmailOtpService.java
 service/EmailService.java,features/auth/EmailService.java
 service/ExerciseService.java,features/exercise/ExerciseService.java
-service/FirebaseTokenVerifierService.java,features/auth/FirebaseTokenVerifierService.java
 service/GoogleTokenVerifierService.java,features/auth/GoogleTokenVerifierService.java
-service/OtpService.java,features/auth/OtpService.java
 service/PRDetectionService.java,features/pr/PRDetectionService.java
 service/ProgressiveOverloadService.java,features/workout/ProgressiveOverloadService.java
 service/SplitService.java,features/split/SplitService.java

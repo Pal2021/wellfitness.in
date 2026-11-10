@@ -10,8 +10,6 @@ import com.wellfitness.features.pr.PersonalRecordRepository;
 import com.wellfitness.features.auth.AuthService;
 import com.wellfitness.features.auth.EmailOtpService;
 import com.wellfitness.features.auth.EmailService;
-import com.wellfitness.features.auth.OtpService;
-import com.wellfitness.features.auth.FirebaseTokenVerifierService;
 import com.wellfitness.features.auth.GoogleTokenVerifierService;
 import com.wellfitness.features.workout.WorkoutService;
 import com.wellfitness.features.workout.ProgressiveOverloadService;
