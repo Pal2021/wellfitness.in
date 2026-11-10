@@ -41,7 +41,7 @@ Stopping with `down` preserves database data; do not add `-v` unless you intend 
 
 ## Public pages
 
-The public landing page (`/`) and login page (`/login`) use scoped, responsive styles in their feature folders. The login layout stacks on mobile and shows an introduction beside the form on desktop. Email/password, Google, phone sign-in, and registration navigation retain their existing flows. Both pages support visible keyboard focus and reduced-motion preferences.
+The public landing page (`/`) and login page (`/login`) use scoped, responsive styles in their feature folders. The login layout stacks on mobile and shows an introduction beside the form on desktop. Email/password, Google sign-in, and registration navigation retain their existing flows. Both pages support visible keyboard focus and reduced-motion preferences.
 
 ## Diet food logging
 
