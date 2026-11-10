@@ -23,6 +23,7 @@ import java.util.Set;
 public class ProfileController {
 
     private final UserRepository userRepository;
+    private final BodyMeasurementService bodyMeasurements;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getProfile(
@@ -61,7 +62,7 @@ public class ProfileController {
         }
         if (updates.containsKey("goal")) {
             String goal = text(updates, "goal");
-            if (!Set.of("LOSE_WEIGHT", "BUILD_MUSCLE", "STAY_FIT").contains(goal))
+            if (!Set.of("LOSE_WEIGHT", "GAIN_WEIGHT", "BUILD_MUSCLE", "GET_STRONGER", "STAY_FIT").contains(goal))
                 throw new BadRequestException("Choose a valid fitness goal");
             user.setGoal(goal);
         }
@@ -124,6 +125,9 @@ public class ProfileController {
         }
 
         userRepository.save(user);
+        if (updates.containsKey("bodyweightKg") || updates.containsKey("heightCm")) {
+            bodyMeasurements.recordToday(user);
+        }
         return ResponseEntity.ok(ApiResponse.success(toProfile(user), "Profile updated successfully"));
     }
 

@@ -3,6 +3,8 @@ package com.wellfitness.features.workout;
 import com.wellfitness.features.workout.entity.WorkoutSet;
 import com.wellfitness.features.workout.dto.response.ExerciseProgressSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -45,4 +47,14 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, UUID> {
            "ORDER BY s.startTime DESC, ws.setNumber ASC")
     List<WorkoutSet> findCompletedSessionHistoryForExercise(@Param("userId") UUID userId,
                                                             @Param("exerciseId") UUID exerciseId);
+
+    @Query(value = "SELECT ws FROM WorkoutSet ws JOIN FETCH ws.session s " +
+           "WHERE s.userId = :userId AND s.status = 'COMPLETED' AND ws.completed = true " +
+           "AND REPLACE(LOWER(ws.exerciseName), ' ', '') LIKE LOWER(CONCAT('%', :name, '%')) " +
+           "ORDER BY s.startTime DESC, ws.setNumber ASC",
+           countQuery = "SELECT COUNT(ws) FROM WorkoutSet ws JOIN ws.session s " +
+                   "WHERE s.userId = :userId AND s.status = 'COMPLETED' AND ws.completed = true " +
+                   "AND REPLACE(LOWER(ws.exerciseName), ' ', '') LIKE LOWER(CONCAT('%', :name, '%'))")
+    Page<WorkoutSet> findCoachExerciseHistory(@Param("userId") UUID userId,
+            @Param("name") String name, Pageable pageable);
 }

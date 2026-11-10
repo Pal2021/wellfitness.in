@@ -4,7 +4,7 @@ The Diet tab saves meal entries and optional user-set daily targets in MySQL thr
 
 Local development uses Hibernate `ddl-auto=update`. Production does not, so apply [`sql/2026_11_08_diet.sql`](sql/2026_11_08_diet.sql), then the additive [`sql/2026_11_08_diet_remarks.sql`](sql/2026_11_08_diet_remarks.sql), once each to the production MySQL database before deploying the new backend. The remarks migration preserves existing entries with `NULL` remarks.
 
-Meal ideas use the Azure OpenAI **Responses API** on your Azure AI Foundry GPT-5 deployment. Set these environment variables for the backend process:
+Meal ideas, nutrition estimation, and the AI Coach use the Azure OpenAI **Responses API** on your Azure AI Foundry GPT-5 deployment. Edit the ignored `backend/.env` file and fill in these values:
 
 | Variable | Value |
 | --- | --- |
@@ -14,16 +14,15 @@ Meal ideas use the Azure OpenAI **Responses API** on your Azure AI Foundry GPT-5
 
 The backend appends `/openai/v1/responses` to the resource URL. It also accepts an endpoint already ending in `/openai/v1`. The v1 route does not need an `api-version` parameter. See [Microsoft's Responses API guide](https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/responses) and [v1 endpoint guide](https://learn.microsoft.com/en-us/azure/foundry/openai/api-version-lifecycle).
 
-For a local PowerShell session, set the variables in the terminal that starts the backend:
-
-```powershell
-$env:AZURE_OPENAI_ENDPOINT = 'https://YOUR-RESOURCE.openai.azure.com'
-$env:AZURE_OPENAI_DEPLOYMENT = 'YOUR-GPT-5-DEPLOYMENT-NAME'
-$env:AZURE_OPENAI_API_KEY = '<your-key>'
-.\gradlew.bat bootRun
-```
+Spring Boot imports `backend/.env` automatically when started from either the repository root or the `backend` directory. The file uses plain `KEY=value` lines; do not add PowerShell `$env:` prefixes or quote the values. The tracked `backend/.env.example` shows the expected format.
 
 Keep the key out of source files and the frontend. After changing these variables, restart the backend. If Azure is not configured or is unavailable, meal logging still works and the suggestion request returns a clear unavailable message.
+
+## AI Coach
+
+`POST /api/coach/ask` accepts an authenticated user's question and up to eight recent chat turns. The backend loads the user's current goal, experience, weight, height, user-set nutrition targets, recent meals, and recent completed workouts. The model can request read-only, user-scoped database tools for dated diet totals, workout sessions, exercise sets, and body measurements. Tool date ranges and result sizes are bounded. Conversation messages are kept in the browser for the current page session; the Responses API request uses `store: false` and sends encrypted reasoning items back for stateless tool calling.
+
+Saving weight or height in Profile now records one measurement per day for future trends. Existing profiles have only their current values; earlier weights cannot be reconstructed. Apply [`sql/2026_11_10_body_measurements.sql`](sql/2026_11_10_body_measurements.sql) to production MySQL before deploying this change. Local development creates the table through Hibernate `ddl-auto=update`.
 
 The suggestion call sends the selected day's food names, totals, targets, fitness goal, and the preferences entered for that request to Azure. It does not send the user's name or email. Suggestions are not saved as food entries, and their nutrition values are not assumed.
 

@@ -279,3 +279,7 @@ export const deleteMealEntry = (id) => api.delete(`/diet/entries/${id}`);
 export const saveNutritionTargets = (data) => api.put('/diet/targets', data);
 export const getMealSuggestions = (data) => api.post('/diet/suggestions', data);
 export const estimateMealNutrition = (data) => api.post('/diet/nutrition-estimate', data, { timeout: 70000 });
+
+// Personal AI Coach. History is bounded; the backend loads the current user's data.
+export const askCoach = (message, history = []) =>
+  api.post('/coach/ask', { message, history }, { timeout: 240000 });
