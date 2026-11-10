@@ -13,7 +13,9 @@ import StatCard from '../components/StatCard';
 
 const goals = [
   { value: 'LOSE_WEIGHT', label: 'Lose weight', detail: 'Get leaner' },
+  { value: 'GAIN_WEIGHT', label: 'Gain weight', detail: 'Build healthy body mass' },
   { value: 'BUILD_MUSCLE', label: 'Build muscle', detail: 'Grow stronger' },
+  { value: 'GET_STRONGER', label: 'Get stronger', detail: 'Improve your lifts' },
   { value: 'STAY_FIT', label: 'Stay fit', detail: 'Feel your best' },
 ];
 const panelStyle = { background: 'var(--color-bg-card)', borderColor: 'var(--color-border)' };

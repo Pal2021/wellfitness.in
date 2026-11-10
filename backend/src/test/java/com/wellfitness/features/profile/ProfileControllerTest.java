@@ -16,7 +16,8 @@ import static org.mockito.Mockito.verify;
 class ProfileControllerTest {
 
     private final UserRepository repository = mock(UserRepository.class);
-    private final ProfileController controller = new ProfileController(repository);
+    private final BodyMeasurementService measurements = mock(BodyMeasurementService.class);
+    private final ProfileController controller = new ProfileController(repository, measurements);
 
     @Test
     void updatesReturnTheSavedProfileAndPreserveMetricMeasurements() {
@@ -32,6 +33,7 @@ class ProfileControllerTest {
         ));
 
         verify(repository).save(user);
+        verify(measurements).recordToday(user);
         assertThat(user.getBodyweightKg()).isEqualByComparingTo(new BigDecimal("82.45"));
         assertThat(response.getBody().getData()).containsEntry("name", "New Name")
                 .containsEntry("unitsWeight", "LB")

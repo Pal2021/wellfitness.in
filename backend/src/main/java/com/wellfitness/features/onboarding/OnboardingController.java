@@ -8,6 +8,7 @@ import com.wellfitness.features.streak.entity.UserStreak;
 import com.wellfitness.features.auth.UserRepository;
 import com.wellfitness.features.streak.UserStreakRepository;
 import com.wellfitness.features.split.SplitService;
+import com.wellfitness.features.profile.BodyMeasurementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ public class OnboardingController {
 
     private final UserRepository userRepository;
     private final SplitService splitService;
+    private final BodyMeasurementService bodyMeasurements;
     private final UserStreakRepository userStreakRepository;
 
     @PostMapping("/complete")
@@ -36,9 +38,12 @@ public class OnboardingController {
         if (request.getGoal() != null) user.setGoal(request.getGoal());
         if (request.getExperience() != null) user.setExperience(request.getExperience());
         if (request.getDaysPerWeek() != null) user.setDaysPerWeek(request.getDaysPerWeek());
+        user.setBodyweightKg(request.getBodyweightKg());
+        user.setHeightCm(request.getHeightCm());
         if (request.getNotificationTime() != null) user.setNotificationTime(request.getNotificationTime());
         user.setOnboardingComplete(true);
         userRepository.save(user);
+        bodyMeasurements.recordToday(user);
 
         // Create user split from selected template
         UserSplit split = splitService.createFromTemplate(user.getId(), request.getTemplateId());

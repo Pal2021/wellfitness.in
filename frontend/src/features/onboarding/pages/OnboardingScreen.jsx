@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flame, Dumbbell, HeartPulse, ChevronLeft, Sunrise, Sun, CloudRain, Sunset, Moon, Check, Loader2, AlertCircle } from 'lucide-react';
 import { getTemplates, completeOnboarding } from '../../../services/apiClient';
@@ -6,7 +6,9 @@ import { getTemplates, completeOnboarding } from '../../../services/apiClient';
 // Core Flow Options
 const GOAL_OPTIONS = [
   { id: 'LOSE_WEIGHT', title: 'Lose Weight', desc: 'Burn fat and get lean', icon: Flame },
+  { id: 'GAIN_WEIGHT', title: 'Gain Weight', desc: 'Build healthy body mass', icon: HeartPulse },
   { id: 'BUILD_MUSCLE', title: 'Build Muscle', desc: 'Get stronger and bigger', icon: Dumbbell },
+  { id: 'GET_STRONGER', title: 'Get Stronger', desc: 'Improve your lifts over time', icon: Dumbbell },
   { id: 'STAY_FIT', title: 'Stay Fit', desc: 'Maintain and feel great', icon: HeartPulse },
 ];
 
@@ -45,6 +47,8 @@ export default function OnboardingScreen() {
   const [formData, setFormData] = useState({
     goal: '',
     experience: '',
+    bodyweightKg: '',
+    heightCm: '',
     daysPerWeek: null,
     templateId: '',
     notificationTime: '',
@@ -54,29 +58,31 @@ export default function OnboardingScreen() {
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const [templateError, setTemplateError] = useState(false);
 
-  useEffect(() => {
-    if (step === 3 && templates.length === 0 && !templateError) {
-      fetchTemplates();
-    }
-  }, [step]);
-
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     setIsLoadingTemplates(true);
     setTemplateError(false);
     try {
       const res = await getTemplates();
       const data = res.data?.data || res.data;
-      setTemplates(Array.isArray(data) ? data : []);
+      const available = Array.isArray(data) ? data : [];
+      setTemplates(available);
+      if (available.length === 0) setTemplateError(true);
     } catch (err) {
       console.error('Failed to load templates:', err);
       setTemplateError(true);
     } finally {
       setIsLoadingTemplates(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (step === 4 && templates.length === 0 && !templateError && !isLoadingTemplates) {
+      fetchTemplates();
+    }
+  }, [step, templates.length, templateError, isLoadingTemplates, fetchTemplates]);
 
   const handleNext = () => {
-    if (step < 6) {
+    if (step < 7) {
       setDirection('right');
       setStep((s) => s + 1);
     }
@@ -89,13 +95,15 @@ export default function OnboardingScreen() {
     }
   };
 
-  const submitOnboarding = async () => {
+  const submitOnboarding = useCallback(async () => {
     setIsSubmitLoading(true);
     setSubmitError('');
     try {
       await completeOnboarding({
         goal: formData.goal,
         experience: formData.experience,
+        bodyweightKg: Number(formData.bodyweightKg),
+        heightCm: Number(formData.heightCm),
         daysPerWeek: formData.daysPerWeek,
         templateId: formData.templateId,
         notificationTime: formData.notificationTime || '09:00',
@@ -106,24 +114,26 @@ export default function OnboardingScreen() {
       setSubmitError('Failed to save your plan. Please try again.');
       setIsSubmitLoading(false);
     }
-  };
+  }, [formData, navigate]);
 
   const canProceed = () => {
     if (step === 1) return formData.goal !== '';
     if (step === 2) return formData.experience !== '';
-    if (step === 3) return formData.daysPerWeek !== null;
-    if (step === 4) return formData.templateId !== '';
-    if (step === 5) return true;
+    if (step === 3) return /^\d{2,3}(\.\d{1,2})?$/.test(formData.bodyweightKg)
+      && Number(formData.bodyweightKg) >= 20 && Number(formData.bodyweightKg) <= 500
+      && /^\d{2,3}$/.test(formData.heightCm)
+      && Number(formData.heightCm) >= 80 && Number(formData.heightCm) <= 250;
+    if (step === 4) return formData.daysPerWeek !== null;
+    if (step === 5) return formData.templateId !== '';
+    if (step === 6) return true;
     return false;
   };
 
   useEffect(() => {
-    if (step === 6) {
-      setTimeout(() => {
-        submitOnboarding();
-      }, 1500);
-    }
-  }, [step]);
+    if (step !== 7) return undefined;
+    const timer = setTimeout(submitOnboarding, 1500);
+    return () => clearTimeout(timer);
+  }, [step, submitOnboarding]);
 
   const getTransClass = () => {
     return `absolute inset-0 flex flex-col pt-8 pb-32 animate-in duration-300 slide-in-from-${
@@ -131,13 +141,13 @@ export default function OnboardingScreen() {
     }-8 fade-in-0`;
   };
 
-  const progressPct = ((step - 1) / 5) * 100;
+  const progressPct = ((step - 1) / 6) * 100;
 
   return (
     <div style={S.page} data-page="onboarding">
       
       {/* ── Progress Bar ── */}
-      {step < 6 && (
+      {step < 7 && (
         <div style={S.progressBarContainer}>
           <div
             style={{ ...S.progressBarFill, width: `${progressPct}%` }}
@@ -146,7 +156,7 @@ export default function OnboardingScreen() {
       )}
 
       {/* ── Top Nav ── */}
-      {step > 1 && step < 6 && (
+      {step > 1 && step < 7 && (
         <button
           onClick={handleBack}
           style={S.backButton}
@@ -225,8 +235,28 @@ export default function OnboardingScreen() {
           </div>
         )}
 
-        {/* STEP 3 */}
+        {/* STEP 3: baseline body measurements */}
         {step === 3 && (
+          <div className={getTransClass()}>
+            <h1 style={S.title}>Your starting point</h1>
+            <p style={S.subtitle}>These measurements help your coach understand your progress. You can update them in Profile.</p>
+            <div style={S.listGroup}>
+              <label style={S.optionCard}>
+                <span style={S.cardTitle}>Body weight</span>
+                <span style={S.cardDesc}>Kilograms · 20 to 500 kg</span>
+                <input type="number" inputMode="decimal" min="20" max="500" step="0.01" value={formData.bodyweightKg} onChange={(event) => setFormData({ ...formData, bodyweightKg: event.target.value })} placeholder="e.g. 75.5" aria-label="Body weight in kilograms" style={{ ...S.timeInput, marginTop: '16px', textAlign: 'left', fontSize: '24px' }} />
+              </label>
+              <label style={S.optionCard}>
+                <span style={S.cardTitle}>Height</span>
+                <span style={S.cardDesc}>Centimetres · 80 to 250 cm</span>
+                <input type="number" inputMode="numeric" min="80" max="250" step="1" value={formData.heightCm} onChange={(event) => setFormData({ ...formData, heightCm: event.target.value })} placeholder="e.g. 175" aria-label="Height in centimetres" style={{ ...S.timeInput, marginTop: '16px', textAlign: 'left', fontSize: '24px' }} />
+              </label>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 4 */}
+        {step === 4 && (
           <div className={getTransClass()}>
             <h1 style={S.title}>How many days can you train?</h1>
             <p style={S.subtitle}>Pick what's realistic for your schedule</p>
@@ -256,8 +286,8 @@ export default function OnboardingScreen() {
           </div>
         )}
 
-        {/* STEP 4 */}
-        {step === 4 && (
+        {/* STEP 5 */}
+        {step === 5 && (
           <div className={getTransClass()}>
             <h1 style={S.title}>Choose your split</h1>
             <p style={S.subtitle}>Based on your goal and schedule ({formData.daysPerWeek} days)</p>
@@ -311,8 +341,8 @@ export default function OnboardingScreen() {
           </div>
         )}
 
-        {/* STEP 5 */}
-        {step === 5 && (
+        {/* STEP 6 */}
+        {step === 6 && (
           <div className={getTransClass()}>
             <h1 style={S.title}>When do you train?</h1>
             <p style={S.subtitle}>We'll remind you at this time every day</p>
@@ -356,8 +386,8 @@ export default function OnboardingScreen() {
           </div>
         )}
 
-        {/* STEP 6 (FINAL) */}
-        {step === 6 && (
+        {/* STEP 7 (FINAL) */}
+        {step === 7 && (
           <div style={S.finalWrapper} className="animate-in fade-in-0 duration-1000">
             <div style={{ position: 'relative', marginBottom: '32px' }}>
               <div style={S.finalIconOuter} className="animate-ping" />
@@ -385,6 +415,7 @@ export default function OnboardingScreen() {
               <span style={S.badgeOutline}>{formData.goal.replace('_', ' ')}</span>
               <span style={S.badgeOutline}>{formData.experience}</span>
               <span style={S.badgeOutline}>{formData.daysPerWeek} DAYS</span>
+              <span style={S.badgeOutline}>{formData.bodyweightKg} KG</span>
             </div>
             
             {submitError && !isSubmitLoading && (
@@ -397,7 +428,7 @@ export default function OnboardingScreen() {
       </div>
 
       {/* ── Fixed Bottom Actions ── */}
-      {step < 6 && (
+      {step < 7 && (
         <div style={S.bottomBar} data-bottom-bar>
           <div style={{ width: '100%', maxWidth: '430px', margin: '0 auto' }}>
             <button
@@ -408,7 +439,7 @@ export default function OnboardingScreen() {
                 ...( !canProceed() ? S.actionBtnDisabled : {} ),
               }}
             >
-              {step === 5 ? 'Create Plan' : 'Continue'}
+              {step === 6 ? 'Create Plan' : 'Continue'}
             </button>
           </div>
         </div>

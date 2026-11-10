@@ -10,5 +10,7 @@ import java.util.UUID;
 
 public interface MealEntryRepository extends JpaRepository<MealEntry, UUID> {
     List<MealEntry> findByUserIdAndLoggedDateOrderByCreatedAtAsc(UUID userId, LocalDate loggedDate);
+    List<MealEntry> findByUserIdAndLoggedDateBetweenOrderByLoggedDateAscCreatedAtAsc(
+            UUID userId, LocalDate startDate, LocalDate endDate);
     Optional<MealEntry> findByIdAndUserId(UUID id, UUID userId);
 }

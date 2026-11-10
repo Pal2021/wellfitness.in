@@ -1,3 +1,4 @@
 # Add to .gitignore
 src/main/resources/firebase-service-account.json
 src/main/resources/application-dev.properties
+.env

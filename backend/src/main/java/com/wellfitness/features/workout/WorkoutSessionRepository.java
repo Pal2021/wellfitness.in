@@ -28,5 +28,10 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
            "AND ws.startTime >= :since ORDER BY ws.startTime ASC")
     List<WorkoutSession> findCompletedSince(@Param("userId") UUID userId, @Param("since") LocalDateTime since);
 
+    @Query("SELECT ws FROM WorkoutSession ws WHERE ws.userId = :userId AND ws.status = 'COMPLETED' " +
+           "AND ws.startTime >= :start AND ws.startTime < :end ORDER BY ws.startTime DESC")
+    List<WorkoutSession> findCompletedInRange(@Param("userId") UUID userId,
+            @Param("start") LocalDateTime start, @Param("end") LocalDateTime end, Pageable pageable);
+
     long countByUserIdAndStatus(UUID userId, String status);
 }
