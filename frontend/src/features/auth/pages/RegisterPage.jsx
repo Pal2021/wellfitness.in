@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { register as apiRegister, googleAuth } from '../../../services/apiClient';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../../common/context/AuthContext';
+import { finishAuthentication } from '../../../common/guestIntent';
+import './RegisterPage.css';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -21,6 +23,16 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
+  const googleContainer = useRef(null);
+  const [googleWidth, setGoogleWidth] = useState(0);
+
+  useEffect(() => {
+    const observer = new ResizeObserver(([entry]) => {
+      setGoogleWidth(Math.min(400, Math.floor(entry.contentRect.width)));
+    });
+    observer.observe(googleContainer.current);
+    return () => observer.disconnect();
+  }, []);
 
   /* ── Validation ──────────────────────────── */
   const validate = () => {
@@ -54,7 +66,7 @@ export default function RegisterPage() {
       // Step 1: Register via Spring Boot (sends verification email behind the scenes)
       const res = await apiRegister({ name, email, password });
       const payloadData = res.data?.data || res.data;
-      const { token, ...user } = payloadData;
+      const { token } = payloadData;
       
       // Step 2: Store pending details and navigate to OTP Verification
       sessionStorage.setItem('pendingToken', token);
@@ -82,11 +94,7 @@ export default function RegisterPage() {
       const { token, ...user } = payloadData;
       login(token, user);
       
-      if (user.onboardingComplete === false) {
-        navigate('/onboarding', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+      finishAuthentication(navigate, user);
     } catch (err) {
       console.error(err);
       setFormError('Google sign-in failed. Try again.');
@@ -261,17 +269,16 @@ export default function RegisterPage() {
           </div>
 
           {/* ── Google Component ──────────────── */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <GoogleLogin
+          <div ref={googleContainer} className="wf-register__google" style={S.googleContainer}>
+            {googleWidth > 0 && <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={handleGoogleError}
-              useOneTap
               theme="outline"
               size="large"
-              width="398"
-              shape="pill"
+              width={googleWidth}
+              shape="rectangular"
               text="signup_with"
-            />
+            />}
           </div>
 
           {/* ── Back to Home ───────────────── */}
@@ -422,22 +429,13 @@ const S = {
     letterSpacing: '0.2em',
     color: 'var(--color-text-muted)',
   },
-  googleBtn: {
+  googleContainer: {
     width: '100%',
+    minWidth: 0,
+    minHeight: '44px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '10px',
-    padding: '13px 20px',
-    borderRadius: 'var(--radius-xl)',
-    border: '1px solid var(--color-border)',
-    background: 'var(--color-bg-tertiary)',
-    color: 'var(--color-text-primary)',
-    fontSize: 'var(--text-sm)',
-    fontWeight: 'var(--font-semibold)',
-    fontFamily: 'var(--font-sans)',
-    cursor: 'pointer',
-    transition: 'all 200ms ease',
   },
   backLink: {
     display: 'flex',

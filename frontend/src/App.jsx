@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./common/context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Component, useEffect, useState } from "react";
@@ -7,7 +7,9 @@ import BottomNav from "./common/components/BottomNav";
 import SideNav from "./common/components/SideNav";
 
 // ── Feature page imports ───────────────────────────────
+import GuestPreview from "./features/guest/GuestPreview";
 import LandingPage from "./features/landing/pages/LandingPage";
+import { saveGuestAction } from "./common/guestIntent";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import VerifyOTPPage from "./features/auth/pages/VerifyOTPPage";
@@ -53,7 +55,7 @@ import { Menu } from "lucide-react";
 //   Desktop (≥768px): SideNav on left + content on right
 // ──────────────────────────────────────────────
 function ProtectedLayout({ children }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     return localStorage.getItem("sidebar_collapsed") === "true";
@@ -80,10 +82,6 @@ function ProtectedLayout({ children }) {
         <div className="animate-spin w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full" />
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
   }
 
   /* ── Desktop shell ── */
@@ -157,25 +155,29 @@ function ProtectedLayout({ children }) {
 
 
 // ──────────────────────────────────────────────
+function FeaturePage({ children }) {
+  const { isAuthenticated } = useAuth();
+  return <ProtectedLayout>{isAuthenticated ? children : <GuestPreview />}</ProtectedLayout>;
+}
+
+function GuestWorkoutRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    saveGuestAction('workout');
+    navigate('/register', { replace: true });
+  }, [navigate]);
+  return null;
+}
+
+function WorkoutLogRoute() {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!isAuthenticated) return <GuestWorkoutRedirect />;
+  return <ProtectedLayout><WorkoutLogScreen /></ProtectedLayout>;
+}
+
 // Root route (Landing vs Dashboard)
 // ──────────────────────────────────────────────
-function RootRoute() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  return isAuthenticated ? (
-    <Navigate to="/dashboard" replace />
-  ) : (
-    <LandingPage />
-  );
-}
 
 // ──────────────────────────────────────────────
 // App
@@ -184,7 +186,7 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<RootRoute />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify-otp" element={<VerifyOTPPage />} />
@@ -203,89 +205,87 @@ function AppRoutes() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedLayout>
+          <FeaturePage>
             <DashboardScreen />
-          </ProtectedLayout>
+          </FeaturePage>
         }
       />
       <Route
         path="/workout"
         element={
-          <ProtectedLayout>
+          <FeaturePage>
             <WorkoutScreen />
-          </ProtectedLayout>
+          </FeaturePage>
         }
       />
       <Route
         path="/workout/log"
         element={
-          <ProtectedLayout>
-            <WorkoutLogScreen />
-          </ProtectedLayout>
+          <WorkoutLogRoute />
         }
       />
       <Route
         path="/workout/history"
         element={
-          <ProtectedLayout>
+          <FeaturePage>
             <HistoryScreen />
-          </ProtectedLayout>
+          </FeaturePage>
         }
       />
       <Route
         path="/exercises"
         element={
-          <ProtectedLayout>
+          <FeaturePage>
             <ExercisesScreen />
-          </ProtectedLayout>
+          </FeaturePage>
         }
       />
       <Route
         path="/exercises/:id"
         element={
-          <ProtectedLayout>
+          <FeaturePage>
             <ExerciseDetailScreen />
-          </ProtectedLayout>
+          </FeaturePage>
         }
       />
       <Route
         path="/splits"
         element={
-          <ProtectedLayout>
+          <FeaturePage>
             <SplitScreen />
-          </ProtectedLayout>
+          </FeaturePage>
         }
       />
       <Route
         path="/profile"
         element={
-          <ProtectedLayout>
+          <FeaturePage>
             <ProfileScreen />
-          </ProtectedLayout>
+          </FeaturePage>
         }
       />
       <Route
         path="/progress"
         element={
-          <ProtectedLayout>
+          <FeaturePage>
             <ProgressScreen />
-          </ProtectedLayout>
+          </FeaturePage>
         }
       />
       <Route
         path="/ai-coach"
         element={
-          <ProtectedLayout>
+          <FeaturePage>
             <AiCoachScreen />
-          </ProtectedLayout>
+          </FeaturePage>
         }
       />
       <Route
         path="/diet"
         element={
-          <ProtectedLayout>
+          <FeaturePage>
             <DietScreen />
-          </ProtectedLayout>
+          </FeaturePage>
         }
       />
 

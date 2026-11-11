@@ -1,0 +1,11 @@
+.wf-register__google > div {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.wf-register__google iframe {
+  display: block;
+  max-width: 100%;
+}

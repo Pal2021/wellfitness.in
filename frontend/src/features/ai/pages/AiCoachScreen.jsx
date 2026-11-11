@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowUp, Dumbbell, HeartPulse, Sparkles, Utensils } from 'lucide-react';
 import { askCoach } from '../../../services/apiClient';
 
@@ -13,11 +14,14 @@ function errorMessage(error) {
 }
 
 export default function AiCoachScreen() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState(() => location.state?.guestAction === 'coach' ? location.state.question || '' : '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const endRef = useRef(null);
+  const resumedQuestion = useRef(false);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -44,6 +48,16 @@ export default function AiCoachScreen() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (resumedQuestion.current || location.state?.guestAction !== 'coach' || !location.state.question?.trim()) return;
+    resumedQuestion.current = true;
+    const question = location.state.question;
+    navigate(location.pathname, { replace: true, state: null });
+    send(question);
+  // The saved question is handled once when the screen opens.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, location.pathname, navigate]);
 
   const onSubmit = (event) => {
     event.preventDefault();

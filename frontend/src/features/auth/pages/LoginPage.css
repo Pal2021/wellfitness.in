@@ -51,7 +51,9 @@
 .wf-login__divider { display: flex; align-items: center; gap: 14px; color: #969a90; font-size: 11px; margin: 24px 0; }
 .wf-login__divider span { flex: 1; height: 1px; background: #ffffff14; }
 .wf-login__alternatives { display: grid; gap: 12px; }
-.wf-login__google { width: 100%; min-width: 0; min-height: 44px; display: flex; justify-content: center; }
+.wf-login__google { width: 100%; min-width: 0; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.wf-login__google > div { width: 100%; min-width: 0; display: flex; justify-content: center; }
+.wf-login__google iframe { display: block; max-width: 100%; }
 .wf-login__signup { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; font-size: 12px; color: var(--login-muted); margin-top: 24px; }
 .wf-login__signup a { display: inline-flex; align-items: center; gap: 3px; color: #f5b43d; font-weight: 650; }
 .wf-login__footer { text-align: center; color: #898e80; font-size: 9px; letter-spacing: .16em; padding-top: 12px; }

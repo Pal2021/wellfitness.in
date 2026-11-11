@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../../common/context/AuthContext';
+import { finishAuthentication } from '../../../common/guestIntent';
 import { verifyEmailOtp, sendEmailOtp } from '../../../services/apiClient';
 import OTPInput from '../../../common/components/OTPInput';
 
@@ -55,7 +56,7 @@ export default function VerifyOTPPage() {
       localStorage.removeItem('pendingEmail');
       sessionStorage.removeItem('pendingToken');
       login(token, user);
-      navigate(user.onboardingComplete === false ? '/onboarding' : '/dashboard', { replace: true });
+      finishAuthentication(navigate, user);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Invalid OTP. Try again.');

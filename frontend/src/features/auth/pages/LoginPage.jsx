@@ -5,6 +5,7 @@ import { login as apiLogin, googleAuth } from '../../../services/apiClient';
 import { useAuth } from '../../../common/context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import './LoginPage.css';
+import { finishAuthentication } from '../../../common/guestIntent';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -34,11 +35,7 @@ export default function LoginPage() {
       const { token, ...user } = payloadData;
       login(token, user);
 
-      if (user.onboardingComplete === false) {
-        navigate('/onboarding', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+      finishAuthentication(navigate, user);
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -60,11 +57,7 @@ export default function LoginPage() {
       const { token, ...user } = payloadData;
       login(token, user);
       
-      if (user.onboardingComplete === false) {
-        navigate('/onboarding', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+      finishAuthentication(navigate, user);
     } catch (err) {
       console.error(err);
       setError('Google sign-in failed. Try again.');
@@ -78,7 +71,7 @@ export default function LoginPage() {
   };
 
   const googleContainer = useRef(null);
-  const [googleWidth, setGoogleWidth] = useState(280);
+  const [googleWidth, setGoogleWidth] = useState(0);
   useEffect(() => {
     const observer = new ResizeObserver(([entry]) => {
       setGoogleWidth(Math.min(400, Math.floor(entry.contentRect.width)));
@@ -113,7 +106,9 @@ export default function LoginPage() {
           </form>
           <div className="wf-login__divider"><span />or continue with<span /></div>
           <div className="wf-login__alternatives">
-            <div className="wf-login__google" ref={googleContainer}><GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} useOneTap theme="outline" size="large" width={googleWidth} shape="rectangular" text="continue_with_google" /></div>
+            <div className="wf-login__google" ref={googleContainer}>
+              {googleWidth > 0 && <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} theme="outline" size="large" width={googleWidth} shape="rectangular" text="continue_with_google" />}
+            </div>
           </div>
           <p className="wf-login__signup">New to Wellfitness? <Link to="/register">Create an account <ArrowUpRight size={14} aria-hidden="true" /></Link></p>
         </section>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, RefreshCw, UtensilsCrossed } from 'lucide-react';
 import { addMealEntry, deleteMealEntry, getDietDay, saveNutritionTargets, updateMealEntry } from '../../../services/apiClient';
 import DietOverview from '../components/DietOverview';
@@ -31,6 +32,8 @@ function requestMessage(error) {
 }
 
 export default function DietScreen() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [date, setDate] = useState(() => localDate());
   const [reloadKey, setReloadKey] = useState(0);
   const [day, setDay] = useState(null);
@@ -42,6 +45,12 @@ export default function DietScreen() {
   const [actionError, setActionError] = useState('');
   const [feedback, setFeedback] = useState('');
   const today = localDate();
+
+  useEffect(() => {
+    if (location.state?.guestAction !== 'food') return;
+    setActiveMeal({ mealType: 'SNACK', entry: null, initialName: '' });
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     let active = true;

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flame, Dumbbell, HeartPulse, ChevronLeft, Sunrise, Sun, CloudRain, Sunset, Moon, Check, Loader2, AlertCircle } from 'lucide-react';
 import { getTemplates, completeOnboarding } from '../../../services/apiClient';
+import { takeGuestAction } from '../../../common/guestIntent';
 
 // Core Flow Options
 const GOAL_OPTIONS = [
@@ -108,7 +109,8 @@ export default function OnboardingScreen() {
         templateId: formData.templateId,
         notificationTime: formData.notificationTime || '09:00',
       });
-      navigate('/dashboard', { replace: true });
+      const { path, state } = takeGuestAction();
+      navigate(path, { replace: true, state });
     } catch (err) {
       console.error(err);
       setSubmitError('Failed to save your plan. Please try again.');
